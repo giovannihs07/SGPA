@@ -1,0 +1,53 @@
+# Arquitectura por Capas (Layered Architecture) + Cliente-Servidor (Frontend/Backend separado)
+
+# Arquitectura por Capas en el Backend (con Spring Boot)
+# Arquitectura por Componentes en el Frontend (con React)
+
+
+Estructura del proyecto
+
+sgpa/
+│
+├── backend/                            # 🛠️ Spring Boot (Java)
+│   └── src/
+│       └── main/
+│           ├── java/com/sgpa/
+│           │   ├── config/             # Configuración general y de seguridad
+│           │   ├── controller/         # Controladores REST (API pública) - Capa de presentación
+│           │   ├── dto/                # Data Transfer Objects
+│           │   ├── exception/          # Manejo de errores personalizados
+│           │   ├── model/              # Entidades JPA (Usuario, Material, etc.)
+│           │   ├── repository/         # Interfaces de acceso a BD - Capa de acceso a datos
+│           │   ├── security/           # JWT, OAuth, filtros y configuración - Capa de seguridad
+│           │   ├── service/            # Lógica de negocio - Capa de lógica del negocio
+│           │   └── SGPAApplication.java# Clase principal
+│           └── resources/
+│               ├── application.yml     # Config. de Spring Boot
+│               └── static/             # Recursos estáticos (si los hay)
+│
+├── frontend/                           # 💻 React + Tailwind
+│   ├── public/                         # HTML base, favicon, etc.
+│   └── src/
+│       ├── assets/                     # Logos, imágenes, íconos
+│       ├── components/                 # Componentes reutilizables
+│       │   ├── ui/                     # Botones, inputs, loaders
+│       │   └── layout/                 # Header, Sidebar, Footer
+│       ├── context/                    # Contextos globales (auth, theme)
+│       ├── hooks/                      # Hooks personalizados
+│       ├── pages/                      # Vistas principales (Login, Dashboard)
+│       ├── routes/                     # Definición de rutas y rutas protegidas
+│       ├── services/                   # Axios: authService, apiService
+│       ├── styles/                     # Tailwind base y estilos globales
+│       │   └── index.css
+│       ├── App.jsx                     # Componente raíz
+│       └── main.jsx                    # Entrada ReactDOM
+│
+├── docs/                               # 📄 Documentación técnica, diagramas
+│
+├── scripts/                            # 🔧 Scripts de utilidad (deploy, etc.)
+│
+├── .gitignore
+├── README.md
+├── package.json                        # Frontend
+├── pom.xml                             # Backend (Maven)
+└── docker-compose.yml (opcional)      # Configuración Docker
