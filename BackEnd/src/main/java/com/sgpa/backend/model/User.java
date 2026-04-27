@@ -22,7 +22,7 @@ import lombok.NoArgsConstructor;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY) //IDENTITY con MySQL, SEQUENCE con postgre
     private Long id;
 
     @NotBlank
