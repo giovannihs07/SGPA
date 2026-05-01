@@ -25,7 +25,6 @@ public class MapToJsonConverter implements AttributeConverter<Map<String, Object
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Map<String, Object> convertToEntityAttribute(String json) {
         if (json == null) return new HashMap<>();
         try {

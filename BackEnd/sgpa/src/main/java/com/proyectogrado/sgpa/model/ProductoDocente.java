@@ -54,18 +54,16 @@ public class ProductoDocente {
     @Enumerated(EnumType.STRING)
     private TipoProducto tipo;
 
-    /*
-     * // Atributos específicos de cada tipo
-     * 
-     * @JdbcTypeCode(SqlTypes.JSON)
-     * 
-     * @Column(columnDefinition = "jsonb")
-     * private Map<String, Object> atributos = new HashMap<>();
-     */
-
-        
-    // Por esto:
+    
+    // Atributos específicos de cada tipo
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    private Map<String, Object> atributos = new HashMap<>();
+     
+  
+    /* 
     @Convert(converter = MapToJsonConverter.class)
     @Column(columnDefinition = "TEXT")
     private Map<String, Object> atributos = new HashMap<>();
+    */
 }
