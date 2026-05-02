@@ -15,18 +15,13 @@ public class ProductoDocenteBuilder {
         return this;
     }
 
-    public ProductoDocenteBuilder estado(String estado) {
+    public ProductoDocenteBuilder estado(EstadoProducto estado) {
         producto.setEstado(estado);
         return this;
     }
 
     public ProductoDocenteBuilder descripcion(String descripcion) {
         producto.setDescripcion(descripcion);
-        return this;
-    }
-
-    public ProductoDocenteBuilder url(String url) {
-        producto.setUrl(url);
         return this;
     }
 

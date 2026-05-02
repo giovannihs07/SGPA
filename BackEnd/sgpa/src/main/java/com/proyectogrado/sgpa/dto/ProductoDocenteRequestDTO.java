@@ -22,9 +22,7 @@ public class ProductoDocenteRequestDTO {
     private String tipo; // debe coincidir con un valor del enum TipoProducto
 
     private String descripcion;
-    private String url;
-    private String estado; 
-
+    
     @NotNull(message = "Los atributos son obligatorios")
     private Map<String, Object> atributos;
 }

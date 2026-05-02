@@ -18,9 +18,8 @@ public class ProductoDocenteFactory {
 
     return builder
         .nombre(dto.getNombre())
-        .estado("SIN_PUBLICAR")          // corregido
         .descripcion(dto.getDescripcion())
-        .url(dto.getUrl())
+        .estado(EstadoProducto.SIN_PUBLICAR) // por defecto, el producto inicia sin publicar
         .tipo(tipo)
         .atributos(dto.getAtributos())
         .build();

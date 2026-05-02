@@ -17,11 +17,12 @@ public class ProductoDocenteMapper {
             .nombre(producto.getNombre())
             .estado(producto.getEstado())
             .descripcion(producto.getDescripcion())
-            .url(producto.getUrl())
+            .nombreArchivo(producto.getNombreArchivo())
             .categoria(producto.getCategoria().name())
             .subcategoria(producto.getSubcategoria().name())
             .tipo(producto.getTipo().name())
             .fechaCreacion(producto.getFechaCreacion())
+            .fechaPublicacion(producto.getFechaPublicacion())
             .atributos(producto.getAtributos())
             .build();
     }

@@ -8,10 +8,10 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import com.proyectogrado.sgpa.converter.MapToJsonConverter;
+//import com.proyectogrado.sgpa.converter.MapToJsonConverter;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
+//import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -35,15 +35,13 @@ public class ProductoDocente {
     private Long id;
 
     private String nombre;
-    private String estado;
     private String descripcion;
-    private String url;
 
-    @CreationTimestamp
-    private LocalDate fechaCreacion;
-
-    @CreationTimestamp
-    private LocalDate fechaPublicacion;
+    // Para almacenar el nombre del archivo asociado al producto, puede ser opcional
+    private String nombreArchivo;
+    
+    @Enumerated(EnumType.STRING)
+    private EstadoProducto estado;
 
     @Enumerated(EnumType.STRING)
     private CategoriaProducto categoria;
@@ -54,13 +52,18 @@ public class ProductoDocente {
     @Enumerated(EnumType.STRING)
     private TipoProducto tipo;
 
+    @CreationTimestamp
+    private LocalDate fechaCreacion;
+
+    //Para almacenar la fecha cuando RRHH lo publique
+    private LocalDate fechaPublicacion;
     
-    // Atributos específicos de cada tipo
+    // Conectarse a la base de datos PostgreSQL
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Map<String, Object> atributos = new HashMap<>();
      
-  
+    //Conectarse a la base de datos H2
     /* 
     @Convert(converter = MapToJsonConverter.class)
     @Column(columnDefinition = "TEXT")

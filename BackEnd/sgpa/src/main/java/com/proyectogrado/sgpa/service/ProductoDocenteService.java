@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.proyectogrado.sgpa.dto.ProductoDocenteRequestDTO;
 import com.proyectogrado.sgpa.dto.ProductoDocenteResponseDTO;
@@ -11,7 +12,7 @@ import com.proyectogrado.sgpa.dto.ProductoDocenteResponseDTO;
 // service/ProductoDocenteService.java
 public interface ProductoDocenteService {
 
-    ProductoDocenteResponseDTO crear(ProductoDocenteRequestDTO dto);
+    ProductoDocenteResponseDTO crear(ProductoDocenteRequestDTO dto, MultipartFile archivo);
     ProductoDocenteResponseDTO actualizar(Long id, ProductoDocenteRequestDTO dto);
     List<ProductoDocenteResponseDTO> buscarTodos();
     void eliminar(Long id);
