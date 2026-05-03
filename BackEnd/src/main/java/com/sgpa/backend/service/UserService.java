@@ -4,17 +4,17 @@ import java.util.List;
 import java.util.Optional;
 
 import com.sgpa.backend.dto.request.UserRequest;
-import com.sgpa.backend.model.User;
+import com.sgpa.backend.dto.response.UserResponse;
 
 public interface UserService {
     // Implementación de los métodos de esta interface
-    List<User> findAll();
+    List<UserResponse> findAll();
 
-    Optional<User> findById(Long id);
+    Optional<UserResponse> findById(Long id);
 
-    User save(UserRequest user);
+    UserResponse save(UserRequest user);
 
-    Optional<User> update(UserRequest request, Long id);
+    Optional<UserResponse> update(UserRequest request, Long id);
 
     void remove(Long id);
 }

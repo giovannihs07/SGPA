@@ -15,27 +15,32 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.sgpa.backend.dto.request.UserRequest;
-import com.sgpa.backend.model.User;
+import com.sgpa.backend.dto.response.UserResponse;
 import com.sgpa.backend.service.UserService;
 
 import jakarta.validation.Valid;
 
+@RestController
+@RequestMapping("/users") 
 public class UserController {
+   
     @Autowired
     private UserService service;
 
     // Métodos handler GET
     @GetMapping
-    public List<User> list() {
+    public List<UserResponse> list() {
         return service.findAll();
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> show(@PathVariable Long id) {
-        Optional<User> userOptional = service.findById(id);
+        Optional<UserResponse> userOptional = service.findById(id);
         
         if (userOptional.isPresent()) {
             return ResponseEntity.ok(userOptional.orElseThrow());
@@ -61,20 +66,18 @@ public class UserController {
         if (result.hasErrors()) {
             return validation(result);
         }
-        Optional<User> o = service.update(user, id);
+        Optional<UserResponse> o = service.update(user, id);
         if (o.isPresent()) {
-            // return ResponseEntity.status(HttpStatus.CREATED).body(service.save(o.orElseThrow()));
             return ResponseEntity.ok(o.get());
         }
         return ResponseEntity.notFound().build();
     }
 
     // Métodos handler DELETE
-    
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
-        Optional<User> o = service.findById(id);
-        if (o.isPresent()) {
+        if (service.findById(id).isPresent()) {
             service.remove(id);
             return ResponseEntity.noContent().build(); // 204
         }

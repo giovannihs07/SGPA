@@ -22,7 +22,7 @@ sgpa/
 │           │   ├── service/            # Lógica de negocio - Capa de lógica del negocio
 │           │   └── SGPAApplication.java# Clase principal
 │           └── resources/
-│               ├── application.yml     # Config. de Spring Boot
+│               ├── application.properties     # Config. de Spring Boot
 │               └── static/             # Recursos estáticos (si los hay)
 │
 ├── frontend/                           # 💻 React + Tailwind
