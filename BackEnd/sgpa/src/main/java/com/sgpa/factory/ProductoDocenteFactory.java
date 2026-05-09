@@ -1,0 +1,32 @@
+package com.sgpa.factory;
+
+import org.springframework.stereotype.Component;
+
+import com.sgpa.builder.ProductoDocenteBuilder;
+import com.sgpa.dto.ProductoDocenteRequestDTO;
+import com.sgpa.model.EstadoProducto;
+import com.sgpa.model.ProductoDocente;
+import com.sgpa.model.TipoProducto;
+
+@Component
+public class ProductoDocenteFactory {
+
+    private final ProductoDocenteBuilder builder;
+
+    public ProductoDocenteFactory(ProductoDocenteBuilder builder) {
+        this.builder = builder;
+    }
+
+    public ProductoDocente crear(ProductoDocenteRequestDTO dto) {
+    TipoProducto tipo = TipoProducto.valueOf(dto.getTipo());
+
+    return builder
+        .nombre(dto.getNombre())
+        .descripcion(dto.getDescripcion())
+        .estado(EstadoProducto.SIN_PUBLICAR) // por defecto, el producto inicia sin publicar
+        .tipo(tipo)
+        .atributos(dto.getAtributos())
+        .build();
+    }
+
+}
