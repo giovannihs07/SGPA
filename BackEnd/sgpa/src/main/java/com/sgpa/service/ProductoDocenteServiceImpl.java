@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.sgpa.dto.ProductoDocenteRequestDTO;
-import com.sgpa.dto.ProductoDocenteResponseDTO;
+import com.sgpa.dto.request.ProductoDocenteRequestDTO;
+import com.sgpa.dto.response.ProductoDocenteResponseDTO;
 import com.sgpa.exception.ProductoDocenteNotFoundException;
 import com.sgpa.exception.TipoProductoInvalidoException;
 import com.sgpa.factory.ProductoDocenteFactory;
@@ -41,8 +41,9 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
 
         // Archivo es opcional — solo se guarda si viene en el request
         if (archivo != null && !archivo.isEmpty()) {
-            String nombreArchivo = fileStorageService.guardarArchivo(archivo, dto.getTipo());
-            producto.setNombreArchivo(nombreArchivo);
+            String[] nombres = fileStorageService.guardarArchivo(archivo, dto.getTipo());
+            producto.setNombreArchivo(nombres[0]); // interno
+            producto.setNombreArchivoOriginal(nombres[1]); // original
         }
 
         return mapper.toDTO(repository.save(producto));

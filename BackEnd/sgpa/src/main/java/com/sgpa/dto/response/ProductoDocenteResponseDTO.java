@@ -1,4 +1,4 @@
-package com.sgpa.dto;
+package com.sgpa.dto.response;
 
 import java.time.LocalDate;
 import java.util.Map;
@@ -21,6 +21,7 @@ public class ProductoDocenteResponseDTO {
     private String nombre;
     private String descripcion;
     private String nombreArchivo;
+    private String nombreArchivoOriginal;
     private EstadoProducto estado;
     private String categoria;
     private String subcategoria;

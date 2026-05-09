@@ -1,4 +1,4 @@
-package com.sgpa.dto;
+package com.sgpa.dto.request;
 
 import java.util.Map;
 

@@ -39,6 +39,7 @@ public class ProductoDocente {
 
     // Para almacenar el nombre del archivo asociado al producto, puede ser opcional
     private String nombreArchivo;
+    private String nombreArchivoOriginal;
     
     @Enumerated(EnumType.STRING)
     private EstadoProducto estado;

@@ -6,8 +6,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.sgpa.dto.ProductoDocenteRequestDTO;
-import com.sgpa.dto.ProductoDocenteResponseDTO;
+import com.sgpa.dto.request.ProductoDocenteRequestDTO;
+import com.sgpa.dto.response.ProductoDocenteResponseDTO;
 
 // service/ProductoDocenteService.java
 public interface ProductoDocenteService {

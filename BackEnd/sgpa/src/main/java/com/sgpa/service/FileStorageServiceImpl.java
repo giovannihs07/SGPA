@@ -29,17 +29,17 @@ public class FileStorageServiceImpl implements FileStorageService {
     }
 
     @Override
-    public String guardarArchivo(MultipartFile archivo, String tipoProducto) {
+    public String[] guardarArchivo(MultipartFile archivo, String tipoProducto) {
         validarArchivo(archivo);
 
-        // Nombre único para evitar colisiones
         String extension = obtenerExtension(archivo.getOriginalFilename());
-        String nombreArchivo = tipoProducto + "_" + UUID.randomUUID() + "." + extension;
+        String nombreOriginal = archivo.getOriginalFilename();
+        String nombreInterno = tipoProducto + "_" + UUID.randomUUID() + "." + extension;
 
         try {
-            Path destino = directorioBase.resolve(nombreArchivo);
+            Path destino = directorioBase.resolve(nombreInterno);
             Files.copy(archivo.getInputStream(), destino, StandardCopyOption.REPLACE_EXISTING);
-            return nombreArchivo;
+            return new String[] { nombreInterno, nombreOriginal };
         } catch (IOException e) {
             throw new RuntimeException("Error al guardar el archivo", e);
         }
@@ -73,7 +73,8 @@ public class FileStorageServiceImpl implements FileStorageService {
             throw new IllegalStateException("El archivo está vacío");
 
         String extension = obtenerExtension(archivo.getOriginalFilename()).toLowerCase();
-        List<String> extensionesPermitidas = List.of("pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx");
+        List<String> extensionesPermitidas = List.of("pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "zip", "rar",
+                "jpg", "jpeg", "png", "gif", "java", "py", "txt");
 
         if (!extensionesPermitidas.contains(extension))
             throw new IllegalStateException("Tipo de archivo no permitido: " + extension);
