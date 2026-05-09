@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.sgpa.dto.ProductoDocenteRequestDTO;
-import com.sgpa.dto.ProductoDocenteResponseDTO;
+import com.sgpa.dto.request.ProductoDocenteRequestDTO;
+import com.sgpa.dto.response.ProductoDocenteResponseDTO;
 import com.sgpa.exception.ProductoDocenteNotFoundException;
 import com.sgpa.model.ProductoDocente;
 import com.sgpa.repository.ProductoDocenteRepository;
@@ -66,12 +66,11 @@ public class ProductoDocenteController {
             return ResponseEntity.notFound().build();
 
         Resource archivo = fileStorageService.cargarArchivo(producto.getNombreArchivo());
-        String contentType = "application/octet-stream";
 
         return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(contentType))
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"" + producto.getNombreArchivo() + "\"")
+                        "attachment; filename=\"" + producto.getNombreArchivoOriginal() + "\"") // nombre amigable
                 .body(archivo);
     }
 

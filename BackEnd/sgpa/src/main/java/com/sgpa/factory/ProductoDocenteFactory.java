@@ -3,7 +3,7 @@ package com.sgpa.factory;
 import org.springframework.stereotype.Component;
 
 import com.sgpa.builder.ProductoDocenteBuilder;
-import com.sgpa.dto.ProductoDocenteRequestDTO;
+import com.sgpa.dto.request.ProductoDocenteRequestDTO;
 import com.sgpa.model.EstadoProducto;
 import com.sgpa.model.ProductoDocente;
 import com.sgpa.model.TipoProducto;
