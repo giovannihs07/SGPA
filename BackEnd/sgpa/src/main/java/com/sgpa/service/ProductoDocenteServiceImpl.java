@@ -15,11 +15,11 @@ import com.sgpa.exception.ProductoDocenteNotFoundException;
 import com.sgpa.exception.TipoProductoInvalidoException;
 import com.sgpa.factory.ProductoDocenteFactory;
 import com.sgpa.mapper.ProductoDocenteMapper;
-import com.sgpa.model.CategoriaProducto;
-import com.sgpa.model.EstadoProducto;
-import com.sgpa.model.ProductoDocente;
-import com.sgpa.model.SubcategoriaProducto;
-import com.sgpa.model.TipoProducto;
+import com.sgpa.model.products.CategoriaProducto;
+import com.sgpa.model.products.EstadoProducto;
+import com.sgpa.model.products.ProductoDocente;
+import com.sgpa.model.products.SubcategoriaProducto;
+import com.sgpa.model.products.TipoProducto;
 import com.sgpa.repository.ProductoDocenteRepository;
 
 import lombok.RequiredArgsConstructor;

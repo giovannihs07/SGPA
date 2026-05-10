@@ -3,7 +3,7 @@ package com.sgpa.dto.response;
 import java.time.LocalDate;
 import java.util.Map;
 
-import com.sgpa.model.EstadoProducto;
+import com.sgpa.model.products.EstadoProducto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

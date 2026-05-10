@@ -4,9 +4,9 @@ import org.springframework.stereotype.Component;
 
 import com.sgpa.builder.ProductoDocenteBuilder;
 import com.sgpa.dto.request.ProductoDocenteRequestDTO;
-import com.sgpa.model.EstadoProducto;
-import com.sgpa.model.ProductoDocente;
-import com.sgpa.model.TipoProducto;
+import com.sgpa.model.products.EstadoProducto;
+import com.sgpa.model.products.ProductoDocente;
+import com.sgpa.model.products.TipoProducto;
 
 @Component
 public class ProductoDocenteFactory {

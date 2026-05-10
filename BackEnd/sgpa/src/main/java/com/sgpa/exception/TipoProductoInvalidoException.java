@@ -2,7 +2,7 @@ package com.sgpa.exception;
 
 import java.util.Arrays;
 
-import com.sgpa.model.TipoProducto;
+import com.sgpa.model.products.TipoProducto;
 
 public class TipoProductoInvalidoException extends RuntimeException {
     public TipoProductoInvalidoException(String tipo) {

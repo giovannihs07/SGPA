@@ -5,11 +5,11 @@ import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
-import com.sgpa.model.CategoriaProducto;
-import com.sgpa.model.EstadoProducto;
-import com.sgpa.model.ProductoDocente;
-import com.sgpa.model.SubcategoriaProducto;
-import com.sgpa.model.TipoProducto;
+import com.sgpa.model.products.CategoriaProducto;
+import com.sgpa.model.products.EstadoProducto;
+import com.sgpa.model.products.ProductoDocente;
+import com.sgpa.model.products.SubcategoriaProducto;
+import com.sgpa.model.products.TipoProducto;
 
 @Component
 public class ProductoDocenteBuilder {

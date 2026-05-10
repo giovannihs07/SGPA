@@ -1,4 +1,4 @@
-package com.sgpa.model;
+package com.sgpa.model.products;
 
 public enum EstadoProducto {
     SIN_PUBLICAR,
