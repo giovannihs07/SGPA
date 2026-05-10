@@ -1,4 +1,4 @@
-package com.sgpa.model;
+package com.sgpa.model.products;
 
 import java.time.LocalDate;
 import java.util.HashMap;

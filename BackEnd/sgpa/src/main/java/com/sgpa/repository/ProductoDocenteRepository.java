@@ -7,11 +7,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.sgpa.model.CategoriaProducto;
-import com.sgpa.model.EstadoProducto;
-import com.sgpa.model.ProductoDocente;
-import com.sgpa.model.SubcategoriaProducto;
-import com.sgpa.model.TipoProducto;
+import com.sgpa.model.products.CategoriaProducto;
+import com.sgpa.model.products.EstadoProducto;
+import com.sgpa.model.products.ProductoDocente;
+import com.sgpa.model.products.SubcategoriaProducto;
+import com.sgpa.model.products.TipoProducto;
 
 
 @Repository

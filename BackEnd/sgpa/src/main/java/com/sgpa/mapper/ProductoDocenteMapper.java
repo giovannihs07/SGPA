@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 import com.sgpa.dto.response.ProductoDocenteResponseDTO;
-import com.sgpa.model.ProductoDocente;
+import com.sgpa.model.products.ProductoDocente;
 
 // mapper/ProductoDocenteMapper.java
 @Component
