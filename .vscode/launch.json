@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-SgpaApplication<sgpa>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.sgpa.SgpaApplication",
+            "projectName": "sgpa",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
