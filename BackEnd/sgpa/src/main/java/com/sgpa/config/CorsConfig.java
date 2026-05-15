@@ -8,6 +8,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+// Configuración de CORS para permitir solicitudes desde el frontend.
 @Configuration
 public class CorsConfig {
 
@@ -17,7 +18,7 @@ public class CorsConfig {
 
         config.setAllowedOrigins(List.of("http://localhost:5173")); // URL React
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*")); // Permitir todos los encabezados
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type")); // Permitir cabeceras necesarias para JWT y JSON
         config.setAllowCredentials(true); // Permitir el envío de cookies y credenciales en las solicitudes CORS
 
         // Registrar la configuración CORS para todas las rutas (/**)

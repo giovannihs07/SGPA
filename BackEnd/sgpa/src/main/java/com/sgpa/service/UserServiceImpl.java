@@ -56,7 +56,7 @@ public class UserServiceImpl implements UserService {
         List<Role> roles = new ArrayList<>();
         
         if (request.isSuperAdmin()) {
-            roleRepository.findByName("ROLE_SUPER_ADMIN").ifPresent(roles::add);
+            roleRepository.findByName("ROLE_SUPERADMIN").ifPresent(roles::add);
         } else if (request.isAdmin()) {
             roleRepository.findByName("ROLE_ADMIN").ifPresent(roles::add);
         } else {

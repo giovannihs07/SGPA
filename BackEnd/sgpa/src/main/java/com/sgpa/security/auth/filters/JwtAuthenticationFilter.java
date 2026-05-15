@@ -4,8 +4,9 @@ import static com.sgpa.config.TokenJwtConfig.*;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Collection;
+import java.util.stream.Collectors;
 import java.util.Date;
 
 import org.springframework.security.authentication.AuthenticationManager;
@@ -33,6 +34,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     
     public JwtAuthenticationFilter(AuthenticationManager authenticationManager) {
         this.authenticationManager = authenticationManager;
+        setFilterProcessesUrl("/login");
     }
 
     @Override
@@ -72,30 +74,38 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         String email = ((org.springframework.security.core.userdetails.User) authResult.getPrincipal()).getUsername();
 
         // Obtenemos los roles del usuario autenticado para incluirlos en el token JWT como reclamos (claims)
-        Collection<? extends GrantedAuthority> roles = authResult.getAuthorities();
-        // Verificamos si el usuario tiene el rol de "ROLE_ADMIN" para incluir esta información como un claim adicional
-        boolean isAdmin = roles.stream().anyMatch(r -> r.getAuthority().equals("ROLE_ADMIN"));
+        //Collection<? extends GrantedAuthority> roles = authResult.getAuthorities();
         
+        // Verificamos el rol para incluir esta información como un claim adicional
+
+         List<String> rolesName = authResult.getAuthorities().stream()
+            .map(GrantedAuthority::getAuthority)
+            .collect(Collectors.toList());
+
+        boolean isSuperAdmin = rolesName.contains("ROLE_SUPERADMIN");
+        boolean isAdmin = rolesName.contains("ROLE_ADMIN");
+        boolean isDocente = rolesName.contains("ROLE_DOCENTE");
+
         // Generación del token JWT utilizando la información del usuario autenticado
         String token = Jwts.builder()
-                .claim("isAdmin", isAdmin) // Agregamos los claims al token JWT, incluyendo los roles del usuario
+                .claim("roles", rolesName) // Agregamos los claims al token JWT, incluyendo los roles del usuario
+                .claim("isSuperAdmin", isSuperAdmin)
+                .claim("isAdmin", isAdmin)
+                .claim("isDocente", isDocente)
                 .subject(email) // Asignación del nombre de usuario como sujeto del token JWT
                 .signWith(TokenJwtConfig.getSecretKey()) // Firma del token JWT utilizando la clave secreta definida en TokenJwtConfig
                 .issuedAt(new Date()) // Fecha de emisión del token JWT
                 .expiration(new Date(System.currentTimeMillis() + 3600000)) // El token expirará en 1 hora
                 .compact(); // Compresión del token JWT en una cadena de texto
 
-        // Agregamos el token JWT generado a los encabezados de autorización de la respuesta HTTP
-        response.addHeader(HEADER_AUTHORIZATION, PREFIX_TOKEN + token);
-
-        
         Map<String, Object> body = new HashMap<>();
         body.put("token", token);
         body.put("message", String.format("¡Hola %s, has iniciado sesión con éxito!", email));
         body.put("email", email);
-        response.getWriter().write(new ObjectMapper().writeValueAsString(body));
         response.setStatus(200);
         response.setContentType("application/json");
+        response.addHeader(HEADER_AUTHORIZATION, PREFIX_TOKEN + token);
+        response.getWriter().write(new ObjectMapper().writeValueAsString(body));
     }
 
     @Override

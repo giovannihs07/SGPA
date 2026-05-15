@@ -30,7 +30,7 @@ public class UserDetailsServiceImpl implements UserDetailsService{
         Optional<com.sgpa.model.users.User> userOptional = userRepository.findByEmail(email);
 
         if(!userOptional.isPresent()){ // Si el usuario no existe, lanzamos una excepción para que Spring Security lo maneje
-            throw new UsernameNotFoundException(String.format("Email no existe en el sistema", email));
+            throw new UsernameNotFoundException(String.format("Email '%s' no existe en el sistema", email));
         }
 
         // Si el usuario existe, obtenemos la entidad User y sus roles para construir un UserDetails

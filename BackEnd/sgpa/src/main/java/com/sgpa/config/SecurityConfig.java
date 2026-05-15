@@ -1,8 +1,10 @@
 package com.sgpa.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -13,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 import com.sgpa.security.auth.filters.JwtAuthenticationFilter;
 import com.sgpa.security.auth.filters.JwtValidationFilter;
@@ -39,6 +42,7 @@ public class SecurityConfig {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
+    // Configuración de la cadena de filtros de seguridad para manejar la autenticación y autorización.
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
@@ -49,9 +53,11 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/login").permitAll()
                 .requestMatchers(HttpMethod.GET, "/users").permitAll()
                 .requestMatchers(HttpMethod.GET, "/users/{id}").hasAnyRole("DOCENTE", "ADMIN", "SUPERADMIN")
-                .requestMatchers(HttpMethod.POST, "/users").hasAnyRole("ADMIN", "SUPERADMIN")
+                .requestMatchers(HttpMethod.POST, "/users").permitAll()
                 .requestMatchers("/users/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
@@ -61,5 +67,13 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .build();
+    }
+
+    // Registro del filtro de CORS para asegurar que se aplique a todas las solicitudes.
+    @Bean
+    FilterRegistrationBean<CorsFilter> corsFilter() {
+        FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(corsConfigurationSource));
+        bean.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        return bean;
     }
 }
