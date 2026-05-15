@@ -21,7 +21,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 public class JwtValidationFilter extends BasicAuthenticationFilter {
@@ -37,6 +37,18 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
+        
+        String requestURI = request.getRequestURI();
+        
+        // Omitir completamente la validación JWT para rutas públicas
+        if (requestURI.startsWith("/swagger-ui") || 
+            requestURI.startsWith("/v3/api-docs") || 
+            requestURI.startsWith("/swagger-resources") ||
+            requestURI.startsWith("/webjars") ||
+            requestURI.equals("/swagger-ui.html")) {
+            chain.doFilter(request, response);
+            return;
+        }
         
         String header = request.getHeader(HEADER_AUTHORIZATION);
 

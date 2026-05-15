@@ -25,4 +25,7 @@ public class ProductoDocenteRequestDTO {
     
     @NotNull(message = "Los atributos son obligatorios")
     private Map<String, Object> atributos;
+    
+    @NotNull(message = "El docente ID es obligatorio")
+    private Long docenteId;
 }

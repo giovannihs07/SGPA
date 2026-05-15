@@ -15,11 +15,13 @@ import com.sgpa.exception.ProductoDocenteNotFoundException;
 import com.sgpa.exception.TipoProductoInvalidoException;
 import com.sgpa.factory.ProductoDocenteFactory;
 import com.sgpa.mapper.ProductoDocenteMapper;
+import com.sgpa.model.Docente;
 import com.sgpa.model.products.CategoriaProducto;
 import com.sgpa.model.products.EstadoProducto;
 import com.sgpa.model.products.ProductoDocente;
 import com.sgpa.model.products.SubcategoriaProducto;
 import com.sgpa.model.products.TipoProducto;
+import com.sgpa.repository.DocenteRepository;
 import com.sgpa.repository.ProductoDocenteRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -32,12 +34,17 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
     private final ProductoDocenteFactory factory;
     private final ProductoDocenteMapper mapper;
     private final FileStorageService fileStorageService;
+    private final DocenteRepository docenteRepository;
 
     @Override
     @Transactional
     public ProductoDocenteResponseDTO crear(ProductoDocenteRequestDTO dto, MultipartFile archivo) {
         validarTipo(dto.getTipo());
-        ProductoDocente producto = factory.crear(dto);
+        
+        Docente docente = docenteRepository.findById(dto.getDocenteId())
+            .orElseThrow(() -> new ProductoDocenteNotFoundException(dto.getDocenteId()));
+        
+        ProductoDocente producto = factory.crear(dto, docente);
 
         // Archivo es opcional — solo se guarda si viene en el request
         if (archivo != null && !archivo.isEmpty()) {
@@ -106,6 +113,12 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
         existente.setTipo(tipo);
         existente.setSubcategoria(tipo.getSubcategoria());
         existente.setAtributos(dto.getAtributos());
+        
+        if (dto.getDocenteId() != null) {
+            Docente docente = docenteRepository.findById(dto.getDocenteId())
+                .orElseThrow(() -> new ProductoDocenteNotFoundException(dto.getDocenteId()));
+            existente.setDocente(docente);
+        }
 
         return mapper.toDTO(repository.save(existente));
     }

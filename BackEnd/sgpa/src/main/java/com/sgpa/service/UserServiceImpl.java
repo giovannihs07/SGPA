@@ -12,8 +12,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.sgpa.dto.request.UserRequest;
 import com.sgpa.dto.response.UserResponse;
 import com.sgpa.mapper.UserMapper;
+import com.sgpa.model.Persona;
 import com.sgpa.model.users.Role;
 import com.sgpa.model.users.User;
+import com.sgpa.repository.PersonaRepository;
 import com.sgpa.repository.RoleRepository;
 import com.sgpa.repository.UserRepository;
 
@@ -25,6 +27,9 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private RoleRepository roleRepository; // Inyección del repositorio de roles para asignar roles a los usuarios
 
+    @Autowired
+    private PersonaRepository personaRepository; // Inyección del repositorio de personas
+    
     @Autowired
     private PasswordEncoder passwordEncoder; // Inyección del PasswordEncoder para encriptar contraseñas
     
@@ -52,6 +57,13 @@ public class UserServiceImpl implements UserService {
 
         User user = userMapper.toEntity(request); // Mapeamos el DTO a una entidad User
         user.setPassword(passwordEncoder.encode(request.getPassword())); // Encriptamos la contraseña antes de guardarla
+        
+        // Buscar y asignar la Persona
+        Optional<Persona> persona = personaRepository.findById(request.getPersonaId());
+        if (persona.isEmpty()) {
+            throw new IllegalArgumentException("La Persona con ID " + request.getPersonaId() + " no existe");
+        }
+        user.setPersona(persona.get());
         
         List<Role> roles = new ArrayList<>();
         
@@ -89,6 +101,16 @@ public class UserServiceImpl implements UserService {
             if (request.getPassword() != null && !request.getPassword().isBlank()) {
                 userDb.setPassword(passwordEncoder.encode(request.getPassword()));
             }
+            
+            // Actualizar la Persona si se proporciona un personaId válido
+            if (request.getPersonaId() != null) {
+                Optional<Persona> persona = personaRepository.findById(request.getPersonaId());
+                if (persona.isEmpty()) {
+                    throw new IllegalArgumentException("La Persona con ID " + request.getPersonaId() + " no existe");
+                }
+                userDb.setPersona(persona.get());
+            }
+            
             User saved = repository.save(userDb);
             return Optional.of(userMapper.toResponse(saved));
         }

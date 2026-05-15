@@ -22,8 +22,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JacksonException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 // Esta clase es un filtro de autenticación personalizado extiende UsernamePasswordAuthenticationFilter 
 // para manejar la autenticación de usuarios utilizando JWT (JSON Web Tokens)

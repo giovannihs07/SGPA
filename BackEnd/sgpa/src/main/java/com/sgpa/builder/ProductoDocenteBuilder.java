@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
+import com.sgpa.model.Docente;
 import com.sgpa.model.products.CategoriaProducto;
 import com.sgpa.model.products.EstadoProducto;
 import com.sgpa.model.products.ProductoDocente;
@@ -35,6 +36,11 @@ public class ProductoDocenteBuilder {
         producto.setTipo(tipo);
         producto.setSubcategoria(tipo.getSubcategoria());
         producto.setCategoria(resolverCategoria(tipo.getSubcategoria()));
+        return this;
+    }
+
+    public ProductoDocenteBuilder docente(Docente docente) {
+        producto.setDocente(docente);
         return this;
     }
 

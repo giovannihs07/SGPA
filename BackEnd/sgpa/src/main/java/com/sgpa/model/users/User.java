@@ -2,14 +2,18 @@ package com.sgpa.model.users;
 
 import java.util.List;
 
+import com.sgpa.model.Persona;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Email;
@@ -46,6 +50,10 @@ public class User {
     @Size(min = 6, max = 100)
     @Column(nullable = false, length = 255)
     private String password;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "persona_id", nullable = false)
+    private Persona persona;
 
     // Crea una relación ManyToMany entre User y Role
     @ManyToMany

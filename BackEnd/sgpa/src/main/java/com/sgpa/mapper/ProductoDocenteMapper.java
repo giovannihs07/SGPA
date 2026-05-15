@@ -12,6 +12,11 @@ import com.sgpa.model.products.ProductoDocente;
 public class ProductoDocenteMapper {
 
     public ProductoDocenteResponseDTO toDTO(ProductoDocente producto) {
+        Long docenteId = producto.getDocente() != null ? producto.getDocente().getId() : null;
+        String docenteNombre = producto.getDocente() != null ? producto.getDocente().getNombre() : null;
+        String docenteApellido = producto.getDocente() != null ? producto.getDocente().getApellido() : null;
+        String docenteCodigoDocente = producto.getDocente() != null ? producto.getDocente().getCodigoDocente() : null;
+        
         return ProductoDocenteResponseDTO.builder()
             .id(producto.getId())
             .nombre(producto.getNombre())
@@ -25,6 +30,10 @@ public class ProductoDocenteMapper {
             .fechaCreacion(producto.getFechaCreacion())
             .fechaPublicacion(producto.getFechaPublicacion())
             .atributos(producto.getAtributos())
+            .docenteId(docenteId)
+            .docenteNombre(docenteNombre)
+            .docenteApellido(docenteApellido)
+            .docenteCodigoDocente(docenteCodigoDocente)
             .build();
     }
 

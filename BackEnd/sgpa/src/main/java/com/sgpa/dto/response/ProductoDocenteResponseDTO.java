@@ -29,4 +29,10 @@ public class ProductoDocenteResponseDTO {
     private LocalDate fechaCreacion;
     private LocalDate fechaPublicacion;
     private Map<String, Object> atributos;
+    
+    // Información del docente
+    private Long docenteId;
+    private String docenteNombre;
+    private String docenteApellido;
+    private String docenteCodigoDocente;
 }
