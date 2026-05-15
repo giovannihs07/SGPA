@@ -7,36 +7,12 @@ import { MobileLogo } from "../../components/ui/MobileLogo";
 import { PasswordInput } from "../../components/ui/PasswordInput";
 import { LoadingButton } from "../../components/ui/LoadingButton";
 
-const ROLES = [
-    {
-        value: "DOCENTE",
-        label: "Docente",
-        description: "Registro y gestión de tu producción académica",
-        icon: (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-        ),
-    },
-    {
-        value: "ESTUDIANTE",
-        label: "Estudiante",
-        description: "Consulta de materiales académicos publicados",
-        icon: (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
-        ),
-    },
-];
-
 const INITIAL = {
     nombre: "",
     apellido: "",
     email: "",
     password: "",
-    confirmPassword: "",
-    rol: "DOCENTE",
+    confirmPassword: ""
 };
 
 function PasswordStrength({ password }) {
@@ -75,7 +51,7 @@ export const RegisterPage = () => {
     const [loading, setLoading]         = useState(false);
     const [fieldErrors, setFieldErrors] = useState({});
 
-    const { nombre, apellido, email, password, confirmPassword, rol } = form;
+    const { nombre, apellido, email, password, confirmPassword } = form;
 
     const onInputChange = ({ target }) => {
         const { name, value } = target;
@@ -139,29 +115,17 @@ export const RegisterPage = () => {
 
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
 
-                        {/* Selector de rol */}
-                        <div className="mb-6">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de usuario</label>
-                            <div className="grid grid-cols-2 gap-3">
-                                {ROLES.map((r) => (
-                                    <button
-                                        key={r.value}
-                                        type="button"
-                                        onClick={() => setForm((p) => ({ ...p, rol: r.value }))}
-                                        className={`flex flex-col items-start gap-1 p-3.5 rounded-lg border-2 text-left transition-all duration-200 ${
-                                            rol === r.value
-                                                ? "border-[#003366] bg-[#003366]/5"
-                                                : "border-gray-200 hover:border-gray-300"
-                                        }`}
-                                    >
-                                        <div className={rol === r.value ? "text-[#003366]" : "text-gray-400"}>{r.icon}</div>
-                                        <span className={`text-sm font-semibold ${rol === r.value ? "text-[#003366]" : "text-gray-700"}`}>{r.label}</span>
-                                        <span className="text-xs text-gray-400 leading-tight">{r.description}</span>
-                                    </button>
-                                ))}
+                        {/* Badge de rol fijo */}
+                        <div className="flex items-center gap-2 bg-[#003366]/5 border border-[#003366]/10 rounded-lg px-4 py-3 mb-6">
+                            <svg className="w-5 h-5 text-[#003366]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            <div>
+                                <p className="text-sm font-semibold text-[#003366]">Docente</p>
+                                <p className="text-xs text-gray-500">Registro y gestión de producción académica</p>
                             </div>
                         </div>
-
+                        
                         <form onSubmit={onSubmit} noValidate className="space-y-4">
 
                             {/* Nombre y Apellido */}
@@ -169,13 +133,13 @@ export const RegisterPage = () => {
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Nombre</label>
                                     <input type="text" name="nombre" value={nombre} onChange={onInputChange}
-                                        placeholder="Giovanni" autoComplete="given-name" className={inputClass("nombre")} />
+                                        placeholder="Nombre" autoComplete="given-name" className={inputClass("nombre")} />
                                     {fieldErrors.nombre && <p className="text-xs text-red-500 mt-1">{fieldErrors.nombre}</p>}
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Apellido</label>
                                     <input type="text" name="apellido" value={apellido} onChange={onInputChange}
-                                        placeholder="Hernández" autoComplete="family-name" className={inputClass("apellido")} />
+                                        placeholder="Apellido" autoComplete="family-name" className={inputClass("apellido")} />
                                     {fieldErrors.apellido && <p className="text-xs text-red-500 mt-1">{fieldErrors.apellido}</p>}
                                 </div>
                             </div>

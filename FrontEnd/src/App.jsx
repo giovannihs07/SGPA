@@ -23,6 +23,7 @@ export default function App() {
                     <Routes>
                         {/* Públicas */}
                         <Route path="/login"        element={<LoginPage />} />
+                        <Route path="/register" element={<RegisterPage />} />
                         <Route path="/unauthorized" element={<Unauthorized />} />
 
                         {/* Docente */}

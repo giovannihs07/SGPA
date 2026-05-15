@@ -13,19 +13,21 @@ const getInitials = (user) => {
         : parts[0].slice(0, 2).toUpperCase();
 };
 
-const ROL_LABELS = {
-    DOCENTE:    "Docente",
-    ADMIN:      "Administrador",
-    SUPERADMIN: "Super Admin",
-    ESTUDIANTE: "Público / Estudiante",
+const getRolLabel = (login) => {
+    if (login?.isSuperAdmin) return "Super Admin";
+    if (login?.isAdmin)      return "Administrador";
+    if (login?.isDocente)    return "Docente";
+    return "Estudiante";
 };
 
 export const Header = ({ pageTitle = "Dashboard" }) => {
-    const { login } = useAuthContext();
+    const { login } = useAuth();
+    console.log("login state:", login); 
+
     const { isDark, toggleTheme } = useTheme();
 
     const initials = getInitials(login?.user);
-    const rolLabel = ROL_LABELS[login?.rol] || login?.rol || "";
+    const rolLabel = getRolLabel(login);
 
     return (
         <header className="h-14 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-6 shrink-0">

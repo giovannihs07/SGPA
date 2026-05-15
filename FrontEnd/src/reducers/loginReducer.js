@@ -1,15 +1,19 @@
+
 export const loginReducer = (state = {}, action) => {
     switch (action.type) {
         case 'login':
             return {
                 isAuth: true,
-                rol: action.payload.rol,
+                isSuperAdmin: action.payload.isSuperAdmin,
+                isAdmin: action.payload.isAdmin,
+                isDocente: action.payload.isDocente,
                 user: action.payload.user,
             };
         case 'logout':
             return {
                 isAuth: false,
-                rol: undefined,
+                isAdmin: false,
+                isDocente: false,
                 user: undefined,
             };
         default:

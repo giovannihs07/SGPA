@@ -6,7 +6,7 @@ import { NAV_ITEMS } from "./navConfig";
 
 export const Sidebar = ({ isCollapsed, onToggle, onLogout }) => {
     const { login } = useAuth();
-    const rol = login?.rol || "DOCENTE";
+    const rol = login?.isAdmin || login?.isSuperAdmin ? "ADMIN" : "DOCENTE";
     const sections = NAV_ITEMS[rol] || NAV_ITEMS["DOCENTE"];
 
     return (
@@ -77,7 +77,7 @@ export const Sidebar = ({ isCollapsed, onToggle, onLogout }) => {
             >
                 {isCollapsed
                     ? <ChevronRight size={18} />
-                    : <><ChevronLeft size={18} /><span>Colapsar</span></>
+                    : <><ChevronLeft size={18} /><span>Ocultar</span></>
                 }
             </button>
 
