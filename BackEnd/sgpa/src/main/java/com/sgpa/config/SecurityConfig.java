@@ -52,7 +52,8 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                // Rutas públicas de Swagger/OpenAPI primero
+                
+                // Rutas públicas de Swagger/OpenAPI
                 .requestMatchers(
                     "/swagger-ui",
                     "/swagger-ui/**",
@@ -65,12 +66,37 @@ public class SecurityConfig {
                     "/swagger-resources/**",
                     "/webjars/**"
                 ).permitAll()
+                
+                // Endpoints públicos de autenticación (si existen)
+                .requestMatchers("/api/auth/**").permitAll()
+                
+                // GET en todos los endpoints - lectura permitida públicamente
+                .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/users").permitAll()
-                .requestMatchers(HttpMethod.GET, "/users/{id}").hasAnyRole("DOCENTE", "ADMIN", "SUPERADMIN")
+                .requestMatchers(HttpMethod.GET, "/users/{id}").permitAll()
+                
+                // Descargas de archivos permitidas públicamente
+                .requestMatchers(HttpMethod.GET, "/api/productos/{id}/archivo").permitAll()
+                
+                // POST - crear recursos (requiere autenticación)
+                .requestMatchers(HttpMethod.POST, "/api/docentes").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/administrativos").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/productos").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/facultades").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/instituciones").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/programas").authenticated()
                 .requestMatchers(HttpMethod.POST, "/users").hasAnyRole("ADMIN", "SUPERADMIN")
-                .requestMatchers("/users/**").hasRole("ADMIN")
-                //.anyRequest().authenticated()
-                .anyRequest().permitAll()
+                
+                // PUT - actualizar recursos (requiere autenticación)
+                .requestMatchers(HttpMethod.PUT, "/api/**").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/users/{id}").authenticated()
+                
+                // DELETE - eliminar recursos (requiere autenticación)
+                .requestMatchers(HttpMethod.DELETE, "/api/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/users/{id}").authenticated()
+                
+                // Cualquier otra solicitud debe ser autenticada
+                .anyRequest().authenticated()
             )
             .addFilter(new JwtAuthenticationFilter(authManager))
             .addFilter(new JwtValidationFilter(authManager, userDetailsService))
