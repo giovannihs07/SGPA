@@ -3,8 +3,6 @@ package com.sgpa.dto.response;
 import java.time.LocalDate;
 import java.util.Map;
 
-import com.sgpa.model.products.EstadoProducto;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,7 +20,7 @@ public class ProductoDocenteResponseDTO {
     private String descripcion;
     private String nombreArchivo;
     private String nombreArchivoOriginal;
-    private EstadoProducto estado;
+    private Boolean publicado;
     private String categoria;
     private String subcategoria;
     private String tipo;

@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 import com.sgpa.dto.response.ProductoDocenteResponseDTO;
 import com.sgpa.model.products.ProductoDocente;
 
-// mapper/ProductoDocenteMapper.java
 @Component
 public class ProductoDocenteMapper {
 
@@ -20,7 +19,7 @@ public class ProductoDocenteMapper {
         return ProductoDocenteResponseDTO.builder()
             .id(producto.getId())
             .nombre(producto.getNombre())
-            .estado(producto.getEstado())
+            .publicado(producto.getPublicado())
             .descripcion(producto.getDescripcion())
             .nombreArchivo(producto.getNombreArchivo())
             .nombreArchivoOriginal(producto.getNombreArchivoOriginal())

@@ -9,9 +9,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.sgpa.dto.request.UserRequest;
-import com.sgpa.dto.response.UserResponse;
-import com.sgpa.mapper.UserMapper;
+import com.sgpa.dto.request.UserRegisterRequest;
+import com.sgpa.dto.response.UserLoginResponse;
+import com.sgpa.exception.PersonaNotFoundException;
+import com.sgpa.mapper.UserLoginMapper;
+import com.sgpa.mapper.UserRegisterMapper;
 import com.sgpa.model.Persona;
 import com.sgpa.model.users.Role;
 import com.sgpa.model.users.User;
@@ -34,34 +36,37 @@ public class UserServiceImpl implements UserService {
     private PasswordEncoder passwordEncoder; // Inyección del PasswordEncoder para encriptar contraseñas
     
     @Autowired
-    private UserMapper userMapper;
+    private UserLoginMapper userLoginMapper;
+
+    @Autowired
+    private UserRegisterMapper userRegisterMapper;
     
     //Obtener todos
     @Override
     @Transactional(readOnly = true)
-    public List<UserResponse> findAll() {
-        return userMapper.toResponseList((List<User>) repository.findAll());
+    public List<UserLoginResponse> findAll() {
+        return userLoginMapper.toResponseList((List<User>) repository.findAll());
     }
 
     //Obtener por id
     @Override
     @Transactional(readOnly = true)
-    public Optional<UserResponse> findById(Long id) {
-        return repository.findById(id).map(userMapper::toResponse);
+    public Optional<UserLoginResponse> findById(Long id) {
+        return repository.findById(id).map(userLoginMapper::toResponse);
     }
 
     //Guardar
     @Override
     @Transactional
-    public UserResponse save(UserRequest request) {
+    public UserLoginResponse save(UserRegisterRequest request) {
 
-        User user = userMapper.toEntity(request); // Mapeamos el DTO a una entidad User
+        User user = userRegisterMapper.toEntity(request); // Mapeamos el DTO a una entidad User
         user.setPassword(passwordEncoder.encode(request.getPassword())); // Encriptamos la contraseña antes de guardarla
         
         // Buscar y asignar la Persona
         Optional<Persona> persona = personaRepository.findById(request.getPersonaId());
         if (persona.isEmpty()) {
-            throw new IllegalArgumentException("La Persona con ID " + request.getPersonaId() + " no existe");
+            throw new PersonaNotFoundException(request.getPersonaId());
         }
         user.setPersona(persona.get());
         
@@ -79,7 +84,7 @@ public class UserServiceImpl implements UserService {
         user.setRoles(roles); // Asignamos el rol al usuario
 
         User saved = repository.save(user); // Guardamos el usuario en la base de datos y obtenemos la entidad guardada con su ID generado
-        return userMapper.toResponse(saved); // Mapeamos la entidad guardada a un DTO UserResponse y lo retornamos
+        return userLoginMapper.toResponse(saved); // Mapeamos la entidad guardada a un DTO UserResponse y lo retornamos
     }
 
     //Eliminar por id
@@ -92,7 +97,7 @@ public class UserServiceImpl implements UserService {
     // Actualizar por id
     @Override
     @Transactional
-    public Optional<UserResponse> update(UserRequest request, Long id) {
+    public Optional<UserLoginResponse> update(UserRegisterRequest request, Long id) {
         Optional<User> o = repository.findById(id);
         if (o.isPresent()) {
             User userDb = o.orElseThrow();
@@ -106,13 +111,13 @@ public class UserServiceImpl implements UserService {
             if (request.getPersonaId() != null) {
                 Optional<Persona> persona = personaRepository.findById(request.getPersonaId());
                 if (persona.isEmpty()) {
-                    throw new IllegalArgumentException("La Persona con ID " + request.getPersonaId() + " no existe");
+                    throw new PersonaNotFoundException(request.getPersonaId());
                 }
                 userDb.setPersona(persona.get());
             }
             
             User saved = repository.save(userDb);
-            return Optional.of(userMapper.toResponse(saved));
+            return Optional.of(userLoginMapper.toResponse(saved));
         }
         return Optional.empty();
     }

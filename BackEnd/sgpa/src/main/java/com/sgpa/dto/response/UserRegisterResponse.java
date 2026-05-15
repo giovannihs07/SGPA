@@ -10,7 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserResponse {
+public class UserRegisterResponse {
+
     private Long id;
     private String email;
     private List<String> roles;
@@ -21,4 +22,5 @@ public class UserResponse {
     private String apellido;
     private String cedula;
     private String telefono;
+
 }

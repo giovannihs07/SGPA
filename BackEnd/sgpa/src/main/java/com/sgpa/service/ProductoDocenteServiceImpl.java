@@ -1,6 +1,5 @@
 package com.sgpa.service;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -17,7 +16,6 @@ import com.sgpa.factory.ProductoDocenteFactory;
 import com.sgpa.mapper.ProductoDocenteMapper;
 import com.sgpa.model.Docente;
 import com.sgpa.model.products.CategoriaProducto;
-import com.sgpa.model.products.EstadoProducto;
 import com.sgpa.model.products.ProductoDocente;
 import com.sgpa.model.products.SubcategoriaProducto;
 import com.sgpa.model.products.TipoProducto;
@@ -148,28 +146,10 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
         }
     }
 
-    // Métodos que solo RRHH puede invocar
-    public ProductoDocenteResponseDTO enviarARevision(Long id) {
+    public ProductoDocenteResponseDTO publicar(Long id) {
         ProductoDocente p = repository.findById(id)
                 .orElseThrow(() -> new ProductoDocenteNotFoundException(id));
-        if (p.getEstado() != EstadoProducto.SIN_PUBLICAR)
-            throw new IllegalStateException("Solo productos en SIN_PUBLICAR se pueden enviarse a revisión");
-        p.setEstado(EstadoProducto.EN_REVISION);
-        return mapper.toDTO(repository.save(p));
-    }
-
-    public ProductoDocenteResponseDTO aprobar(Long id) {
-        ProductoDocente p = repository.findById(id)
-                .orElseThrow(() -> new ProductoDocenteNotFoundException(id));
-        p.setEstado(EstadoProducto.PUBLICADO);
-        p.setFechaPublicacion(LocalDate.now()); // se asigna aquí
-        return mapper.toDTO(repository.save(p));
-    }
-
-    public ProductoDocenteResponseDTO rechazar(Long id, String observacion) {
-        ProductoDocente p = repository.findById(id)
-                .orElseThrow(() -> new ProductoDocenteNotFoundException(id));
-        p.setEstado(EstadoProducto.RECHAZADO);
+        p.setPublicado(true);
         return mapper.toDTO(repository.save(p));
     }
 }

@@ -1,5 +1,8 @@
 package com.sgpa.dto.response;
 
+import java.util.List;
+import java.util.Map;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,8 +21,18 @@ public class DocenteResponse {
     private String cedula;
     private String telefono;
     private String codigoDocente;
-    private String titulo;
+    private Map<String, Object> titulos;  // {"titulo1": {"tipo": "PhD", ...}, "titulo2": {...}}
     private String tipoContrato;
-    private Long programaId;
-    private String programaNombre;
+    private List<ProgramaDocenteDTO> programas;
+
+    @Getter @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class ProgramaDocenteDTO {
+        private Long id;
+        private String nombre;
+        private String codigo;
+        private String nivel;
+    }
 }

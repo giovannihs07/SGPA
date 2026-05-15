@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sgpa.dto.request.UserRequest;
-import com.sgpa.dto.response.UserResponse;
+import com.sgpa.dto.request.UserRegisterRequest;
+import com.sgpa.dto.response.UserLoginResponse;
 import com.sgpa.service.UserService;
 
 import jakarta.validation.Valid;
@@ -34,13 +34,13 @@ public class UserController {
 
     // Métodos handler GET
     @GetMapping
-    public List<UserResponse> list() {
+    public List<UserLoginResponse> list() {
         return service.findAll();
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> show(@PathVariable Long id) {
-        Optional<UserResponse> userOptional = service.findById(id);
+        Optional<UserLoginResponse> userOptional = service.findById(id);
         
         if (userOptional.isPresent()) {
             return ResponseEntity.ok(userOptional.orElseThrow());
@@ -52,7 +52,7 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED) // El "BindingResult result" debe ir justo despues del objeto
-    public ResponseEntity<?> create(@Valid @RequestBody UserRequest user, BindingResult result) {
+    public ResponseEntity<?> create(@Valid @RequestBody UserRegisterRequest user, BindingResult result) {
         if (result.hasErrors()) {
             return validation(result);
         }
@@ -62,11 +62,11 @@ public class UserController {
     // Métodos handler PUT
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@Valid @RequestBody UserRequest user,BindingResult result, @PathVariable Long id) {
+    public ResponseEntity<?> update(@Valid @RequestBody UserRegisterRequest user,BindingResult result, @PathVariable Long id) {
         if (result.hasErrors()) {
             return validation(result);
         }
-        Optional<UserResponse> o = service.update(user, id);
+        Optional<UserLoginResponse> o = service.update(user, id);
         if (o.isPresent()) {
             return ResponseEntity.ok(o.get());
         }

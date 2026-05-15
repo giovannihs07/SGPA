@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 
 import com.sgpa.model.Docente;
 import com.sgpa.model.products.CategoriaProducto;
-import com.sgpa.model.products.EstadoProducto;
 import com.sgpa.model.products.ProductoDocente;
 import com.sgpa.model.products.SubcategoriaProducto;
 import com.sgpa.model.products.TipoProducto;
@@ -22,8 +21,8 @@ public class ProductoDocenteBuilder {
         return this;
     }
 
-    public ProductoDocenteBuilder estado(EstadoProducto estado) {
-        producto.setEstado(estado);
+    public ProductoDocenteBuilder publicado(Boolean publicado) {
+        producto.setPublicado(publicado);
         return this;
     }
 

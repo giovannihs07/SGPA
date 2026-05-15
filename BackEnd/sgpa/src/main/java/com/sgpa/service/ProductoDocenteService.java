@@ -9,7 +9,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.sgpa.dto.request.ProductoDocenteRequestDTO;
 import com.sgpa.dto.response.ProductoDocenteResponseDTO;
 
-// service/ProductoDocenteService.java
 public interface ProductoDocenteService {
 
     ProductoDocenteResponseDTO crear(ProductoDocenteRequestDTO dto, MultipartFile archivo);
@@ -22,5 +21,5 @@ public interface ProductoDocenteService {
     List<ProductoDocenteResponseDTO> buscarPorSubcategoria(String subcategoria);
     List<ProductoDocenteResponseDTO> buscarPorTipo(String tipo);
     List<ProductoDocenteResponseDTO> buscarPorNombre(String nombre);
-   
+    ProductoDocenteResponseDTO publicar(Long id);
 }

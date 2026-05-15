@@ -9,7 +9,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class UserRequest {
+public class UserRegisterRequest {
 
     @NotBlank
     @NotEmpty

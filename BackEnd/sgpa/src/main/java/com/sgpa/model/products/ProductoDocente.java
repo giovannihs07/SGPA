@@ -46,8 +46,7 @@ public class ProductoDocente {
     private String nombreArchivo;
     private String nombreArchivoOriginal;
 
-    @Enumerated(EnumType.STRING)
-    private EstadoProducto estado;
+    private Boolean publicado;
 
     @Enumerated(EnumType.STRING)
     private CategoriaProducto categoria;

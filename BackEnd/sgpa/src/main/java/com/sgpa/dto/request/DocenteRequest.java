@@ -1,7 +1,10 @@
 package com.sgpa.dto.request;
 
+import java.util.List;
+import java.util.Map;
+
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,9 +25,9 @@ public class DocenteRequest {
     private String telefono;
 
     private String codigoDocente;
-    private String titulo;
+    private Map<String, Object> titulos;  // {"titulo1": {"tipo": "PhD", ...}, "titulo2": {...}}
     private String tipoContrato;
 
-    @NotNull(message = "El programa ID es obligatorio")
-    private Long programaId;
+    @NotEmpty(message = "Debe asignar al menos un programa")
+    private List<Long> programaIds;
 }

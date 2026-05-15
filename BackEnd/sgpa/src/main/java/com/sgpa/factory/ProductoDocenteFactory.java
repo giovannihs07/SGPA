@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 import com.sgpa.builder.ProductoDocenteBuilder;
 import com.sgpa.dto.request.ProductoDocenteRequestDTO;
 import com.sgpa.model.Docente;
-import com.sgpa.model.products.EstadoProducto;
 import com.sgpa.model.products.ProductoDocente;
 import com.sgpa.model.products.TipoProducto;
 
@@ -23,7 +22,7 @@ public class ProductoDocenteFactory {
         return builder
             .nombre(dto.getNombre())
             .descripcion(dto.getDescripcion())
-            .estado(EstadoProducto.SIN_PUBLICAR) // por defecto, el producto inicia sin publicar
+            .publicado(false)
             .tipo(tipo)
             .atributos(dto.getAtributos())
             .docente(docente)
