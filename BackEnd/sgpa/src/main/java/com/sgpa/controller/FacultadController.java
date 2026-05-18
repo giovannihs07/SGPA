@@ -36,59 +36,39 @@ public class FacultadController {
 
     @PostMapping
     public ResponseEntity<FacultadResponse> crear(
-            @Valid @RequestBody FacultadRequest request,
-            BindingResult result) {
-        if (result.hasErrors()) {
-            return ResponseEntity.badRequest().build();
-        }
-        FacultadResponse response = service.crear(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        @RequestBody @Valid FacultadRequest dto
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(service.crear(dto));
     }
 
     @GetMapping
-    public ResponseEntity<Page<FacultadResponse>> buscarTodos(
-            @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<FacultadResponse> response = service.buscarTodosPaginado(pageable);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<List<FacultadResponse>> listar(
+        @RequestParam(required = false) Long institucionId
+    ) {
+        if (institucionId != null)
+            return ResponseEntity.ok(
+                service.listarPorInstitucion(institucionId));
+        return ResponseEntity.ok(service.listarTodas());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<FacultadResponse> buscarPorId(@PathVariable Long id) {
-        FacultadResponse response = service.buscarPorId(id);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/buscar/nombre")
-    public ResponseEntity<List<FacultadResponse>> buscarPorNombre(@RequestParam String nombre) {
-        List<FacultadResponse> response = service.buscarPorNombre(nombre);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/buscar/institucion/{institucionId}")
-    public ResponseEntity<List<FacultadResponse>> buscarPorInstitucion(@PathVariable Long institucionId) {
-        List<FacultadResponse> response = service.buscarPorInstitucion(institucionId);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<FacultadResponse> buscarPorId(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(service.buscarPorId(id));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<FacultadResponse> actualizar(
-            @PathVariable Long id,
-            @Valid @RequestBody FacultadRequest request,
-            BindingResult result) {
-        if (result.hasErrors()) {
-            return ResponseEntity.badRequest().build();
-        }
-        FacultadResponse response = service.actualizar(id, request);
-        return ResponseEntity.ok(response);
+        @PathVariable Long id,
+        @RequestBody @Valid FacultadRequest dto
+    ) {
+        return ResponseEntity.ok(service.actualizar(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> eliminar(@PathVariable Long id) {
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         service.eliminar(id);
-        Map<String, String> response = new HashMap<>();
-        response.put("mensaje", "Facultad eliminada correctamente");
-        return ResponseEntity.ok(response);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -22,70 +22,98 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class FacultadServiceImpl implements FacultadService {
 
-    private final FacultadRepository repository;
-    private final FacultadMapper mapper;
+    private final FacultadRepository facultadRepository;
     private final InstitucionRepository institucionRepository;
+    private final FacultadMapper mapper;
 
     @Override
     @Transactional
-    public FacultadResponse crear(FacultadRequest request) {
-        Facultad facultad = mapper.toEntity(request);
-        
-        Institucion institucion = institucionRepository.findById(request.getInstitucionId())
-            .orElseThrow(() -> new ProductoDocenteNotFoundException(request.getInstitucionId()));
-        
+    public FacultadResponse crear(FacultadRequest dto) {
+        Institucion institucion = institucionRepository
+            .findById(dto.getInstitucionId())
+            .orElseThrow(() -> new RuntimeException(
+                "Institución no encontrada con id: " + dto.getInstitucionId()));
+
+        // Evita duplicados de nombre dentro de la misma institución
+        if (facultadRepository.existsByNombreAndInstitucionId(
+                dto.getNombre(), dto.getInstitucionId()))
+            throw new IllegalStateException(
+                "Ya existe una facultad con ese nombre en esta institución");
+
+        // Evita duplicados de código globalmente
+        if (dto.getCodigo() != null
+                && facultadRepository.existsByCodigo(dto.getCodigo()))
+            throw new IllegalStateException(
+                "Ya existe una facultad con código: " + dto.getCodigo());
+
+        Facultad facultad = new Facultad();
+        facultad.setNombre(dto.getNombre());
+        facultad.setCodigo(dto.getCodigo());
         facultad.setInstitucion(institucion);
-        return mapper.toResponse(repository.save(facultad));
+
+        return mapper.toDTO(facultadRepository.save(facultad));
+    }
+
+    @Override
+    public FacultadResponse buscarPorId(Long id) {
+        return mapper.toDTO(buscarEntidad(id));
+    }
+
+    @Override
+    public List<FacultadResponse> listarTodas() {
+        return mapper.toDTOList(facultadRepository.findAll());
+    }
+
+    @Override
+    public List<FacultadResponse> listarPorInstitucion(Long institucionId) {
+        return mapper.toDTOList(
+            facultadRepository.findByInstitucionId(institucionId));
     }
 
     @Override
     @Transactional
-    public FacultadResponse actualizar(Long id, FacultadRequest request) {
-        Facultad facultad = repository.findById(id)
-            .orElseThrow(() -> new ProductoDocenteNotFoundException(id));
-        
-        facultad.setNombre(request.getNombre());
-        
-        Institucion institucion = institucionRepository.findById(request.getInstitucionId())
-            .orElseThrow(() -> new ProductoDocenteNotFoundException(request.getInstitucionId()));
-        
+    public FacultadResponse actualizar(Long id, FacultadRequest dto) {
+        Facultad facultad = buscarEntidad(id);
+
+        // Verifica duplicado de nombre en la misma institución
+        // excluyendo la facultad actual
+        if (!facultad.getNombre().equals(dto.getNombre())
+                && facultadRepository.existsByNombreAndInstitucionId(
+                    dto.getNombre(), dto.getInstitucionId()))
+            throw new IllegalStateException(
+                "Ya existe una facultad con ese nombre en esta institución");
+
+        // Verifica duplicado de código excluyendo la facultad actual
+        if (dto.getCodigo() != null
+                && !dto.getCodigo().equals(facultad.getCodigo())
+                && facultadRepository.existsByCodigo(dto.getCodigo()))
+            throw new IllegalStateException(
+                "Ya existe una facultad con código: " + dto.getCodigo());
+
+        Institucion institucion = institucionRepository
+            .findById(dto.getInstitucionId())
+            .orElseThrow(() -> new RuntimeException(
+                "Institución no encontrada con id: " + dto.getInstitucionId()));
+
+        facultad.setNombre(dto.getNombre());
+        facultad.setCodigo(dto.getCodigo());
         facultad.setInstitucion(institucion);
-        return mapper.toResponse(repository.save(facultad));
+
+        return mapper.toDTO(facultadRepository.save(facultad));
     }
 
     @Override
     @Transactional
     public void eliminar(Long id) {
-        if (!repository.existsById(id))
-            throw new ProductoDocenteNotFoundException(id);
-        repository.deleteById(id);
+        if (!facultadRepository.existsById(id))
+            throw new RuntimeException(
+                "Facultad no encontrada con id: " + id);
+        facultadRepository.deleteById(id);
     }
 
-    @Override
-    public FacultadResponse buscarPorId(Long id) {
-        Facultad facultad = repository.findById(id)
-            .orElseThrow(() -> new ProductoDocenteNotFoundException(id));
-        return mapper.toResponse(facultad);
-    }
-
-    @Override
-    public List<FacultadResponse> buscarTodos() {
-        return mapper.toResponseList(repository.findAll());
-    }
-
-    @Override
-    public Page<FacultadResponse> buscarTodosPaginado(Pageable pageable) {
-        return repository.findAll(pageable)
-            .map(mapper::toResponse);
-    }
-
-    @Override
-    public List<FacultadResponse> buscarPorNombre(String nombre) {
-        return mapper.toResponseList(repository.findByNombreContainingIgnoreCase(nombre));
-    }
-
-    @Override
-    public List<FacultadResponse> buscarPorInstitucion(Long institucionId) {
-        return mapper.toResponseList(repository.findByInstitucionId(institucionId));
+    private Facultad buscarEntidad(Long id) {
+        return facultadRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException(
+                "Facultad no encontrada con id: " + id));
     }
 }

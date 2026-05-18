@@ -14,6 +14,9 @@ public class FacultadResponse {
 
     private Long id;
     private String nombre;
+    private String codigo;
+
+    // Datos de la institución — evita un request extra al frontend
     private Long institucionId;
     private String institucionNombre;
 }

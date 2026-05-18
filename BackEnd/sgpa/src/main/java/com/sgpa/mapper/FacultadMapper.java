@@ -11,27 +11,19 @@ import com.sgpa.model.Facultad;
 @Component
 public class FacultadMapper {
 
-    public FacultadResponse toResponse(Facultad facultad) {
-        String institucionNombre = facultad.getInstitucion() != null ? facultad.getInstitucion().getNombre() : null;
-        Long institucionId = facultad.getInstitucion() != null ? facultad.getInstitucion().getId() : null;
-        
+    public FacultadResponse toDTO(Facultad facultad) {
         return FacultadResponse.builder()
             .id(facultad.getId())
             .nombre(facultad.getNombre())
-            .institucionId(institucionId)
-            .institucionNombre(institucionNombre)
+            .codigo(facultad.getCodigo())
+            .institucionId(facultad.getInstitucion() != null
+                ? facultad.getInstitucion().getId() : null)
+            .institucionNombre(facultad.getInstitucion() != null
+                ? facultad.getInstitucion().getNombre() : null)
             .build();
     }
 
-    public List<FacultadResponse> toResponseList(List<Facultad> facultades) {
-        return facultades.stream()
-            .map(this::toResponse)
-            .toList();
-    }
-
-    public Facultad toEntity(FacultadRequest request) {
-        Facultad facultad = new Facultad();
-        facultad.setNombre(request.getNombre());
-        return facultad;
+    public List<FacultadResponse> toDTOList(List<Facultad> facultades) {
+        return facultades.stream().map(this::toDTO).toList();
     }
 }

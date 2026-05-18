@@ -10,19 +10,10 @@ import com.sgpa.dto.response.FacultadResponse;
 
 public interface FacultadService {
     
-    FacultadResponse crear(FacultadRequest request);
-    
-    FacultadResponse actualizar(Long id, FacultadRequest request);
-    
-    void eliminar(Long id);
-    
+    FacultadResponse crear(FacultadRequest dto);
     FacultadResponse buscarPorId(Long id);
-    
-    List<FacultadResponse> buscarTodos();
-    
-    Page<FacultadResponse> buscarTodosPaginado(Pageable pageable);
-    
-    List<FacultadResponse> buscarPorNombre(String nombre);
-    
-    List<FacultadResponse> buscarPorInstitucion(Long institucionId);
+    List<FacultadResponse> listarTodas();
+    List<FacultadResponse> listarPorInstitucion(Long institucionId);
+    FacultadResponse actualizar(Long id, FacultadRequest dto);
+    void eliminar(Long id);
 }

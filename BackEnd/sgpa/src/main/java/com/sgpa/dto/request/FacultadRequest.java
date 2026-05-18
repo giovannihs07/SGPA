@@ -15,6 +15,8 @@ public class FacultadRequest {
     @NotBlank(message = "El nombre es obligatorio")
     private String nombre;
 
-    @NotNull(message = "El ID de la institución es obligatorio")
+    private String codigo;
+
+    @NotNull(message = "La institución es obligatoria")
     private Long institucionId;
 }
