@@ -1,124 +1,127 @@
 package com.sgpa.service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.sgpa.dto.request.UserRequest;
 import com.sgpa.dto.request.UserRegisterRequest;
-import com.sgpa.dto.response.UserLoginResponse;
+import com.sgpa.dto.response.UserRegisterResponse;
+import com.sgpa.dto.response.UserResponse;
 import com.sgpa.exception.PersonaNotFoundException;
-import com.sgpa.mapper.UserLoginMapper;
+import com.sgpa.mapper.UserMapper;
 import com.sgpa.mapper.UserRegisterMapper;
 import com.sgpa.model.Persona;
 import com.sgpa.model.users.Role;
+import com.sgpa.model.users.RoleName;
 import com.sgpa.model.users.User;
 import com.sgpa.repository.PersonaRepository;
 import com.sgpa.repository.RoleRepository;
 import com.sgpa.repository.UserRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    @Autowired
-    private UserRepository repository; // Inyección del repositorio para acceder a la base de datos
 
-    @Autowired
-    private RoleRepository roleRepository; // Inyección del repositorio de roles para asignar roles a los usuarios
+    private final UserRepository repository;
+    private final RoleRepository roleRepository;
+    private final PersonaRepository personaRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
+    private final UserRegisterMapper userRegisterMapper;
 
-    @Autowired
-    private PersonaRepository personaRepository; // Inyección del repositorio de personas
-    
-    @Autowired
-    private PasswordEncoder passwordEncoder; // Inyección del PasswordEncoder para encriptar contraseñas
-    
-    @Autowired
-    private UserLoginMapper userLoginMapper;
-
-    @Autowired
-    private UserRegisterMapper userRegisterMapper;
-    
-    //Obtener todos
-    @Override
-    @Transactional(readOnly = true)
-    public List<UserLoginResponse> findAll() {
-        return userLoginMapper.toResponseList((List<User>) repository.findAll());
-    }
-
-    //Obtener por id
-    @Override
-    @Transactional(readOnly = true)
-    public Optional<UserLoginResponse> findById(Long id) {
-        return repository.findById(id).map(userLoginMapper::toResponse);
-    }
-
-    //Guardar
     @Override
     @Transactional
-    public UserLoginResponse save(UserRegisterRequest request) {
+    public UserRegisterResponse register(UserRegisterRequest request) {
+        User user = userRegisterMapper.toEntity(request);
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setPersona(findPersona(request.getPersonaId()));
+        user.setRoles(resolveRoles(request.getRoles()));
 
-        User user = userRegisterMapper.toEntity(request); // Mapeamos el DTO a una entidad User
-        user.setPassword(passwordEncoder.encode(request.getPassword())); // Encriptamos la contraseña antes de guardarla
-        
-        // Buscar y asignar la Persona
-        Optional<Persona> persona = personaRepository.findById(request.getPersonaId());
-        if (persona.isEmpty()) {
-            throw new PersonaNotFoundException(request.getPersonaId());
-        }
-        user.setPersona(persona.get());
-        
-        List<Role> roles = new ArrayList<>();
-        
-        if (request.isSuperAdmin()) {
-            roleRepository.findByName("ROLE_SUPER_ADMIN").ifPresent(roles::add);
-        } else if (request.isAdmin()) {
-            roleRepository.findByName("ROLE_ADMIN").ifPresent(roles::add);
-        } else {
-            // ROLE_DOCENTE por defecto
-            roleRepository.findByName("ROLE_DOCENTE").ifPresent(roles::add);
-        }
-
-        user.setRoles(roles); // Asignamos el rol al usuario
-
-        User saved = repository.save(user); // Guardamos el usuario en la base de datos y obtenemos la entidad guardada con su ID generado
-        return userLoginMapper.toResponse(saved); // Mapeamos la entidad guardada a un DTO UserResponse y lo retornamos
+        return userRegisterMapper.toResponse(repository.save(user));
     }
 
-    //Eliminar por id
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserResponse> findAll() {
+        List<User> users = new ArrayList<>();
+        repository.findAll().forEach(users::add);
+        return userMapper.toResponseList(users);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<UserResponse> findById(Long id) {
+        return repository.findById(id).map(userMapper::toResponse);
+    }
+
+    @Override
+    @Transactional
+    public UserResponse save(UserRequest request) {
+        if (request.getPassword() == null || request.getPassword().isBlank()) {
+            throw new IllegalArgumentException("La contraseña es obligatoria al crear un usuario");
+        }
+
+        User user = userMapper.toEntity(request);
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setPersona(findPersona(request.getPersonaId()));
+        user.setRoles(resolveRoles(request.getRoles()));
+
+        return userMapper.toResponse(repository.save(user));
+    }
+
+    @Override
+    @Transactional
+    public Optional<UserResponse> update(UserRequest request, Long id) {
+        return repository.findById(id).map(user -> {
+            userMapper.updateEntity(user, request);
+
+            if (request.getPassword() != null && !request.getPassword().isBlank()) {
+                user.setPassword(passwordEncoder.encode(request.getPassword()));
+            }
+
+            if (request.getPersonaId() != null) {
+                user.setPersona(findPersona(request.getPersonaId()));
+            }
+
+            if (request.getRoles() != null && !request.getRoles().isEmpty()) {
+                user.setRoles(resolveRoles(request.getRoles()));
+            }
+
+            return userMapper.toResponse(repository.save(user));
+        });
+    }
+
     @Override
     @Transactional
     public void remove(Long id) {
         repository.deleteById(id);
     }
 
-    // Actualizar por id
-    @Override
-    @Transactional
-    public Optional<UserLoginResponse> update(UserRegisterRequest request, Long id) {
-        Optional<User> o = repository.findById(id);
-        if (o.isPresent()) {
-            User userDb = o.orElseThrow();
-            userDb.setEmail(request.getEmail());
-            // Solo actualizamos la contraseña si se proporciona una nueva contraseña no vacía
-            if (request.getPassword() != null && !request.getPassword().isBlank()) {
-                userDb.setPassword(passwordEncoder.encode(request.getPassword()));
-            }
-            
-            // Actualizar la Persona si se proporciona un personaId válido
-            if (request.getPersonaId() != null) {
-                Optional<Persona> persona = personaRepository.findById(request.getPersonaId());
-                if (persona.isEmpty()) {
-                    throw new PersonaNotFoundException(request.getPersonaId());
-                }
-                userDb.setPersona(persona.get());
-            }
-            
-            User saved = repository.save(userDb);
-            return Optional.of(userLoginMapper.toResponse(saved));
+    private Persona findPersona(Long personaId) {
+        return personaRepository.findById(personaId)
+            .orElseThrow(() -> new PersonaNotFoundException(personaId));
+    }
+
+    private Set<Role> resolveRoles(List<RoleName> roleNames) {
+        List<RoleName> names = (roleNames == null || roleNames.isEmpty())
+            ? List.of(RoleName.ROLE_DOCENTE)
+            : roleNames;
+
+        Set<Role> roles = new HashSet<>();
+        for (RoleName roleName : names) {
+            Role role = roleRepository.findByName(roleName)
+                .orElseThrow(() -> new IllegalArgumentException("Rol no encontrado: " + roleName));
+            roles.add(role);
         }
-        return Optional.empty();
+        return roles;
     }
 }

@@ -1,5 +1,8 @@
 package com.sgpa.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -12,7 +15,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
 @Entity
 @Data
 @NoArgsConstructor
@@ -20,12 +22,17 @@ import lombok.NoArgsConstructor;
 @Table(name = "programas")
 public class Programa {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String nombre;          
-    private String codigo;  //SNIES, o código institucional asignado        
-    private String nivel;  //Pregrado, Posgrado, Técnico, Tecnólogo         
+    @Column(nullable = false)
+    private String nombre;
+
+    @Column(unique = true)
+    private String codigo;  // SNIES, o código institucional asignado
+    
+    private String nivel; // Pregrado, Posgrado, Técnico, Tecnólogo
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "facultad_id")

@@ -1,12 +1,7 @@
 package com.sgpa.controller;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -34,73 +29,41 @@ public class InstitucionController {
 
     private final InstitucionService service;
 
+    // POST /api/instituciones
     @PostMapping
     public ResponseEntity<InstitucionResponse> crear(
-            @Valid @RequestBody InstitucionRequest request,
-            BindingResult result) {
-        if (result.hasErrors()) {
-            return ResponseEntity.badRequest().build();
-        }
-        InstitucionResponse response = service.crear(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        @RequestBody @Valid InstitucionRequest dto
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(service.crear(dto));
     }
 
+    // GET /api/instituciones
     @GetMapping
-    public ResponseEntity<Page<InstitucionResponse>> buscarTodos(
-            @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<InstitucionResponse> response = service.buscarTodosPaginado(pageable);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<List<InstitucionResponse>> listar() {
+        return ResponseEntity.ok(service.listarTodas());
     }
 
+    // GET /api/instituciones/{id}
     @GetMapping("/{id}")
-    public ResponseEntity<InstitucionResponse> buscarPorId(@PathVariable Long id) {
-        InstitucionResponse response = service.buscarPorId(id);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<InstitucionResponse> buscarPorId(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(service.buscarPorId(id));
     }
 
-    @GetMapping("/buscar/nombre")
-    public ResponseEntity<List<InstitucionResponse>> buscarPorNombre(@RequestParam String nombre) {
-        List<InstitucionResponse> response = service.buscarPorNombre(nombre);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/buscar/nit")
-    public ResponseEntity<List<InstitucionResponse>> buscarPorNit(@RequestParam String nit) {
-        List<InstitucionResponse> response = service.buscarPorNit(nit);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/buscar/ciudad")
-    public ResponseEntity<List<InstitucionResponse>> buscarPorCiudad(@RequestParam String ciudad) {
-        List<InstitucionResponse> response = service.buscarPorCiudad(ciudad);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/buscar/pais")
-    public ResponseEntity<List<InstitucionResponse>> buscarPorPais(@RequestParam String pais) {
-        List<InstitucionResponse> response = service.buscarPorPais(pais);
-        return ResponseEntity.ok(response);
-    }
-
+    // PUT /api/instituciones/{id}
     @PutMapping("/{id}")
     public ResponseEntity<InstitucionResponse> actualizar(
-            @PathVariable Long id,
-            @Valid @RequestBody InstitucionRequest request,
-            BindingResult result) {
-        if (result.hasErrors()) {
-            return ResponseEntity.badRequest().build();
-        }
-        InstitucionResponse response = service.actualizar(id, request);
-        return ResponseEntity.ok(response);
+        @PathVariable Long id,
+        @RequestBody @Valid InstitucionRequest dto
+    ) {
+        return ResponseEntity.ok(service.actualizar(id, dto));
     }
 
+    // DELETE /api/instituciones/{id}
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> eliminar(@PathVariable Long id) {
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         service.eliminar(id);
-        Map<String, String> response = new HashMap<>();
-        response.put("mensaje", "Institución eliminada correctamente");
-        return ResponseEntity.ok(response);
+        return ResponseEntity.noContent().build();
     }
 }

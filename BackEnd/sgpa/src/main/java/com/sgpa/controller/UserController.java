@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -19,78 +18,89 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sgpa.dto.request.UserRequest;
 import com.sgpa.dto.request.UserRegisterRequest;
-import com.sgpa.dto.response.UserLoginResponse;
+import com.sgpa.dto.response.UserRegisterResponse;
+import com.sgpa.dto.response.UserResponse;
+import com.sgpa.dto.response.RoleResponse;
+import com.sgpa.service.RoleService;
 import com.sgpa.service.UserService;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/users") 
+@RequestMapping("/users")
+@RequiredArgsConstructor
 public class UserController {
-   
-    @Autowired
-    private UserService service;
 
-    // Métodos handler GET
+    private final UserService service;
+    private final RoleService roleService;
+
+    @GetMapping("/roles")
+    public List<RoleResponse> listRoles() {
+        return roleService.findAll();
+    }
+
     @GetMapping
-    public List<UserLoginResponse> list() {
+    public List<UserResponse> list() {
         return service.findAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> show(@PathVariable Long id) {
-        Optional<UserLoginResponse> userOptional = service.findById(id);
-        
-        if (userOptional.isPresent()) {
-            return ResponseEntity.ok(userOptional.orElseThrow());
-        }
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<UserResponse> show(@PathVariable Long id) {
+        Optional<UserResponse> userOptional = service.findById(id);
+        return userOptional.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // Métodos handler POST
+    @PostMapping("/register")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<?> register(
+            @Valid @RequestBody UserRegisterRequest request,
+            BindingResult result) {
+        if (result.hasErrors()) {
+            return validation(result);
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.register(request));
+    }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED) // El "BindingResult result" debe ir justo despues del objeto
-    public ResponseEntity<?> create(@Valid @RequestBody UserRegisterRequest user, BindingResult result) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<?> create(
+            @Valid @RequestBody UserRequest request,
+            BindingResult result) {
         if (result.hasErrors()) {
             return validation(result);
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.save(user));
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.save(request));
     }
-
-    // Métodos handler PUT
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@Valid @RequestBody UserRegisterRequest user,BindingResult result, @PathVariable Long id) {
+    public ResponseEntity<?> update(
+            @Valid @RequestBody UserRequest request,
+            BindingResult result,
+            @PathVariable Long id) {
         if (result.hasErrors()) {
             return validation(result);
         }
-        Optional<UserLoginResponse> o = service.update(user, id);
-        if (o.isPresent()) {
-            return ResponseEntity.ok(o.get());
-        }
-        return ResponseEntity.notFound().build();
+        Optional<UserResponse> updated = service.update(request, id);
+        return updated.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
-
-    // Métodos handler DELETE
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id) {
-        if (service.findById(id).isPresent()) {
-            service.remove(id);
-            return ResponseEntity.noContent().build(); // 204
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        if (service.findById(id).isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.notFound().build();
+        service.remove(id);
+        return ResponseEntity.noContent().build();
     }
 
-    // Método utilitario para reutilizar
-    private ResponseEntity<?> validation(BindingResult result) {
+    private ResponseEntity<Map<String, String>> validation(BindingResult result) {
         Map<String, String> errors = new HashMap<>();
-        
-        result.getFieldErrors().forEach(err -> {
-            errors.put(err.getField(), "El campo " + err.getField() + " " + err.getDefaultMessage());
-        });
+        result.getFieldErrors().forEach(err ->
+            errors.put(err.getField(), "El campo " + err.getField() + " " + err.getDefaultMessage())
+        );
         return ResponseEntity.badRequest().body(errors);
     }
 }

@@ -1,6 +1,7 @@
 package com.sgpa.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -11,24 +12,28 @@ import com.sgpa.model.Docente;
 
 @Repository
 public interface DocenteRepository extends JpaRepository<Docente, Long> {
-    
-    List<Docente> findByNombreContainingIgnoreCase(String nombre);
-    
-    List<Docente> findByApellidoContainingIgnoreCase(String apellido);
-    
-    /**
-     * Buscar docentes que enseñan en un programa específico
-     * Utiliza la tabla intermedia docentes_programas
-     */
+
+    Optional<Docente> findByPersonaId(Long personaId);
+
+    @Query("SELECT d FROM Docente d WHERE LOWER(d.persona.nombre) LIKE LOWER(CONCAT('%', :nombre, '%'))")
+    List<Docente> findByNombreContainingIgnoreCase(@Param("nombre") String nombre);
+
+    @Query("SELECT d FROM Docente d WHERE LOWER(d.persona.apellido) LIKE LOWER(CONCAT('%', :apellido, '%'))")
+    List<Docente> findByApellidoContainingIgnoreCase(@Param("apellido") String apellido);
+
     @Query("SELECT DISTINCT d FROM Docente d JOIN d.programas p WHERE p.id = :programaId")
     List<Docente> findByProgramasId(@Param("programaId") Long programaId);
-    
-    /**
-     * Buscar docentes que tengan un título específico en su estructura JSON
-     * Nota: La búsqueda es case-insensitive sobre los valores del JSON
-     */
-    @Query("SELECT d FROM Docente d WHERE CAST(d.titulos AS text) ILIKE CONCAT('%', :titulo, '%')")
+
+    @Query("SELECT DISTINCT d FROM Docente d JOIN d.titulos t WHERE LOWER(t.titulo) LIKE LOWER(CONCAT('%', :titulo, '%'))")
     List<Docente> findByTitulo(@Param("titulo") String titulo);
-    
+
     List<Docente> findByTipoContrato(String tipoContrato);
+
+    // Navega: User.email → User.persona → Docente
+    // Funciona porque Docente comparte id con Persona via @MapsId
+    @Query("SELECT d FROM Docente d " +
+           "JOIN Persona p ON p.id = d.id " +
+           "JOIN User u ON u.persona.id = p.id " +
+           "WHERE u.email = :email")
+    Optional<Docente> findByUserEmail(@Param("email") String email);
 }

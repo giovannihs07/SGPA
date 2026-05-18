@@ -25,68 +25,59 @@ public class InstitucionServiceImpl implements InstitucionService {
 
     @Override
     @Transactional
-    public InstitucionResponse crear(InstitucionRequest request) {
-        Institucion institucion = mapper.toEntity(request);
-        return mapper.toResponse(repository.save(institucion));
+    public InstitucionResponse crear(InstitucionRequest dto) {
+        if (repository.existsByNit(dto.getNit()))
+            throw new IllegalStateException(
+                "Ya existe una institución con NIT: " + dto.getNit());
+
+        if (repository.existsByNombre(dto.getNombre()))
+            throw new IllegalStateException(
+                "Ya existe una institución con nombre: " + dto.getNombre());
+
+        return mapper.toDTO(repository.save(mapper.toEntity(dto)));
+    }
+
+    @Override
+    public InstitucionResponse buscarPorId(Long id) {
+        return mapper.toDTO(buscarEntidad(id));
+    }
+
+    @Override
+    public List<InstitucionResponse> listarTodas() {
+        return mapper.toDTOList(repository.findAll());
     }
 
     @Override
     @Transactional
-    public InstitucionResponse actualizar(Long id, InstitucionRequest request) {
-        Institucion institucion = repository.findById(id)
-            .orElseThrow(() -> new ProductoDocenteNotFoundException(id));
-        
-        institucion.setNombre(request.getNombre());
-        institucion.setNit(request.getNit());
-        institucion.setCiudad(request.getCiudad());
-        institucion.setPais(request.getPais());
-        
-        return mapper.toResponse(repository.save(institucion));
+    public InstitucionResponse actualizar(Long id, InstitucionRequest dto) {
+        Institucion institucion = buscarEntidad(id);
+
+        // Verifica que el nuevo NIT no pertenezca a otra institución
+        if (!institucion.getNit().equals(dto.getNit())
+                && repository.existsByNit(dto.getNit()))
+            throw new IllegalStateException(
+                "Ya existe una institución con NIT: " + dto.getNit());
+
+        institucion.setNombre(dto.getNombre());
+        institucion.setNit(dto.getNit());
+        institucion.setCiudad(dto.getCiudad());
+        institucion.setPais(dto.getPais());
+
+        return mapper.toDTO(repository.save(institucion));
     }
 
     @Override
     @Transactional
     public void eliminar(Long id) {
         if (!repository.existsById(id))
-            throw new ProductoDocenteNotFoundException(id);
+            throw new RuntimeException(
+                "Institución no encontrada con id: " + id);
         repository.deleteById(id);
     }
 
-    @Override
-    public InstitucionResponse buscarPorId(Long id) {
-        Institucion institucion = repository.findById(id)
-            .orElseThrow(() -> new ProductoDocenteNotFoundException(id));
-        return mapper.toResponse(institucion);
-    }
-
-    @Override
-    public List<InstitucionResponse> buscarTodos() {
-        return mapper.toResponseList(repository.findAll());
-    }
-
-    @Override
-    public Page<InstitucionResponse> buscarTodosPaginado(Pageable pageable) {
-        return repository.findAll(pageable)
-            .map(mapper::toResponse);
-    }
-
-    @Override
-    public List<InstitucionResponse> buscarPorNombre(String nombre) {
-        return mapper.toResponseList(repository.findByNombreContainingIgnoreCase(nombre));
-    }
-
-    @Override
-    public List<InstitucionResponse> buscarPorNit(String nit) {
-        return mapper.toResponseList(repository.findByNit(nit));
-    }
-
-    @Override
-    public List<InstitucionResponse> buscarPorCiudad(String ciudad) {
-        return mapper.toResponseList(repository.findByCiudad(ciudad));
-    }
-
-    @Override
-    public List<InstitucionResponse> buscarPorPais(String pais) {
-        return mapper.toResponseList(repository.findByPais(pais));
+    private Institucion buscarEntidad(Long id) {
+        return repository.findById(id)
+            .orElseThrow(() -> new RuntimeException(
+                "Institución no encontrada con id: " + id));
     }
 }

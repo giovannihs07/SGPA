@@ -1,7 +1,13 @@
 package com.sgpa.model.users;
 
+import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import org.hibernate.annotations.CreationTimestamp;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sgpa.model.Persona;
 
 import jakarta.persistence.Column;
@@ -51,8 +57,15 @@ public class User {
     @Column(nullable = false, length = 255)
     private String password;
 
+    @CreationTimestamp
+    private LocalDate fechaCreacion;
+    
+    @Column(nullable = false)
+    private Boolean activo = false;
+
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "persona_id", nullable = false)
+    @JoinColumn(name = "persona_id", nullable = false, unique = true)
+    @JsonIgnore
     private Persona persona;
 
     // Crea una relación ManyToMany entre User y Role
@@ -63,5 +76,5 @@ public class User {
         inverseJoinColumns = @JoinColumn(name = "role_id"),
         uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "role_id"})
     )
-    private List<Role> roles;
+    private Set<Role> roles = new HashSet<>();
 }

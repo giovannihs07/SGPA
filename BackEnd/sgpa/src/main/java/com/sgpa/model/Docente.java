@@ -1,42 +1,57 @@
 package com.sgpa.model;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.MapsId;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Data
 @Entity
+@Table(name = "docentes")
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "docentes")
-@EqualsAndHashCode(callSuper = true)
-@Getter @Setter
-public class Docente extends Persona {
+public class Docente{
+
+    @Id
+    private Long id;
 
     private String codigoDocente;      // código institucional asignado
     
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
-    private Map<String, Object> titulos = new HashMap<>();  // PhD, Magíster, Especialista, Pregrado - Flexible structure
+    @OneToMany(
+        mappedBy = "docente",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true
+    )
+    private List<TituloAcademico> titulos;  // PhD, Magíster, Especialista, Pregrado - Flexible structure
     
     private String tipoContrato;       // Tiempo completo, Medio tiempo, Catedrático
+    
+    @OneToOne
+    @MapsId
+    @JoinColumn(name = "persona_id")
+    private Persona persona;
     
     @ManyToMany
     @JoinTable(
@@ -45,6 +60,7 @@ public class Docente extends Persona {
         inverseJoinColumns = @JoinColumn(name = "programa_id"),
         uniqueConstraints = @UniqueConstraint(columnNames = {"docente_id", "programa_id"})
     )
-    private List<Programa> programas;
+    
+    private Set<Programa> programas = new HashSet<>();
 
 }

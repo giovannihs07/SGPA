@@ -1,6 +1,9 @@
 package com.sgpa.dto.response;
 
 import java.util.List;
+
+import com.sgpa.model.users.RoleName;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,6 +16,5 @@ import lombok.NoArgsConstructor;
 public class UserLoginResponse {
     private Long id;
     private String email;
-    private List<String> roles;
-    
+    private List<RoleName> roles;
 }

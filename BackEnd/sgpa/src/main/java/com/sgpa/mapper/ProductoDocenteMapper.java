@@ -4,41 +4,55 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import com.sgpa.dto.response.ProductoDocenteResponseDTO;
+import com.sgpa.dto.response.ProductoDocenteResponse;
+import com.sgpa.model.Docente;
+import com.sgpa.model.Persona;
 import com.sgpa.model.products.ProductoDocente;
 
 @Component
 public class ProductoDocenteMapper {
 
-    public ProductoDocenteResponseDTO toDTO(ProductoDocente producto) {
-        Long docenteId = producto.getDocente() != null ? producto.getDocente().getId() : null;
-        String docenteNombre = producto.getDocente() != null ? producto.getDocente().getNombre() : null;
-        String docenteApellido = producto.getDocente() != null ? producto.getDocente().getApellido() : null;
-        String docenteCodigoDocente = producto.getDocente() != null ? producto.getDocente().getCodigoDocente() : null;
-        
-        return ProductoDocenteResponseDTO.builder()
+    public ProductoDocenteResponse toDTO(ProductoDocente producto) {
+        if (producto == null) {
+            return null;
+        }
+
+        Docente docente = producto.getDocente();
+        Long docenteId = docente != null ? docente.getId() : null;
+        String docenteNombre = null;
+        String docenteApellido = null;
+        String docenteCodigo = null;
+
+        if (docente != null) {
+            docenteCodigo = docente.getCodigoDocente();
+            Persona persona = docente.getPersona();
+            if (persona != null) {
+                docenteNombre = persona.getNombre();
+                docenteApellido = persona.getApellido();
+            }
+        }
+
+        return ProductoDocenteResponse.builder()
             .id(producto.getId())
             .nombre(producto.getNombre())
             .publicado(producto.getPublicado())
             .descripcion(producto.getDescripcion())
             .nombreArchivo(producto.getNombreArchivo())
             .nombreArchivoOriginal(producto.getNombreArchivoOriginal())
-            .categoria(producto.getCategoria().name())
-            .subcategoria(producto.getSubcategoria().name())
-            .tipo(producto.getTipo().name())
+            .categoria(producto.getTipo() != null ? producto.getTipo().getCategoria().name() : null)
+            .subcategoria(producto.getTipo() != null ? producto.getTipo().getSubcategoria().name() : null)
+            .tipo(producto.getTipo() != null ? producto.getTipo().name() : null)
             .fechaCreacion(producto.getFechaCreacion())
             .fechaPublicacion(producto.getFechaPublicacion())
             .atributos(producto.getAtributos())
             .docenteId(docenteId)
             .docenteNombre(docenteNombre)
             .docenteApellido(docenteApellido)
-            .docenteCodigoDocente(docenteCodigoDocente)
+            .docenteCodigo(docenteCodigo)
             .build();
     }
 
-    public List<ProductoDocenteResponseDTO> toDTOList(List<ProductoDocente> productos) {
-        return productos.stream()
-            .map(this::toDTO)
-            .toList();
+    public List<ProductoDocenteResponse> toDTOList(List<ProductoDocente> productos) {
+        return productos.stream().map(this::toDTO).toList();
     }
 }

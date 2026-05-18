@@ -3,23 +3,18 @@ package com.sgpa.factory;
 import org.springframework.stereotype.Component;
 
 import com.sgpa.builder.ProductoDocenteBuilder;
-import com.sgpa.dto.request.ProductoDocenteRequestDTO;
+import com.sgpa.dto.request.ProductoDocenteRequest;
 import com.sgpa.model.Docente;
 import com.sgpa.model.products.ProductoDocente;
 import com.sgpa.model.products.TipoProducto;
 
-import lombok.RequiredArgsConstructor;
-
 @Component
-@RequiredArgsConstructor
 public class ProductoDocenteFactory {
 
-    private final ProductoDocenteBuilder builder;
-
-    public ProductoDocente crear(ProductoDocenteRequestDTO dto, Docente docente) {
+    public ProductoDocente crear(ProductoDocenteRequest dto, Docente docente) {
         TipoProducto tipo = TipoProducto.valueOf(dto.getTipo());
-
-        return builder
+        
+        return ProductoDocenteBuilder.nuevo()
             .nombre(dto.getNombre())
             .descripcion(dto.getDescripcion())
             .publicado(false)
@@ -28,5 +23,4 @@ public class ProductoDocenteFactory {
             .docente(docente)
             .build();
     }
-
 }

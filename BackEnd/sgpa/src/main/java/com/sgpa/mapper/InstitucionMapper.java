@@ -11,7 +11,7 @@ import com.sgpa.model.Institucion;
 @Component
 public class InstitucionMapper {
 
-    public InstitucionResponse toResponse(Institucion institucion) {
+    public InstitucionResponse toDTO(Institucion institucion) {
         return InstitucionResponse.builder()
             .id(institucion.getId())
             .nombre(institucion.getNombre())
@@ -21,18 +21,18 @@ public class InstitucionMapper {
             .build();
     }
 
-    public List<InstitucionResponse> toResponseList(List<Institucion> instituciones) {
+    public List<InstitucionResponse> toDTOList(List<Institucion> instituciones) {
         return instituciones.stream()
-            .map(this::toResponse)
+            .map(this::toDTO)
             .toList();
     }
 
-    public Institucion toEntity(InstitucionRequest request) {
+    public Institucion toEntity(InstitucionRequest dto) {
         Institucion institucion = new Institucion();
-        institucion.setNombre(request.getNombre());
-        institucion.setNit(request.getNit());
-        institucion.setCiudad(request.getCiudad());
-        institucion.setPais(request.getPais());
+        institucion.setNombre(dto.getNombre());
+        institucion.setNit(dto.getNit());
+        institucion.setCiudad(dto.getCiudad());
+        institucion.setPais(dto.getPais());
         return institucion;
     }
 }

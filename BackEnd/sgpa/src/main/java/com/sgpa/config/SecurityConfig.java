@@ -52,7 +52,24 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/login").permitAll()
+                .requestMatchers(HttpMethod.GET, "/users").permitAll()
+                .requestMatchers(HttpMethod.GET, "/users/{id}").permitAll()
+                .requestMatchers(HttpMethod.POST, "/users/register").permitAll()
+                .requestMatchers(HttpMethod.GET, "/users/roles").permitAll()
+                .requestMatchers(HttpMethod.POST, "/users").permitAll()
+                .requestMatchers(HttpMethod.PUT, "/users/{id}").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/users/{id}").permitAll()
+                // GET en todos los endpoints - lectura permitida públicamente
+                .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/**").permitAll()
+                .requestMatchers(HttpMethod.PUT, "/api/**").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/**").permitAll()
                 
+                // Descargas de archivos permitidas públicamente
+                .requestMatchers(HttpMethod.GET, "/api/productos/{id}/archivo").permitAll()
+                
+
                 // Rutas públicas de Swagger/OpenAPI
                 .requestMatchers(
                     "/swagger-ui",
@@ -66,56 +83,25 @@ public class SecurityConfig {
                     "/swagger-resources/**",
                     "/webjars/**"
                 ).permitAll()
-                
-                // Endpoints públicos de autenticación (si existen)
-                .requestMatchers("/api/auth/**").permitAll()
-                
-                // GET en todos los endpoints - lectura permitida públicamente
-                .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/users").permitAll()
-                .requestMatchers(HttpMethod.GET, "/users/{id}").permitAll()
-                
-                // Descargas de archivos permitidas públicamente
-                .requestMatchers(HttpMethod.GET, "/api/productos/{id}/archivo").permitAll()
-                
-                // POST - crear recursos (requiere autenticación)
-                .requestMatchers(HttpMethod.POST, "/api/docentes").authenticated()
-                .requestMatchers(HttpMethod.POST, "/api/administrativos").authenticated()
-                .requestMatchers(HttpMethod.POST, "/api/productos").authenticated()
-                .requestMatchers(HttpMethod.POST, "/api/facultades").authenticated()
-                .requestMatchers(HttpMethod.POST, "/api/instituciones").authenticated()
-                .requestMatchers(HttpMethod.POST, "/api/programas").authenticated()
-                .requestMatchers(HttpMethod.POST, "/users").hasAnyRole("ADMIN", "SUPERADMIN")
-                
-                // PUT - actualizar recursos (requiere autenticación)
-                .requestMatchers(HttpMethod.PUT, "/api/**").authenticated()
-                .requestMatchers(HttpMethod.PUT, "/users/{id}").authenticated()
-                
-                // DELETE - eliminar recursos (requiere autenticación)
-                .requestMatchers(HttpMethod.DELETE, "/api/**").authenticated()
-                .requestMatchers(HttpMethod.DELETE, "/users/{id}").authenticated()
-                
-                // Cualquier otra solicitud debe ser autenticada
-                .anyRequest().authenticated()
             )
             .addFilter(new JwtAuthenticationFilter(authManager))
             .addFilter(new JwtValidationFilter(authManager, userDetailsService))
-            .exceptionHandling(ex -> ex
-                .authenticationEntryPoint((request, response, authException) -> {
-                    // Para rutas públicas, devolver 401 en lugar de 403
-                    if (request.getRequestURI().startsWith("/swagger-ui") || 
-                        request.getRequestURI().startsWith("/v3/api-docs") ||
-                        request.getRequestURI().equals("/swagger-ui.html")) {
-                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                        response.setContentType("application/json");
-                        response.getWriter().write("{\"error\":\"Authentication required\"}");
-                    } else {
-                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                        response.setContentType("application/json");
-                        response.getWriter().write("{\"error\":\"Access denied\"}");
-                    }
-                })
-            )
+            // .exceptionHandling(ex -> ex
+            //     .authenticationEntryPoint((request, response, authException) -> {
+            //         // Para rutas públicas, devolver 401 en lugar de 403
+            //         if (request.getRequestURI().startsWith("/swagger-ui") || 
+            //             request.getRequestURI().startsWith("/v3/api-docs") ||
+            //             request.getRequestURI().equals("/swagger-ui.html")) {
+            //             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            //             response.setContentType("application/json");
+            //             response.getWriter().write("{\"error\":\"Authentication required\"}");
+            //         } else {
+            //             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            //             response.setContentType("application/json");
+            //             response.getWriter().write("{\"error\":\"Access denied\"}");
+            //         }
+            //     })
+            // )
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )

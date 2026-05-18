@@ -2,18 +2,17 @@ package com.sgpa.model.products;
 
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sgpa.model.Docente;
 
-//import com.proyectogrado.sgpa.converter.MapToJsonConverter;
-
 import jakarta.persistence.Column;
-//import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -23,6 +22,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -33,6 +33,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Table(name = "productos_docentes")
 public class ProductoDocente {
 
     @Id
@@ -46,13 +47,7 @@ public class ProductoDocente {
     private String nombreArchivo;
     private String nombreArchivoOriginal;
 
-    private Boolean publicado;
-
-    @Enumerated(EnumType.STRING)
-    private CategoriaProducto categoria;
-
-    @Enumerated(EnumType.STRING)
-    private SubcategoriaProducto subcategoria;
+    private Boolean publicado = false;
 
     @Enumerated(EnumType.STRING)
     private TipoProducto tipo;
@@ -60,23 +55,24 @@ public class ProductoDocente {
     @CreationTimestamp
     private LocalDate fechaCreacion;
 
-    // Para almacenar la fecha cuando RRHH lo publique
     private LocalDate fechaPublicacion;
 
-    // Conectarse a la base de datos PostgreSQL
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Map<String, Object> atributos = new HashMap<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "docente_id", nullable = false)
+    @JsonIgnore
     private Docente docente;
+    
+    public void validarAtributos() {
+        List<String> requeridos = tipo.getAtributosRequeridos();
 
-    // Conectarse a la base de datos H2
-    /*
-     * @Convert(converter = MapToJsonConverter.class)
-     * 
-     * @Column(columnDefinition = "TEXT")
-     * private Map<String, Object> atributos = new HashMap<>();
-     */
+        for (String atributo: requeridos) {
+            if (atributos == null || !atributos.containsKey(atributo) || atributos.get(atributo) == null || atributos.get(atributo).toString().isBlank()) {
+                throw new IllegalArgumentException("Falta el atributo obligatorio: " + atributo);
+            }
+        }
+    }
 }

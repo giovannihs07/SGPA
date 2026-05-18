@@ -1,6 +1,9 @@
 package com.sgpa.dto.response;
 
 import java.util.List;
+
+import com.sgpa.model.users.RoleName;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,13 +17,10 @@ public class UserRegisterResponse {
 
     private Long id;
     private String email;
-    private List<String> roles;
-    
-    // Información de Persona asociada
+    private List<RoleName> roles;
     private Long personaId;
     private String nombre;
     private String apellido;
     private String cedula;
     private String telefono;
-
 }

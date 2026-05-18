@@ -2,6 +2,7 @@ package com.sgpa.dto.request;
 
 import java.util.Map;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -9,23 +10,20 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-// request/ProductoDocenteRequestDTO.java
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductoDocenteRequestDTO {
+public class ProductoDocenteRequest {
 
     @NotBlank(message = "El nombre es obligatorio")
     private String nombre;
 
     @NotBlank(message = "El tipo es obligatorio")
-    private String tipo; // debe coincidir con un valor del enum TipoProducto
+    private String tipo;
 
     private String descripcion;
-    
+
     @NotNull(message = "Los atributos son obligatorios")
     private Map<String, Object> atributos;
     
-    @NotNull(message = "El docente ID es obligatorio")
-    private Long docenteId;
 }

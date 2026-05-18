@@ -1,5 +1,7 @@
 package com.sgpa.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -27,5 +29,6 @@ public class Facultad {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "institucion_id")
+    @JsonIgnore
     private Institucion institucion;
 }

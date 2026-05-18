@@ -10,23 +10,9 @@ import com.sgpa.dto.response.InstitucionResponse;
 
 public interface InstitucionService {
     
-    InstitucionResponse crear(InstitucionRequest request);
-    
-    InstitucionResponse actualizar(Long id, InstitucionRequest request);
-    
-    void eliminar(Long id);
-    
+    InstitucionResponse crear(InstitucionRequest dto);
     InstitucionResponse buscarPorId(Long id);
-    
-    List<InstitucionResponse> buscarTodos();
-    
-    Page<InstitucionResponse> buscarTodosPaginado(Pageable pageable);
-    
-    List<InstitucionResponse> buscarPorNombre(String nombre);
-    
-    List<InstitucionResponse> buscarPorNit(String nit);
-    
-    List<InstitucionResponse> buscarPorCiudad(String ciudad);
-    
-    List<InstitucionResponse> buscarPorPais(String pais);
+    List<InstitucionResponse> listarTodas();
+    InstitucionResponse actualizar(Long id, InstitucionRequest dto);
+    void eliminar(Long id);
 }
