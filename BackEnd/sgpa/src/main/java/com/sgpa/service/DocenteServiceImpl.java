@@ -48,60 +48,58 @@ public class DocenteServiceImpl implements DocenteService {
     @Transactional
     public DocenteResponse registrar(RegistroDocenteRequest dto) {
 
-        // Validaciones
         if (personaRepository.existsByCedula(dto.getCedula()))
             throw new IllegalStateException(
-                "Ya existe una persona con cédula: " + dto.getCedula());
+                    "Ya existe una persona con cédula: " + dto.getCedula());
 
         if (userRepository.existsByEmail(dto.getEmail()))
             throw new IllegalStateException(
-                "Ya existe un usuario con email: " + dto.getEmail());
+                    "Ya existe un usuario con email: " + dto.getEmail());
 
-        // 1. Crear Persona
+        // 1. Crear y guardar Persona — captura el retorno con el id generado
         Persona persona = new Persona();
         persona.setNombre(dto.getNombre());
         persona.setApellido(dto.getApellido());
         persona.setCedula(dto.getCedula());
         persona.setTelefono(dto.getTelefono());
-        personaRepository.save(persona);
+        persona = personaRepository.save(persona);
 
-        // 2. Crear Docente con @MapsId — usa el id de Persona
+        // 2. Crear Docente @MapsId lo deriva de persona
         Docente docente = new Docente();
-        docente.setId(persona.getId());
-        docente.setPersona(persona);
+        docente.setPersona(persona); // ← @MapsId toma el id de aquí
         docente.setCodigoDocente(dto.getCodigoDocente());
         docente.setTipoContrato(dto.getTipoContrato());
 
-        // Asignar programas
         if (dto.getProgramaIds() != null && !dto.getProgramaIds().isEmpty()) {
             Set<Programa> programas = new HashSet<>(
-                programaRepository.findAllById(dto.getProgramaIds()));
+                    programaRepository.findAllById(dto.getProgramaIds()));
             docente.setProgramas(programas);
         }
 
-        docenteRepository.save(docente);
+        docente = docenteRepository.save(docente);
 
-        // 3. Agregar títulos si vienen en el request
+        // 3. Títulos
         if (dto.getTitulos() != null && !dto.getTitulos().isEmpty()) {
+            Docente docenteFinal = docente;
             List<TituloAcademico> titulos = dto.getTitulos().stream()
-                .map(t -> {
-                    TituloAcademico titulo = new TituloAcademico();
-                    titulo.setTitulo(t.getTitulo());
-                    titulo.setNivel(t.getNivel());
-                    titulo.setInstitucion(t.getInstitucion());
-                    titulo.setFechaObtencion(t.getFechaObtencion());
-                    titulo.setPais(t.getPais());
-                    titulo.setDocente(docente);
-                    return titulo;
-                })
-                .toList();
+                    .map(t -> {
+                        TituloAcademico titulo = new TituloAcademico();
+                        titulo.setTitulo(t.getTitulo());
+                        titulo.setNivel(t.getNivel());
+                        titulo.setInstitucion(t.getInstitucion());
+                        titulo.setFechaObtencion(t.getFechaObtencion());
+                        titulo.setPais(t.getPais());
+                        titulo.setDocente(docenteFinal);
+                        return titulo;
+                    })
+                    .toList();
             tituloRepository.saveAll(titulos);
         }
 
         // 4. Crear User con rol ROLE_DOCENTE
         Role rolDocente = roleRepository.findByName(RoleName.ROLE_DOCENTE)
-            .orElseThrow(() -> new IllegalStateException(
-                "Rol ROLE_DOCENTE no encontrado — insértalo en la BD"));
+                .orElseThrow(() -> new IllegalStateException(
+                        "Rol ROLE_DOCENTE no encontrado"));
 
         User user = new User();
         user.setEmail(dto.getEmail());
@@ -111,8 +109,11 @@ public class DocenteServiceImpl implements DocenteService {
         user.setRoles(Set.of(rolDocente));
         userRepository.save(user);
 
-        return mapper.toDTO(docenteRepository.findById(docente.getId())
-            .orElseThrow());
+        // Al final de registrar() — pasa el user directamente para evitar query extra
+        Docente docenteGuardado = docenteRepository.findById(docente.getId())
+                .orElseThrow();
+
+        return mapper.toDTO(docenteGuardado, user); // ← sobrecarga con user
     }
 
     @Override
@@ -123,8 +124,8 @@ public class DocenteServiceImpl implements DocenteService {
     @Override
     public DocenteResponse buscarPorEmail(String email) {
         return mapper.toDTO(docenteRepository.findByUserEmail(email)
-            .orElseThrow(() -> new RuntimeException(
-                "Docente no encontrado con email: " + email)));
+                .orElseThrow(() -> new RuntimeException(
+                        "Docente no encontrado con email: " + email)));
     }
 
     @Override
@@ -135,7 +136,7 @@ public class DocenteServiceImpl implements DocenteService {
     @Override
     public List<DocenteResponse> listarPorPrograma(Long programaId) {
         return mapper.toDTOList(
-            docenteRepository.findByProgramaId(programaId));
+                docenteRepository.findByProgramaId(programaId));
     }
 
     @Override
@@ -155,7 +156,7 @@ public class DocenteServiceImpl implements DocenteService {
 
         if (dto.getProgramaIds() != null) {
             Set<Programa> programas = new HashSet<>(
-                programaRepository.findAllById(dto.getProgramaIds()));
+                    programaRepository.findAllById(dto.getProgramaIds()));
             docente.setProgramas(programas);
         }
 
@@ -185,7 +186,7 @@ public class DocenteServiceImpl implements DocenteService {
     public void eliminarTitulo(Long tituloId) {
         if (!tituloRepository.existsById(tituloId))
             throw new RuntimeException(
-                "Título no encontrado con id: " + tituloId);
+                    "Título no encontrado con id: " + tituloId);
         tituloRepository.deleteById(tituloId);
     }
 
@@ -193,8 +194,8 @@ public class DocenteServiceImpl implements DocenteService {
     @Transactional
     public void activar(Long userId) {
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException(
-                "Usuario no encontrado con id: " + userId));
+                .orElseThrow(() -> new RuntimeException(
+                        "Usuario no encontrado con id: " + userId));
         user.setActivo(true);
         userRepository.save(user);
     }
@@ -203,15 +204,15 @@ public class DocenteServiceImpl implements DocenteService {
     @Transactional
     public void desactivar(Long userId) {
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException(
-                "Usuario no encontrado con id: " + userId));
+                .orElseThrow(() -> new RuntimeException(
+                        "Usuario no encontrado con id: " + userId));
         user.setActivo(false);
         userRepository.save(user);
     }
 
     private Docente buscarEntidad(Long id) {
         return docenteRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException(
-                "Docente no encontrado con id: " + id));
+                .orElseThrow(() -> new RuntimeException(
+                        "Docente no encontrado con id: " + id));
     }
 }
