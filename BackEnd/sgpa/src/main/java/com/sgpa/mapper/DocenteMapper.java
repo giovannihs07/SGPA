@@ -101,7 +101,7 @@ public class DocenteMapper {
             .id(programa.getId())
             .nombre(programa.getNombre())
             .codigo(programa.getCodigo())
-            .nivel(programa.getNivel())
+            .nivel(programa.getNivel().name())
             .build();
     }
 }

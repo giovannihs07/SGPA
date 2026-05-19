@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -32,7 +34,9 @@ public class Programa {
     @Column(unique = true)
     private String codigo;  // SNIES, o código institucional asignado
     
-    private String nivel; // Pregrado, Posgrado, Técnico, Tecnólogo
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private NivelFormacion nivel; 
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "facultad_id")

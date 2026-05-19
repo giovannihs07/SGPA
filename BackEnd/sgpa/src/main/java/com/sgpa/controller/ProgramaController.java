@@ -1,5 +1,6 @@
 package com.sgpa.controller;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.sgpa.dto.request.ProgramaRequest;
 import com.sgpa.dto.response.ProgramaResponse;
+import com.sgpa.model.NivelFormacion;
 import com.sgpa.service.ProgramaService;
 
 import jakarta.validation.Valid;
@@ -36,71 +38,52 @@ public class ProgramaController {
 
     @PostMapping
     public ResponseEntity<ProgramaResponse> crear(
-            @Valid @RequestBody ProgramaRequest request,
-            BindingResult result) {
-        if (result.hasErrors()) {
-            return ResponseEntity.badRequest().build();
-        }
-        ProgramaResponse response = service.crear(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            @RequestBody @Valid ProgramaRequest dto) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(service.crear(dto));
     }
 
     @GetMapping
-    public ResponseEntity<Page<ProgramaResponse>> buscarTodos(
-            @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<ProgramaResponse> response = service.buscarTodosPaginado(pageable);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<List<ProgramaResponse>> listar(
+            @RequestParam(required = false) Long facultadId,
+            @RequestParam(required = false) Long institucionId,
+            @RequestParam(required = false) String nivel) {
+        if (facultadId != null)
+            return ResponseEntity.ok(service.listarPorFacultad(facultadId));
+        if (institucionId != null)
+            return ResponseEntity.ok(
+                    service.listarPorInstitucion(institucionId));
+        if (nivel != null)
+            return ResponseEntity.ok(service.listarPorNivel(nivel));
+
+        return ResponseEntity.ok(service.listarTodos());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProgramaResponse> buscarPorId(@PathVariable Long id) {
-        ProgramaResponse response = service.buscarPorId(id);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/buscar/nombre")
-    public ResponseEntity<List<ProgramaResponse>> buscarPorNombre(@RequestParam String nombre) {
-        List<ProgramaResponse> response = service.buscarPorNombre(nombre);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/buscar/facultad/{facultadId}")
-    public ResponseEntity<List<ProgramaResponse>> buscarPorFacultad(@PathVariable Long facultadId) {
-        List<ProgramaResponse> response = service.buscarPorFacultad(facultadId);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/buscar/nivel")
-    public ResponseEntity<List<ProgramaResponse>> buscarPorNivel(@RequestParam String nivel) {
-        List<ProgramaResponse> response = service.buscarPorNivel(nivel);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/buscar/codigo")
-    public ResponseEntity<List<ProgramaResponse>> buscarPorCodigo(@RequestParam String codigo) {
-        List<ProgramaResponse> response = service.buscarPorCodigo(codigo);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ProgramaResponse> buscarPorId(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(service.buscarPorId(id));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ProgramaResponse> actualizar(
             @PathVariable Long id,
-            @Valid @RequestBody ProgramaRequest request,
-            BindingResult result) {
-        if (result.hasErrors()) {
-            return ResponseEntity.badRequest().build();
-        }
-        ProgramaResponse response = service.actualizar(id, request);
-        return ResponseEntity.ok(response);
+            @RequestBody @Valid ProgramaRequest dto) {
+        return ResponseEntity.ok(service.actualizar(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> eliminar(@PathVariable Long id) {
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         service.eliminar(id);
-        Map<String, String> response = new HashMap<>();
-        response.put("mensaje", "Programa eliminado correctamente");
-        return ResponseEntity.ok(response);
+        return ResponseEntity.noContent().build();
+    }
+
+    // GET /api/programas/niveles 
+    @GetMapping("/niveles")
+    public ResponseEntity<List<String>> listarNiveles() {
+        return ResponseEntity.ok(
+                Arrays.stream(NivelFormacion.values())
+                        .map(NivelFormacion::name)
+                        .toList());
     }
 }

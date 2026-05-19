@@ -1,20 +1,21 @@
 package com.sgpa.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import com.sgpa.model.NivelFormacion;
 import com.sgpa.model.Programa;
 
 @Repository
 public interface ProgramaRepository extends JpaRepository<Programa, Long> {
     
-    List<Programa> findByNombreContainingIgnoreCase(String nombre);
-    
     List<Programa> findByFacultadId(Long facultadId);
-    
-    List<Programa> findByNivel(String nivel);
-    
-    List<Programa> findByCodigo(String codigo);
+    List<Programa> findByNivel(NivelFormacion nivel);
+    List<Programa> findByFacultadInstitucionId(Long institucionId);
+    boolean existsByCodigo(String codigo);
+    boolean existsByNombreAndFacultadId(String nombre, Long facultadId);
+    Optional<Programa> findByCodigo(String codigo);
 }

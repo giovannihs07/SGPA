@@ -16,6 +16,10 @@ public class ProgramaResponse {
     private String nombre;
     private String codigo;
     private String nivel;
+
+    // Datos de facultad e institución — evita requests extra al frontend
     private Long facultadId;
     private String facultadNombre;
+    private Long institucionId;
+    private String institucionNombre;
 }

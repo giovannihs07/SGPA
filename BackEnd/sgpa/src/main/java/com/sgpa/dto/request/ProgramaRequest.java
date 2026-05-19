@@ -1,5 +1,7 @@
 package com.sgpa.dto.request;
 
+import com.sgpa.model.NivelFormacion;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -15,11 +17,11 @@ public class ProgramaRequest {
     @NotBlank(message = "El nombre es obligatorio")
     private String nombre;
 
-    @NotBlank(message = "El código es obligatorio")
     private String codigo;
 
-    private String nivel;
+    @NotNull(message = "El nivel es obligatorio")
+    private NivelFormacion nivel;
 
-    @NotNull(message = "El ID de la facultad es obligatorio")
+    @NotNull(message = "La facultad es obligatoria")
     private Long facultadId;
 }

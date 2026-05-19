@@ -10,23 +10,12 @@ import com.sgpa.dto.response.ProgramaResponse;
 
 public interface ProgramaService {
     
-    ProgramaResponse crear(ProgramaRequest request);
-    
-    ProgramaResponse actualizar(Long id, ProgramaRequest request);
-    
-    void eliminar(Long id);
-    
+    ProgramaResponse crear(ProgramaRequest dto);
     ProgramaResponse buscarPorId(Long id);
-    
-    List<ProgramaResponse> buscarTodos();
-    
-    Page<ProgramaResponse> buscarTodosPaginado(Pageable pageable);
-    
-    List<ProgramaResponse> buscarPorNombre(String nombre);
-    
-    List<ProgramaResponse> buscarPorFacultad(Long facultadId);
-    
-    List<ProgramaResponse> buscarPorNivel(String nivel);
-    
-    List<ProgramaResponse> buscarPorCodigo(String codigo);
+    List<ProgramaResponse> listarTodos();
+    List<ProgramaResponse> listarPorFacultad(Long facultadId);
+    List<ProgramaResponse> listarPorInstitucion(Long institucionId);
+    List<ProgramaResponse> listarPorNivel(String nivel);
+    ProgramaResponse actualizar(Long id, ProgramaRequest dto);
+    void eliminar(Long id);
 }
