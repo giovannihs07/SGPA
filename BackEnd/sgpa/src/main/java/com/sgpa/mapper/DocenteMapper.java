@@ -2,16 +2,19 @@ package com.sgpa.mapper;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
-import com.sgpa.dto.request.DocenteRequest;
+import com.sgpa.dto.request.RegistroDocenteRequest;
 import com.sgpa.dto.response.DocenteResponse;
-import com.sgpa.dto.response.DocenteResponse.ProgramaDocenteDTO;
+import com.sgpa.dto.response.ProgramaResponse;
+import com.sgpa.dto.response.TituloAcademicoResponse;
 import com.sgpa.model.Docente;
 import com.sgpa.model.Persona;
 import com.sgpa.model.Programa;
+import com.sgpa.model.users.User;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,89 +22,60 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DocenteMapper {
 
-    private final PersonaMapper personaMapper;
-    private final TituloAcademicoMapper tituloAcademicoMapper;
-
-    public DocenteResponse toResponse(Docente docente) {
-        if (docente == null) {
-            return null;
-        }
-
+    public DocenteResponse toDTO(Docente docente) {
         Persona persona = docente.getPersona();
-        List<ProgramaDocenteDTO> programas = docente.getProgramas() != null
-            ? docente.getProgramas().stream()
-                .map(this::mapPrograma)
-                .collect(Collectors.toList())
+        User user = persona != null ? persona.getUser() : null;
+
+        Set<String> roles = user != null
+            ? user.getRoles().stream()
+                .map(r -> r.getName().name())
+                .collect(Collectors.toSet())
+            : Set.of();
+
+        Set<ProgramaResponse> programas = docente.getProgramas().stream()
+            .map(p -> ProgramaResponse.builder()
+                .id(p.getId())
+                .nombre(p.getNombre())
+                .codigo(p.getCodigo())
+                .nivel(p.getNivel().name())
+                .facultadId(p.getFacultad() != null
+                    ? p.getFacultad().getId() : null)
+                .facultadNombre(p.getFacultad() != null
+                    ? p.getFacultad().getNombre() : null)
+                .build())
+            .collect(Collectors.toSet());
+
+        List<TituloAcademicoResponse> titulos = docente.getTitulos() != null
+            ? docente.getTitulos().stream()
+                .map(t -> TituloAcademicoResponse.builder()
+                    .id(t.getId())
+                    .titulo(t.getTitulo())
+                    .nivel(t.getNivel().name())
+                    .institucion(t.getInstitucion())
+                    .fechaObtencion(t.getFechaObtencion())
+                    .pais(t.getPais())
+                    .build())
+                .toList()
             : List.of();
 
-        DocenteResponse.DocenteResponseBuilder builder = DocenteResponse.builder()
+        return DocenteResponse.builder()
             .id(docente.getId())
+            .nombre(persona != null ? persona.getNombre() : null)
+            .apellido(persona != null ? persona.getApellido() : null)
+            .cedula(persona != null ? persona.getCedula() : null)
+            .telefono(persona != null ? persona.getTelefono() : null)
+            .fechaCreacion(persona != null ? persona.getFechaCreacion() : null)
+            .email(user != null ? user.getEmail() : null)
+            .activo(user != null ? user.getActivo() : null)
+            .roles(roles)
             .codigoDocente(docente.getCodigoDocente())
             .tipoContrato(docente.getTipoContrato())
-            .titulos(tituloAcademicoMapper.toResponseList(docente.getTitulos()))
-            .programas(programas);
-
-        if (persona != null) {
-            builder.personaId(persona.getId())
-                .nombre(persona.getNombre())
-                .apellido(persona.getApellido())
-                .cedula(persona.getCedula())
-                .telefono(persona.getTelefono());
-        }
-
-        return builder.build();
-    }
-
-    public List<DocenteResponse> toResponseList(List<Docente> docentes) {
-        if (docentes == null) {
-            return List.of();
-        }
-
-        return docentes.stream().map(this::toResponse).collect(Collectors.toList());
-    }
-
-    public Persona toPersonaEntity(DocenteRequest request) {
-        return personaMapper.toEntity(new com.sgpa.dto.request.PersonaRequest(
-            request.getNombre(),
-            request.getApellido(),
-            request.getCedula(),
-            request.getTelefono()
-        ));
-    }
-
-    public void updatePersona(Persona persona, DocenteRequest request) {
-        personaMapper.updateEntity(persona, new com.sgpa.dto.request.PersonaRequest(
-            request.getNombre(),
-            request.getApellido(),
-            request.getCedula(),
-            request.getTelefono()
-        ));
-    }
-
-    public void updateDocenteFields(Docente docente, DocenteRequest request) {
-        if (docente == null || request == null) {
-            return;
-        }
-
-        docente.setCodigoDocente(request.getCodigoDocente());
-        docente.setTipoContrato(request.getTipoContrato());
-    }
-
-    public Docente toDocente(DocenteRequest request, Persona persona) {
-        Docente docente = new Docente();
-        docente.setPersona(persona);
-        docente.setCodigoDocente(request.getCodigoDocente());
-        docente.setTipoContrato(request.getTipoContrato());
-        docente.setProgramas(new HashSet<>());
-        return docente;
-    }
-
-    private ProgramaDocenteDTO mapPrograma(Programa programa) {
-        return ProgramaDocenteDTO.builder()
-            .id(programa.getId())
-            .nombre(programa.getNombre())
-            .codigo(programa.getCodigo())
-            .nivel(programa.getNivel().name())
+            .programas(programas)
+            .titulos(titulos)
             .build();
+    }
+
+    public List<DocenteResponse> toDTOList(List<Docente> docentes) {
+        return docentes.stream().map(this::toDTO).toList();
     }
 }

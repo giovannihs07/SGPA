@@ -17,15 +17,15 @@ import lombok.Setter;
 @AllArgsConstructor
 public class TituloAcademicoRequest {
 
-    private Long id;
-
     @NotBlank(message = "El título es obligatorio")
     private String titulo;
 
     @NotNull(message = "El nivel académico es obligatorio")
     private NivelAcademico nivel;
 
+    @NotBlank(message = "La institución es obligatoria")
     private String institucion;
+
     private LocalDate fechaObtencion;
     private String pais;
 }

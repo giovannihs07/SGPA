@@ -11,4 +11,5 @@ import com.sgpa.model.Persona;
 public interface PersonaRepository extends JpaRepository<Persona, Long> {
 
     Optional<Persona> findByCedula(String cedula);
+    boolean existsByCedula(String cedula);
 }

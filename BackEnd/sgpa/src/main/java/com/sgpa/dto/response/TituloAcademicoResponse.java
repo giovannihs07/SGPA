@@ -19,7 +19,7 @@ public class TituloAcademicoResponse {
 
     private Long id;
     private String titulo;
-    private NivelAcademico nivel;
+    private String nivel;
     private String institucion;
     private LocalDate fechaObtencion;
     private String pais;
