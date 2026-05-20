@@ -44,7 +44,7 @@ public class Docente{
         cascade = CascadeType.ALL,
         orphanRemoval = true
     )
-    private List<TituloAcademico> titulos;  // PhD, Magíster, Especialista, Pregrado - Flexible structure
+    private List<TituloAcademico> titulos;  // PhD, Magíster, Especialista, Pregrado
     
     private String tipoContrato;       // Tiempo completo, Medio tiempo, Catedrático
     

@@ -37,7 +37,7 @@ public class DocenteMapper {
         return buildResponse(docente, persona, user);
     }
 
-    // Sobrecarga — cuando ya tienes el User disponible (evita query extra)
+    // Sobrecarga 
     public DocenteResponse toDTO(Docente docente, User user) {
         Persona persona = docente.getPersona();
         return buildResponse(docente, persona, user);

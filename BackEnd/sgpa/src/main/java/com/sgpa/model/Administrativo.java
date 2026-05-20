@@ -13,23 +13,22 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Data
 @Entity
+@Table(name = "administrativos")
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "administrativos")
 public class Administrativo {
 
     @Id
     private Long id;
-
-    private String cargo;
-    private String tipoContrato; // Tiempo completo, Medio tiempo, Catedrático
-    private String dependencia;
 
     @OneToOne
     @MapsId
     @JoinColumn(name="persona_id")
     private Persona persona;       
 
+    private String cargo;
+    private String tipoContrato; // Tiempo completo, Medio tiempo, Catedrático
+    private String dependencia;
 }

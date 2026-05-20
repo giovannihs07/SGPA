@@ -63,7 +63,7 @@ public class User {
     @Column(nullable = false)
     private Boolean activo = false;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "persona_id", nullable = false, unique = true)
     @JsonIgnore
     private Persona persona;
