@@ -74,6 +74,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         // Resultado: ["ROLE_DOCENTE", "ROLE_ADMIN", etc.]
         List<String> nombreRoles = roles.stream()
             .map(GrantedAuthority::getAuthority)
+            .filter(role -> role.startsWith("ROLE_"))
             .toList();
 
         String token = Jwts.builder()

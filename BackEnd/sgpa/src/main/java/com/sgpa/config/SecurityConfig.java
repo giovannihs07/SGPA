@@ -44,7 +44,7 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        AuthenticationManager authManager = authenticationConfiguration.getAuthenticationManager();
+        AuthenticationManager authManager = authenticationManager();
 
         // Configura las reglas de seguridad para las solicitudes HTTP.
         return http
@@ -70,11 +70,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/docentes/{id}/titulos").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/administrativos/registro").permitAll()
-
+                .requestMatchers(HttpMethod.PATCH, "/api/auth/cambiar-password").authenticated()
                 // Descargas de archivos permitidas públicamente
                 .requestMatchers(HttpMethod.GET, "/api/productos/{id}/archivo").permitAll()
-                
-
                 // Rutas públicas de Swagger/OpenAPI
                 .requestMatchers(
                     "/swagger-ui",
@@ -85,7 +83,7 @@ public class SecurityConfig {
                     "/v3/api-docs/**",
                     "/v3/api-docs/swagger-config",
                     "/swagger-resources",
-                    "/swagger-resources/**",
+                    "/swagger-resources/**",    
                     "/webjars/**"
                 ).permitAll()
             )
