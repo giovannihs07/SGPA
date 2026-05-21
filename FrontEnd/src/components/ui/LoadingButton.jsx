@@ -2,7 +2,7 @@ export const LoadingButton = ({ loading, disabled, children, className = '' }) =
     <button
         type="submit"
         disabled={loading || disabled}
-        className={`flex items-center justify-center gap-2 font-semibold py-3 rounded-lg text-sm transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed ${className}`}
+        className={`flex items-center justify-center gap-2 font-semibold py-2 rounded-lg text-sm transition-all duration-200 disabled:opacity-80 disabled:cursor-not-allowed ${className}`}
     >
         {loading ? (
             <>

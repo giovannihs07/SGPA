@@ -12,7 +12,7 @@ export const PasswordInput = ({ name = "password", value, onChange, placeholder 
                 onChange={onChange}
                 placeholder={placeholder}
                 autoComplete={autoComplete}
-                className="w-full px-4 py-3 pr-11 rounded-lg border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#003366] focus:border-transparent transition"
+                className="w-full px-4 py-2 pr-11 rounded-lg border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#EFB357] focus:border-transparent transition"
             />
             <button
                 type="button"
