@@ -21,8 +21,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sgpa.dto.request.RegistroDocenteAdminRequest;
 import com.sgpa.dto.request.RegistroDocenteRequest;
 import com.sgpa.dto.request.TituloAcademicoRequest;
+import com.sgpa.dto.response.DocenteAdministrativoResponse;
 import com.sgpa.dto.response.DocenteResponse;
 import com.sgpa.service.DocenteService;
 
@@ -38,16 +40,22 @@ public class DocenteController {
 
     @PostMapping("/registro")
     public ResponseEntity<DocenteResponse> registrar(
-        @RequestBody @Valid RegistroDocenteRequest dto
-    ) {
+            @RequestBody @Valid RegistroDocenteRequest dto) {
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(service.registrar(dto));
+                .body(service.registrar(dto));
+    }
+
+    @PostMapping("/registro-docente-administrativo")
+    public ResponseEntity<DocenteAdministrativoResponse> registrarDocenteAdministrativo(
+            @RequestBody @Valid RegistroDocenteAdminRequest dto) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(service.registrarDocenteAdministrativo(
+                        dto.getDocente(), dto.getAdministrativo()));
     }
 
     @GetMapping
     public ResponseEntity<List<DocenteResponse>> listar(
-        @RequestParam(required = false) Long programaId
-    ) {
+            @RequestParam(required = false) Long programaId) {
         if (programaId != null)
             return ResponseEntity.ok(service.listarPorPrograma(programaId));
         return ResponseEntity.ok(service.listarTodos());
@@ -60,19 +68,17 @@ public class DocenteController {
 
     @PutMapping("/{id}")
     public ResponseEntity<DocenteResponse> actualizar(
-        @PathVariable Long id,
-        @RequestBody @Valid RegistroDocenteRequest dto
-    ) {
+            @PathVariable Long id,
+            @RequestBody @Valid RegistroDocenteRequest dto) {
         return ResponseEntity.ok(service.actualizar(id, dto));
     }
 
     @PostMapping("/{id}/titulos")
     public ResponseEntity<DocenteResponse> agregarTitulo(
-        @PathVariable Long id,
-        @RequestBody @Valid TituloAcademicoRequest dto
-    ) {
+            @PathVariable Long id,
+            @RequestBody @Valid TituloAcademicoRequest dto) {
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(service.agregarTitulo(id, dto));
+                .body(service.agregarTitulo(id, dto));
     }
 
     @DeleteMapping("/titulos/{tituloId}")

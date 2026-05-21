@@ -17,6 +17,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.sgpa.config.TokenJwtConfig;
+import com.sgpa.model.users.User;
+import com.sgpa.repository.UserRepository;
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -29,9 +31,11 @@ import jakarta.servlet.http.HttpServletResponse;
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     private final AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
 
-    public JwtAuthenticationFilter(AuthenticationManager authenticationManager) {
+    public JwtAuthenticationFilter(AuthenticationManager authenticationManager, UserRepository userRepository) {
         this.authenticationManager = authenticationManager;
+        this.userRepository = userRepository;
         // Define la URL del endpoint de login
         setFilterProcessesUrl("/api/auth/login");
     }
@@ -87,8 +91,11 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         response.addHeader(HEADER_AUTHORIZATION, PREFIX_TOKEN + token);
 
+        User user = userRepository.findByEmail(email).orElseThrow();
+
         Map<String, Object> body = new HashMap<>();
         body.put("token", token);
+        body.put("userId", user.getId());
         body.put("message", String.format("¡Hola %s, has iniciado sesión con éxito!", email));
         body.put("email", email);
         body.put("roles", nombreRoles);

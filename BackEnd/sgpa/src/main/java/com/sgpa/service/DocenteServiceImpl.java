@@ -10,11 +10,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.sgpa.dto.request.RegistroAdminParaDocenteRequest;
+import com.sgpa.dto.request.RegistroAdministrativoRequest;
 import com.sgpa.dto.request.RegistroDocenteRequest;
 import com.sgpa.dto.request.TituloAcademicoRequest;
+import com.sgpa.dto.response.AdministrativoResponse;
+import com.sgpa.dto.response.DocenteAdministrativoResponse;
 import com.sgpa.dto.response.DocenteResponse;
 import com.sgpa.exception.ProgramaNotFoundException;
+import com.sgpa.mapper.AdministrativoMapper;
 import com.sgpa.mapper.DocenteMapper;
+import com.sgpa.model.Administrativo;
 import com.sgpa.model.Docente;
 import com.sgpa.model.Persona;
 import com.sgpa.model.Programa;
@@ -22,6 +28,7 @@ import com.sgpa.model.TituloAcademico;
 import com.sgpa.model.users.Role;
 import com.sgpa.model.users.RoleName;
 import com.sgpa.model.users.User;
+import com.sgpa.repository.AdministrativoRepository;
 import com.sgpa.repository.DocenteRepository;
 import com.sgpa.repository.PersonaRepository;
 import com.sgpa.repository.ProgramaRepository;
@@ -37,11 +44,13 @@ public class DocenteServiceImpl implements DocenteService {
 
     private final DocenteRepository docenteRepository;
     private final PersonaRepository personaRepository;
+    private final AdministrativoRepository administrativoRepository;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final ProgramaRepository programaRepository;
     private final TituloAcademicoRepository tituloRepository;
-    private final DocenteMapper mapper;
+    private final DocenteMapper docenteMapper;
+    private final AdministrativoMapper administrativoMapper;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -113,29 +122,105 @@ public class DocenteServiceImpl implements DocenteService {
         Docente docenteGuardado = docenteRepository.findById(docente.getId())
                 .orElseThrow();
 
-        return mapper.toDTO(docenteGuardado, user); // ← sobrecarga con user
+        return docenteMapper.toDTO(docenteGuardado, user); // ← sobrecarga con user
+    }
+
+    @Transactional
+    public DocenteAdministrativoResponse registrarDocenteAdministrativo(
+            RegistroDocenteRequest docenteDto,
+            RegistroAdminParaDocenteRequest adminDto) {
+
+        // Validaciones
+        if (personaRepository.existsByCedula(docenteDto.getCedula()))
+            throw new IllegalStateException("Ya existe una persona con esa cédula");
+        if (userRepository.existsByEmail(docenteDto.getEmail()))
+            throw new IllegalStateException("Ya existe un usuario con ese email");
+
+        // 1. Crear Persona (una sola, compartida)
+        Persona persona = new Persona();
+        persona.setNombre(docenteDto.getNombre());
+        persona.setApellido(docenteDto.getApellido());
+        persona.setCedula(docenteDto.getCedula());
+        persona.setTelefono(docenteDto.getTelefono());
+        persona = personaRepository.save(persona);
+
+        // 2. Crear Docente
+        Docente docente = new Docente();
+        docente.setPersona(persona);
+        docente.setCodigoDocente(docenteDto.getCodigoDocente());
+        docente.setTipoContrato(docenteDto.getTipoContrato());
+        docente = docenteRepository.save(docente);
+
+        if (docenteDto.getProgramaIds() != null && !docenteDto.getProgramaIds().isEmpty()) {
+            Set<Programa> programas = new HashSet<>(
+                    programaRepository.findAllById(docenteDto.getProgramaIds()));
+            docente.setProgramas(programas);
+        }
+
+        // 3. Títulos
+        if (docenteDto.getTitulos() != null && !docenteDto.getTitulos().isEmpty()) {
+            Docente docenteFinal = docente;
+            List<TituloAcademico> titulos = docenteDto.getTitulos().stream()
+                    .map(t -> {
+                        TituloAcademico titulo = new TituloAcademico();
+                        titulo.setTitulo(t.getTitulo());
+                        titulo.setNivel(t.getNivel());
+                        titulo.setInstitucion(t.getInstitucion());
+                        titulo.setFechaObtencion(t.getFechaObtencion());
+                        titulo.setPais(t.getPais());
+                        titulo.setDocente(docenteFinal);
+                        return titulo;
+                    })
+                    .toList();
+            tituloRepository.saveAll(titulos);
+        }
+
+        // 3. Crear Administrativo (misma Persona)
+        Administrativo admin = new Administrativo();
+        admin.setPersona(persona);
+        admin.setCargo(adminDto.getCargo());
+        admin.setTipoContrato(adminDto.getTipoContrato());
+        admin.setDependencia(adminDto.getDependencia());
+        administrativoRepository.save(admin);
+
+        // 4. Crear User con AMBOS roles
+        Role rolDocente = roleRepository.findByName(RoleName.ROLE_DOCENTE).orElseThrow();
+        Role rolAdmin = roleRepository.findByName(RoleName.ROLE_ADMIN).orElseThrow();
+
+        User user = new User();
+        user.setEmail(docenteDto.getEmail());
+        user.setPassword(passwordEncoder.encode(docenteDto.getPassword()));
+        user.setActivo(true);
+        user.setPersona(persona);
+        user.setRoles(Set.of(rolDocente, rolAdmin));
+        userRepository.save(user);
+
+        DocenteResponse docenteResponse = docenteMapper.toDTO(docente, user);
+        AdministrativoResponse adminResponse = administrativoMapper.toDTO(admin, user);
+
+        return new DocenteAdministrativoResponse(docenteResponse, adminResponse);
     }
 
     @Override
     public DocenteResponse buscarPorId(Long id) {
-        return mapper.toDTO(buscarEntidad(id));
+        return docenteMapper.toDTO(buscarEntidad(id));
     }
 
     @Override
     public DocenteResponse buscarPorEmail(String email) {
-        return mapper.toDTO(docenteRepository.findByUserEmail(email)
+        return docenteMapper.toDTO(docenteRepository.findByUserEmail(email)
                 .orElseThrow(() -> new RuntimeException(
                         "Docente no encontrado con email: " + email)));
     }
 
     @Override
     public List<DocenteResponse> listarTodos() {
-        return mapper.toDTOList(docenteRepository.findAll());
+        return docenteMapper.toDTOList(docenteRepository.findAll());
     }
 
     @Override
     public List<DocenteResponse> listarPorPrograma(Long programaId) {
-        return mapper.toDTOList(
+        return docenteMapper.toDTOList(
                 docenteRepository.findByProgramaId(programaId));
     }
 
@@ -160,7 +245,7 @@ public class DocenteServiceImpl implements DocenteService {
             docente.setProgramas(programas);
         }
 
-        return mapper.toDTO(docenteRepository.save(docente));
+        return docenteMapper.toDTO(docenteRepository.save(docente));
     }
 
     @Override
@@ -178,7 +263,7 @@ public class DocenteServiceImpl implements DocenteService {
         titulo.setDocente(docente);
         tituloRepository.save(titulo);
 
-        return mapper.toDTO(docenteRepository.findById(docenteId).orElseThrow());
+        return docenteMapper.toDTO(docenteRepository.findById(docenteId).orElseThrow());
     }
 
     @Override

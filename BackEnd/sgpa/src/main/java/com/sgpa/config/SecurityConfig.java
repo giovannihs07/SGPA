@@ -16,6 +16,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.web.cors.CorsConfigurationSource;
 import jakarta.servlet.http.HttpServletResponse;
 
+import com.sgpa.repository.UserRepository;
 import com.sgpa.security.auth.filters.JwtAuthenticationFilter;
 import com.sgpa.security.auth.filters.JwtValidationFilter;
 
@@ -30,6 +31,9 @@ public class SecurityConfig {
 
     @Autowired
     private CorsConfigurationSource corsConfigurationSource;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Bean
     PasswordEncoder passwordEncoder() {
@@ -87,7 +91,7 @@ public class SecurityConfig {
                     "/webjars/**"
                 ).permitAll()
             )
-            .addFilter(new JwtAuthenticationFilter(authManager))
+            .addFilter(new JwtAuthenticationFilter(authManager, userRepository))
             .addFilter(new JwtValidationFilter(authManager, userDetailsService))
             // .exceptionHandling(ex -> ex
             //     .authenticationEntryPoint((request, response, authException) -> {
