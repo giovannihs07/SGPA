@@ -275,26 +275,6 @@ public class DocenteServiceImpl implements DocenteService {
         tituloRepository.deleteById(tituloId);
     }
 
-    @Override
-    @Transactional
-    public void activar(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException(
-                        "Usuario no encontrado con id: " + userId));
-        user.setActivo(true);
-        userRepository.save(user);
-    }
-
-    @Override
-    @Transactional
-    public void desactivar(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException(
-                        "Usuario no encontrado con id: " + userId));
-        user.setActivo(false);
-        userRepository.save(user);
-    }
-
     private Docente buscarEntidad(Long id) {
         return docenteRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException(

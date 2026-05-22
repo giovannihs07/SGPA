@@ -86,16 +86,4 @@ public class DocenteController {
         service.eliminarTitulo(tituloId);
         return ResponseEntity.noContent().build();
     }
-
-    @PatchMapping("/{userId}/activar")
-    public ResponseEntity<Void> activar(@PathVariable Long userId) {
-        service.activar(userId);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PatchMapping("/{userId}/desactivar")
-    public ResponseEntity<Void> desactivar(@PathVariable Long userId) {
-        service.desactivar(userId);
-        return ResponseEntity.noContent().build();
-    }
 }

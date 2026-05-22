@@ -23,6 +23,4 @@ public interface DocenteService {
     DocenteResponse actualizar(Long id, RegistroDocenteRequest dto);
     DocenteResponse agregarTitulo(Long docenteId, TituloAcademicoRequest dto);
     void eliminarTitulo(Long tituloId);
-    void activar(Long userId);
-    void desactivar(Long userId);
 }

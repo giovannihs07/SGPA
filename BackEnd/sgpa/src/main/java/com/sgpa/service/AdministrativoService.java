@@ -10,8 +10,5 @@ public interface AdministrativoService {
     AdministrativoResponse buscarPorId(Long id);
     List<AdministrativoResponse> listarTodos();
     List<AdministrativoResponse> listarPorDependencia(String dependencia);
-    AdministrativoResponse actualizar(Long id,
-        RegistroAdministrativoRequest dto);
-    void activar(Long userId);
-    void desactivar(Long userId);
+    AdministrativoResponse actualizar(Long id, RegistroAdministrativoRequest dto);
 }

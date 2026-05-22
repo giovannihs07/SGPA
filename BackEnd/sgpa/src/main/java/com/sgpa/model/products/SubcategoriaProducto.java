@@ -43,9 +43,7 @@ public enum SubcategoriaProducto {
 
     private final CategoriaProducto categoria;
 
-    SubcategoriaProducto(
-        CategoriaProducto categoria
-    ) {
+    SubcategoriaProducto(CategoriaProducto categoria) {
         this.categoria = categoria;
     }
 
