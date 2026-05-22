@@ -1,5 +1,10 @@
 package com.sgpa.controller;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +28,7 @@ import com.sgpa.dto.request.ProductoDocenteRequestDTO;
 import com.sgpa.dto.response.ProductoDocenteResponseDTO;
 import com.sgpa.exception.ProductoDocenteNotFoundException;
 import com.sgpa.model.products.ProductoDocente;
+import com.sgpa.model.products.TipoProducto;
 import com.sgpa.repository.ProductoDocenteRepository;
 import com.sgpa.service.FileStorageService;
 import com.sgpa.service.ProductoDocenteService;
@@ -116,5 +122,16 @@ public class ProductoDocenteController {
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         service.eliminar(id);
         return ResponseEntity.noContent().build();
+    }
+
+     @GetMapping("/tipos")
+    public ResponseEntity<Map<String, Map<String, List<String>>>> listarTipos() {
+        Map<String, Map<String, List<String>>> tipos = Arrays.stream(TipoProducto.values())
+                .collect(Collectors.groupingBy(
+                        t -> t.getSubcategoria().name(),
+                        Collectors.toMap(
+                                TipoProducto::name,
+                                TipoProducto::getAtributosRequeridos)));
+        return ResponseEntity.ok(tipos);
     }
 }

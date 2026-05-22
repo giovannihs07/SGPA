@@ -35,6 +35,7 @@ sgpa/
 │       ├── context/                    # Contextos globales (auth, theme)
 │       ├── hooks/                      # Hooks personalizados
 │       ├── pages/                      # Vistas principales (Login, Dashboard)
+|       ├── reducers/
 │       ├── routes/                     # Definición de rutas y rutas protegidas
 │       ├── services/                   # Axios: authService, apiService
 │       ├── styles/                     # Tailwind base y estilos globales

@@ -13,10 +13,10 @@ export const InstitutionalPanel = ({ side = "right" }) => {
             </div>
  
             {/* Contenido */}
-            <div className="relative z-10 p-8 xl:p-12 flex-1 flex flex-col justify-between">
+            <div className="relative z-10 px-8 pt-3 pb-8 xl:px-12 xl:pt-4 xl:pb-12 flex-1 flex flex-col justify-between">
                 <div>
                     {/* Logo SGPA */}
-                    <div className="flex items-center gap-3 mb-8 xl:mb-10">
+                    <div className="flex items-center gap-3 mb-8 xl:mb-5">
                         <div className="w-9 h-9 xl:w-10 xl:h-10 bg-[#ffc20e] rounded-md flex items-center justify-center shrink-0">
                             <svg viewBox="0 0 24 24" className="w-5 h-5 xl:w-6 xl:h-6 fill-white">
                                 <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" />
@@ -49,7 +49,7 @@ export const InstitutionalPanel = ({ side = "right" }) => {
                 </div>
  
                 {/* Stats */}
-                <div className="border-t border-[#ffc20e] pt-5 xl:pt-6">
+                <div className="border-t border-[#ffc20e] pt-5 xl:pt-2">
                     <div className="flex gap-6 xl:gap-10">
                         {[
                             { label: 'Docentes', value: '120+' },

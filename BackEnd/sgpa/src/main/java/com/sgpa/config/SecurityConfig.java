@@ -54,11 +54,30 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                
+                // ── Auth y registro ──────────────────────────────────────────
                 .requestMatchers(HttpMethod.POST, "/login").permitAll()
-                .requestMatchers(HttpMethod.GET, "/users").permitAll()
-                .requestMatchers(HttpMethod.GET, "/users/{id}").hasAnyRole("DOCENTE", "ADMIN", "SUPERADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/auth/registro").permitAll()
+                .requestMatchers(HttpMethod.PATCH, "/api/auth/cambiar-password").authenticated()
+
+                // ── Usuarios ─────────────────────────────────────────────────
+                .requestMatchers(HttpMethod.GET,  "/users").permitAll()
                 .requestMatchers(HttpMethod.POST, "/users").permitAll()
+                .requestMatchers(HttpMethod.GET,  "/users/{id}").hasAnyRole("DOCENTE", "ADMIN", "SUPERADMIN")
                 .requestMatchers("/users/**").hasRole("ADMIN")
+
+                // ── Docentes / administrativos ────────────────────────────────
+                .requestMatchers(HttpMethod.POST, "/api/docentes/registro").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/docentes/{id}/titulos").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/administrativos/registro").permitAll()
+
+                // ── Productos ─────────────────────────────────────────────────
+                .requestMatchers(HttpMethod.GET, "/api/productos/tipos").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/productos/{id}/archivo").permitAll()
+                
+
+                // ── Todo lo demás requiere autenticación ─────────────────────
                 .anyRequest().authenticated()
             )
             .addFilter(new JwtAuthenticationFilter(authManager))

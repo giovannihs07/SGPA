@@ -30,12 +30,25 @@ export const Header = ({ pageTitle = "Dashboard" }) => {
     const rolLabel = getRolLabel(login);
 
     return (
-        <header className="h-14 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-6 shrink-0">
+        <header className="h-14 bg-[#FFB700] dark:bg-[#FFB700] border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-6 shrink-0">
 
+            {/* Logo UDC */}
+            <div>
+                <img
+                    src="/logo-udc.png"
+                    alt="Universidad de Cartagena"
+                    className="h-15 object-contain"
+                    onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                    }}
+                />
+            </div>
             {/* Título de la página */}
             <h1 className="text-base font-semibold text-gray-900 dark:text-white">
                 {pageTitle}
             </h1>
+            
 
             {/* Acciones */}
             <div className="flex items-center gap-4">
@@ -68,7 +81,7 @@ export const Header = ({ pageTitle = "Dashboard" }) => {
                 {/* Avatar con iniciales */}
                 <div
                     title={login?.user?.email}
-                    className="w-8 h-8 rounded-full bg-[#003366] flex items-center justify-center text-[#C8963E] text-xs font-semibold shrink-0 cursor-default"
+                    className="w-8 h-8 rounded-full bg-[#2B2B2B] flex items-center justify-center text-[#C8963E] text-xs font-semibold shrink-0 cursor-default"
                 >
                     {initials}
                 </div>

@@ -32,7 +32,7 @@ export const DashboardLayout = () => {
     const pageTitle = PAGE_TITLES[location.pathname] || "Dashboard";
 
     return (
-        <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950">
+        <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
             <Sidebar
                 isCollapsed={isCollapsed}
                 onToggle={toggleSidebar}

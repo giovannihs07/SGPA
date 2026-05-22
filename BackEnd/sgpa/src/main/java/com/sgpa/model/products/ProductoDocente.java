@@ -64,10 +64,4 @@ public class ProductoDocente {
     @Column(columnDefinition = "jsonb")
     private Map<String, Object> atributos = new HashMap<>();
      
-    //Conectarse a la base de datos H2
-    /* 
-    @Convert(converter = MapToJsonConverter.class)
-    @Column(columnDefinition = "TEXT")
-    private Map<String, Object> atributos = new HashMap<>();
-    */
 }

@@ -3,6 +3,7 @@ import { AuthProvider } from "./context/AuthProvider";
 import { ThemeProvider } from "./context/ThemeProvider";
 import  ProtectedRoute from "./routes/ProtectedRoute";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
+import { RegistrarProductoPage } from "./pages/docente/registrarProductoPage";
 
 // Páginas de autenticación
 import { LoginPage } from "./pages/auth/LoginPage";
@@ -30,7 +31,7 @@ export default function App() {
                         <Route element={<ProtectedRoute />}>
                             <Route element={<DashboardLayout />}>
                                 <Route path="/dashboard/docente"           element={<DashboardDocente />} />
-                                <Route path="/dashboard/docente/registrar" element={<div>Registrar producto</div>} />
+                                <Route path="/dashboard/docente/registrar" element={<RegistrarProductoPage />} />
                                 <Route path="/dashboard/docente/productos"  element={<div>Mis productos</div>} />
                                 <Route path="/dashboard/docente/buscar"     element={<div>Buscar</div>} />
                                 <Route path="/dashboard/docente/reportes"   element={<div>Reportes</div>} />
