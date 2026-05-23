@@ -30,22 +30,26 @@ public class RoleController {
 
     private final RoleService roleService;
 
+    // Listar todos los roles
     @GetMapping
     public ResponseEntity<List<RoleResponse>> listarTodos() {
         return ResponseEntity.ok(roleService.listarTodos());
     }
 
+    // Obtener un rol por su ID
     @GetMapping("/{id}")
     public ResponseEntity<RoleResponse> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(roleService.buscarPorId(id));
     }
 
+    // Crear un nuevo rol
     @PostMapping
     public ResponseEntity<RoleResponse> crear(@RequestBody @Valid RoleRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(roleService.crear(request));
     }
 
+    // Actualizar un rol existente por su ID
     @PutMapping("/{id}")
     public ResponseEntity<RoleResponse> actualizar(
             @PathVariable Long id,
@@ -53,12 +57,14 @@ public class RoleController {
         return ResponseEntity.ok(roleService.actualizar(id, request));
     }
 
+    // Eliminar un rol por su ID
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         roleService.eliminar(id);
         return ResponseEntity.noContent().build();
     }
 
+    //Devuelve los nombres de los roles disponibles (enumerados en RoleName)
     @GetMapping("/disponibles")
     public ResponseEntity<List<String>> obtenerRolesDisponibles() {
         List<String> rolesDisponibles = Arrays.stream(RoleName.values())

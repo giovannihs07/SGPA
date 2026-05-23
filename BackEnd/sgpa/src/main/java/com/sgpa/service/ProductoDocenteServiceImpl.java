@@ -1,7 +1,10 @@
 package com.sgpa.service;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.sgpa.dto.request.ProductoDocenteRequest;
 import com.sgpa.dto.response.ProductoDocenteResponse;
+import com.sgpa.dto.response.ProductoOpcionesResponse;
 import com.sgpa.exception.ProductoDocenteNotFoundException;
 import com.sgpa.exception.TipoProductoInvalidoException;
 import com.sgpa.factory.ProductoDocenteFactory;
@@ -131,6 +135,37 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
         if (producto.getNombreArchivo() != null)
             fileStorageService.eliminarArchivo(producto.getNombreArchivo());
         repository.delete(producto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProductoOpcionesResponse obtenerOpcionesDisponibles() {
+        // Obtener categorías
+        List<String> categorias = Arrays.stream(CategoriaProducto.values())
+            .map(CategoriaProducto::name)
+            .collect(Collectors.toList());
+
+        // Agrupar subcategorías por categoría
+        Map<String, List<String>> subcategoriasPorCategoria = Arrays
+            .stream(SubcategoriaProducto.values())
+            .collect(Collectors.groupingBy(
+                sub -> sub.getCategoria().name(),
+                Collectors.mapping(SubcategoriaProducto::name, Collectors.toList())
+            ));
+
+        // Agrupar tipos por subcategoría
+        Map<String, List<String>> tiposPorSubcategoria = Arrays
+            .stream(TipoProducto.values())
+            .collect(Collectors.groupingBy(
+                tipo -> tipo.getSubcategoria().name(),
+                Collectors.mapping(TipoProducto::name, Collectors.toList())
+            ));
+
+        return ProductoOpcionesResponse.builder()
+            .categorias(categorias)
+            .subcategoriasPorCategoria(subcategoriasPorCategoria)
+            .tiposPorSubcategoria(tiposPorSubcategoria)
+            .build();
     }
 
     // --- Helpers privados ---

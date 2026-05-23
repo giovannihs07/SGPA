@@ -28,6 +28,7 @@ public class AdministrativoController {
 
     private final AdministrativoService service;
 
+    // Registrar un nuevo administrativo
     @PostMapping("/registro")
     public ResponseEntity<AdministrativoResponse> registrar(
             @RequestBody @Valid RegistroAdministrativoRequest dto) {
@@ -35,23 +36,27 @@ public class AdministrativoController {
             .body(service.registrar(dto));
     }
 
+    // Listar todos los administrativos
     @GetMapping
     public ResponseEntity<List<AdministrativoResponse>> listar() {
         return ResponseEntity.ok(service.listarTodos());
     }
 
+    // Listar administrativos por dependencia
     @GetMapping("/dependencia/{dependencia}")
     public ResponseEntity<List<AdministrativoResponse>> listarPorDependencia(
             @PathVariable String dependencia) {
         return ResponseEntity.ok(service.listarPorDependencia(dependencia));
     }
 
+    // Obtener un administrativo por su ID
     @GetMapping("/{id}")
     public ResponseEntity<AdministrativoResponse> buscarPorId(
             @PathVariable Long id) {
         return ResponseEntity.ok(service.buscarPorId(id));
     }
 
+    // Actualizar un administrativo existente por su ID
     @PutMapping("/{id}")
     public ResponseEntity<AdministrativoResponse> actualizar(
             @PathVariable Long id,

@@ -27,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.sgpa.dto.request.ProductoDocenteRequest;
 import com.sgpa.dto.response.ProductoDocenteResponse;
+import com.sgpa.dto.response.ProductoOpcionesResponse;
 import com.sgpa.exception.ProductoDocenteNotFoundException;
 import com.sgpa.model.products.ProductoDocente;
 import com.sgpa.model.products.TipoProducto;
@@ -131,5 +132,15 @@ public class ProductoDocenteController {
                                 TipoProducto::name,
                                 TipoProducto::getAtributosRequeridos)));
         return ResponseEntity.ok(tipos);
+    }
+
+    /**
+     * Obtiene todas las opciones disponibles para productos.
+     * Incluye categorías, subcategorías agrupadas por categoría, 
+     * y tipos de productos agrupados por subcategoría.
+     */
+    @GetMapping("/opciones")
+    public ResponseEntity<ProductoOpcionesResponse> obtenerOpcionesDisponibles() {
+        return ResponseEntity.ok(service.obtenerOpcionesDisponibles());
     }
 }

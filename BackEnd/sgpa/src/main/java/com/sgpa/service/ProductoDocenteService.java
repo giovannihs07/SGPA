@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.sgpa.dto.request.ProductoDocenteRequest;
 import com.sgpa.dto.response.ProductoDocenteResponse;
+import com.sgpa.dto.response.ProductoOpcionesResponse;
 
 public interface ProductoDocenteService {
 
@@ -22,4 +23,5 @@ public interface ProductoDocenteService {
     ProductoDocenteResponse publicar(Long id);
     ProductoDocenteResponse despublicar(Long id);
     void eliminar(Long id);
+    ProductoOpcionesResponse obtenerOpcionesDisponibles();
 }
