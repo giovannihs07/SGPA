@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sgpa.config.TokenJwtConfig;
 
 import io.jsonwebtoken.Claims;
@@ -21,51 +22,76 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import tools.jackson.databind.ObjectMapper;
-
 
 public class JwtValidationFilter extends BasicAuthenticationFilter {
 
     private final UserDetailsService userDetailsService;
 
-    public JwtValidationFilter(AuthenticationManager authenticationManager, 
-        UserDetailsService userDetailsService) {
+    public JwtValidationFilter(AuthenticationManager authenticationManager,
+            UserDetailsService userDetailsService) {
         super(authenticationManager);
         this.userDetailsService = userDetailsService;
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+    protected void doFilterInternal(HttpServletRequest request,
+            HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-        
+
+        String requestURI = request.getRequestURI();
+
+        // Rutas públicas — no necesitan validación JWT
+        if (requestURI.startsWith("/swagger-ui") ||
+            requestURI.startsWith("/v3/api-docs") ||
+            requestURI.startsWith("/swagger-resources") ||
+            requestURI.startsWith("/webjars") ||
+            requestURI.equals("/swagger-ui.html") ||
+            requestURI.equals("/api/auth/login")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         String header = request.getHeader(HEADER_AUTHORIZATION);
 
+        // Si no hay token simplemente continúa
+        // Spring Security bloqueará los endpoints protegidos
         if (header == null || !header.startsWith(PREFIX_TOKEN)) {
             chain.doFilter(request, response);
             return;
         }
 
-        String token = header.substring(7); // Aquí se extrae el token JWT del encabezado de autorización 
-        // se corte el prefijo "Bearer " (de 7 caracteres) para obtener solo el token JWT que se va a validar
-        
-        // Validación del token JWT utilizando la clave secreta definida en TokenJwtConfig
-        try {
-        
-            Claims claims = Jwts.parser()
-                .verifyWith(TokenJwtConfig.getSecretKey()) // Se establece la clave secreta para verificar la firma del token JWT utilizando la clave secreta definida en TokenJwtConfig
-                .build()
-                .parseSignedClaims(token) // Se valida el token JWT utilizando la clave secreta definida en TokenJwtConfig
-                .getPayload(); // Se extrae el cuerpo del token JWT
-            
-            String username = claims.getSubject(); // Se extrae el nombre de usuario del token JWT
-            
-            // Si el nombre de usuario es válido y no hay una autenticación ya establecida en el contexto de seguridad,
-            // se carga el usuario desde la base de datos utilizando el UserDetailsService y se establece la autenticación 
-            // en el contexto de seguridad para que el usuario pueda acceder a los recursos protegidos de la aplicación
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        // Elimina el prefijo "Bearer " para obtener solo el token
+        String token = header.substring(7);
 
-                // Roles desde la BD
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        try {
+            Claims claims = Jwts.parser()
+                .verifyWith(TokenJwtConfig.getSecretKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+            String email = claims.getSubject();
+
+            if (email != null && SecurityContextHolder.getContext()
+                    .getAuthentication() == null) {
+
+                // Carga el usuario desde la BD con sus roles actuales
+                // Esto garantiza que si los roles cambian en BD
+                // el nuevo token los reflejará
+                UserDetails userDetails =
+                    userDetailsService.loadUserByUsername(email);
+
+                // Verifica que el usuario sigue activo
+                if (!userDetails.isEnabled()) {
+                    Map<String, String> body = new HashMap<>();
+                    body.put("error", "Usuario inactivo");
+                    body.put("message", "Tu cuenta está desactivada");
+                    response.getWriter()
+                        .write(new ObjectMapper().writeValueAsString(body));
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json");
+                    return;
+                }
 
                 UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
@@ -74,20 +100,21 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
                         userDetails.getAuthorities()
                     );
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                SecurityContextHolder.getContext()
+                    .setAuthentication(authentication);
             }
 
-            chain.doFilter(request, response); // Se continúa con la cadena de filtros de Spring Security para procesar la solicitud HTTP
+            chain.doFilter(request, response);
 
         } catch (Exception e) {
             Map<String, String> body = new HashMap<>();
             body.put("error", e.getMessage());
-            body.put("message", "Token inválido o expirado!");
+            body.put("message", "Token inválido o expirado");
 
-            response.getWriter().write(new ObjectMapper().writeValueAsString(body));
+            response.getWriter()
+                .write(new ObjectMapper().writeValueAsString(body));
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.setContentType("application/json");
         }
     }
-
 }

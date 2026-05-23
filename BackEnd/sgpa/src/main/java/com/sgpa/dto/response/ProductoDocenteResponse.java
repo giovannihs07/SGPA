@@ -2,8 +2,7 @@ package com.sgpa.dto.response;
 
 import java.time.LocalDate;
 import java.util.Map;
-
-import com.sgpa.model.products.EstadoProducto;
+import java.util.Set;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,18 +14,25 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ProductoDocenteResponseDTO {
+public class ProductoDocenteResponse {
 
     private Long id;
     private String nombre;
     private String descripcion;
+    private String tipo;
+    private String subcategoria;
+    private String categoria;
+    private Boolean publicado;
     private String nombreArchivo;
     private String nombreArchivoOriginal;
-    private EstadoProducto estado;
-    private String categoria;
-    private String subcategoria;
-    private String tipo;
     private LocalDate fechaCreacion;
     private LocalDate fechaPublicacion;
     private Map<String, Object> atributos;
+
+    // Datos del docente para reportes
+    private Long docenteId;
+    private String docenteNombre;
+    private String docenteApellido;
+    private String docenteCodigo;
+    private Set<String> programas;
 }

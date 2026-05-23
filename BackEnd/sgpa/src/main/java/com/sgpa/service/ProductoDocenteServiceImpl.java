@@ -1,25 +1,31 @@
 package com.sgpa.service;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.sgpa.dto.request.ProductoDocenteRequestDTO;
-import com.sgpa.dto.response.ProductoDocenteResponseDTO;
+import com.sgpa.dto.request.ProductoDocenteRequest;
+import com.sgpa.dto.response.ProductoDocenteResponse;
+import com.sgpa.dto.response.ProductoOpcionesResponse;
 import com.sgpa.exception.ProductoDocenteNotFoundException;
 import com.sgpa.exception.TipoProductoInvalidoException;
 import com.sgpa.factory.ProductoDocenteFactory;
 import com.sgpa.mapper.ProductoDocenteMapper;
+import com.sgpa.model.Docente;
 import com.sgpa.model.products.CategoriaProducto;
-import com.sgpa.model.products.EstadoProducto;
 import com.sgpa.model.products.ProductoDocente;
 import com.sgpa.model.products.SubcategoriaProducto;
 import com.sgpa.model.products.TipoProducto;
+import com.sgpa.repository.DocenteRepository;
 import com.sgpa.repository.ProductoDocenteRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -29,134 +35,171 @@ import lombok.RequiredArgsConstructor;
 public class ProductoDocenteServiceImpl implements ProductoDocenteService {
 
     private final ProductoDocenteRepository repository;
+    private final DocenteRepository docenteRepository;
     private final ProductoDocenteFactory factory;
     private final ProductoDocenteMapper mapper;
     private final FileStorageService fileStorageService;
 
     @Override
     @Transactional
-    public ProductoDocenteResponseDTO crear(ProductoDocenteRequestDTO dto, MultipartFile archivo) {
+    public ProductoDocenteResponse crear(ProductoDocenteRequest dto, MultipartFile archivo) {
         validarTipo(dto.getTipo());
-        ProductoDocente producto = factory.crear(dto);
 
-        // Archivo es opcional — solo se guarda si viene en el request
+        // El email viene del token JWT que el JwtValidationFilter ya validó y registró en el SecurityContext
+        Docente docente = obtenerDocenteAutenticado();
+
+        ProductoDocente producto = factory.crear(dto, docente);
+        producto.setDocente(docente);
+
         if (archivo != null && !archivo.isEmpty()) {
-            String[] nombres = fileStorageService.guardarArchivo(archivo, dto.getTipo());
-            producto.setNombreArchivo(nombres[0]); // interno
-            producto.setNombreArchivoOriginal(nombres[1]); // original
+            String[] nombres = fileStorageService.guardarArchivo(
+                archivo, dto.getTipo());
+            producto.setNombreArchivo(nombres[0]);
+            producto.setNombreArchivoOriginal(nombres[1]);
         }
 
         return mapper.toDTO(repository.save(producto));
     }
 
     @Override
-    public ProductoDocenteResponseDTO buscarPorId(Long id) {
-        ProductoDocente producto = repository.findById(id)
-                .orElseThrow(() -> new ProductoDocenteNotFoundException(id));
-        return mapper.toDTO(producto);
+    public ProductoDocenteResponse buscarPorId(Long id) {
+        return mapper.toDTO(buscarEntidad(id));
     }
 
     @Override
-    public List<ProductoDocenteResponseDTO> buscarTodos() {
+    public List<ProductoDocenteResponse> buscarTodos() {
         return mapper.toDTOList(repository.findAll());
     }
 
     @Override
-    public Page<ProductoDocenteResponseDTO> buscarTodosPaginado(Pageable pageable) {
-        return repository.findAll(pageable)
-                .map(mapper::toDTO);
+    public List<ProductoDocenteResponse> buscarPorTipo(String tipo) {
+        return mapper.toDTOList(repository.findByTipo(parsearTipo(tipo)));
     }
 
     @Override
-    public List<ProductoDocenteResponseDTO> buscarPorCategoria(String categoria) {
-        CategoriaProducto categoriaEnum = parsearEnum(
-                CategoriaProducto.class, categoria, "categoría");
-        return mapper.toDTOList(repository.findByCategoria(categoriaEnum));
+    public List<ProductoDocenteResponse> buscarPorDocente(Long docenteId) {
+        return mapper.toDTOList(repository.findByDocenteId(docenteId));
     }
 
     @Override
-    public List<ProductoDocenteResponseDTO> buscarPorSubcategoria(String subcategoria) {
-        SubcategoriaProducto subcategoriaEnum = parsearEnum(
-                SubcategoriaProducto.class, subcategoria, "subcategoría");
-        return mapper.toDTOList(repository.findBySubcategoria(subcategoriaEnum));
+    public List<ProductoDocenteResponse> buscarPublicados() {
+        return mapper.toDTOList(repository.findByPublicado(true));
     }
 
     @Override
-    public List<ProductoDocenteResponseDTO> buscarPorTipo(String tipo) {
-        TipoProducto tipoEnum = parsearEnum(TipoProducto.class, tipo, "tipo");
-        return mapper.toDTOList(repository.findByTipo(tipoEnum));
-    }
-
-    @Override
-    public List<ProductoDocenteResponseDTO> buscarPorNombre(String nombre) {
-        return mapper.toDTOList(repository.findByNombreContainingIgnoreCase(nombre));
+    public Page<ProductoDocenteResponse> buscarPorDocentePaginado(
+            Long docenteId, Pageable pageable) {
+        return repository.findByDocenteId(docenteId, pageable)
+            .map(mapper::toDTO);
     }
 
     @Override
     @Transactional
-    public ProductoDocenteResponseDTO actualizar(Long id, ProductoDocenteRequestDTO dto) {
-        ProductoDocente existente = repository.findById(id)
-                .orElseThrow(() -> new ProductoDocenteNotFoundException(id));
-
+    public ProductoDocenteResponse actualizar(Long id,
+            ProductoDocenteRequest dto) {
+        ProductoDocente producto = buscarEntidad(id);
         validarTipo(dto.getTipo());
+
         TipoProducto tipo = TipoProducto.valueOf(dto.getTipo());
+        producto.setNombre(dto.getNombre());
+        producto.setDescripcion(dto.getDescripcion());
+        producto.setTipo(tipo);
+        producto.setAtributos(dto.getAtributos());
+        producto.validarAtributos();
 
-        existente.setNombre(dto.getNombre());
-        existente.setDescripcion(dto.getDescripcion());
-        existente.setTipo(tipo);
-        existente.setSubcategoria(tipo.getSubcategoria());
-        existente.setAtributos(dto.getAtributos());
+        return mapper.toDTO(repository.save(producto));
+    }
 
-        return mapper.toDTO(repository.save(existente));
+    @Override
+    @Transactional
+    public ProductoDocenteResponse publicar(Long id) {
+        ProductoDocente producto = buscarEntidad(id);
+        producto.setPublicado(true);
+        producto.setFechaPublicacion(LocalDate.now());
+        return mapper.toDTO(repository.save(producto));
+    }
+
+    @Override
+    @Transactional
+    public ProductoDocenteResponse despublicar(Long id) {
+        ProductoDocente producto = buscarEntidad(id);
+        producto.setPublicado(false);
+        producto.setFechaPublicacion(null);
+        return mapper.toDTO(repository.save(producto));
     }
 
     @Override
     @Transactional
     public void eliminar(Long id) {
-        if (!repository.existsById(id))
-            throw new ProductoDocenteNotFoundException(id);
-        repository.deleteById(id);
+        ProductoDocente producto = buscarEntidad(id);
+        if (producto.getNombreArchivo() != null)
+            fileStorageService.eliminarArchivo(producto.getNombreArchivo());
+        repository.delete(producto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProductoOpcionesResponse obtenerOpcionesDisponibles() {
+        // Obtener categorías
+        List<String> categorias = Arrays.stream(CategoriaProducto.values())
+            .map(CategoriaProducto::name)
+            .collect(Collectors.toList());
+
+        // Agrupar subcategorías por categoría
+        Map<String, List<String>> subcategoriasPorCategoria = Arrays
+            .stream(SubcategoriaProducto.values())
+            .collect(Collectors.groupingBy(
+                sub -> sub.getCategoria().name(),
+                Collectors.mapping(SubcategoriaProducto::name, Collectors.toList())
+            ));
+
+        // Agrupar tipos por subcategoría
+        Map<String, List<String>> tiposPorSubcategoria = Arrays
+            .stream(TipoProducto.values())
+            .collect(Collectors.groupingBy(
+                tipo -> tipo.getSubcategoria().name(),
+                Collectors.mapping(TipoProducto::name, Collectors.toList())
+            ));
+
+        return ProductoOpcionesResponse.builder()
+            .categorias(categorias)
+            .subcategoriasPorCategoria(subcategoriasPorCategoria)
+            .tiposPorSubcategoria(tiposPorSubcategoria)
+            .build();
+    }
+
+    // --- Helpers privados ---
+
+    private ProductoDocente buscarEntidad(Long id) {
+        return repository.findById(id)
+            .orElseThrow(() -> new RuntimeException(
+                "Producto no encontrado con id: " + id));
+    }
+
+    private Docente obtenerDocenteAutenticado() {
+        String email = SecurityContextHolder.getContext()
+            .getAuthentication()
+            .getName();
+
+        return docenteRepository.findByUserEmail(email)
+            .orElseThrow(() -> new IllegalStateException(
+                "El usuario autenticado no tiene perfil de docente"));
     }
 
     private void validarTipo(String tipo) {
         try {
             TipoProducto.valueOf(tipo);
         } catch (IllegalArgumentException e) {
-            throw new TipoProductoInvalidoException(tipo);
+            throw new IllegalArgumentException(
+                "Tipo de producto no válido: " + tipo);
         }
     }
 
-    private <E extends Enum<E>> E parsearEnum(Class<E> clazz, String valor, String campo) {
+    private TipoProducto parsearTipo(String tipo) {
         try {
-            return Enum.valueOf(clazz, valor.toUpperCase());
+            return TipoProducto.valueOf(tipo.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new IllegalStateException(
-                    "Valor de " + campo + " no válido: " + valor);
+            throw new IllegalArgumentException("Tipo no válido: " + tipo);
         }
-    }
-
-    // Métodos que solo RRHH puede invocar
-    public ProductoDocenteResponseDTO enviarARevision(Long id) {
-        ProductoDocente p = repository.findById(id)
-                .orElseThrow(() -> new ProductoDocenteNotFoundException(id));
-        if (p.getEstado() != EstadoProducto.SIN_PUBLICAR)
-            throw new IllegalStateException("Solo productos en SIN_PUBLICAR se pueden enviarse a revisión");
-        p.setEstado(EstadoProducto.EN_REVISION);
-        return mapper.toDTO(repository.save(p));
-    }
-
-    public ProductoDocenteResponseDTO aprobar(Long id) {
-        ProductoDocente p = repository.findById(id)
-                .orElseThrow(() -> new ProductoDocenteNotFoundException(id));
-        p.setEstado(EstadoProducto.PUBLICADO);
-        p.setFechaPublicacion(LocalDate.now()); // se asigna aquí
-        return mapper.toDTO(repository.save(p));
-    }
-
-    public ProductoDocenteResponseDTO rechazar(Long id, String observacion) {
-        ProductoDocente p = repository.findById(id)
-                .orElseThrow(() -> new ProductoDocenteNotFoundException(id));
-        p.setEstado(EstadoProducto.RECHAZADO);
-        return mapper.toDTO(repository.save(p));
     }
 }

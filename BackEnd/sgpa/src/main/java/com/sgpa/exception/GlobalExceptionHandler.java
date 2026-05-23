@@ -12,11 +12,51 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    // ==================== 404 Not Found Exceptions ====================
+
     @ExceptionHandler(ProductoDocenteNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleNotFound(ProductoDocenteNotFoundException ex) {
+    public ResponseEntity<Map<String, String>> handleProductoDocenteNotFound(ProductoDocenteNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
             .body(Map.of("error", ex.getMessage()));
     }
+
+    @ExceptionHandler(DocenteNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleDocenteNotFound(DocenteNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleUserNotFound(UserNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ProgramaNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleProgramaNotFound(ProgramaNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(FacultadNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleFacultadNotFound(FacultadNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(InstitucionNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleInstitucionNotFound(InstitucionNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(PersonaNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handlePersonaNotFound(PersonaNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(Map.of("error", ex.getMessage()));
+    }
+
+    // ==================== 400 Bad Request Exceptions ====================
 
     @ExceptionHandler(TipoProductoInvalidoException.class)
     public ResponseEntity<Map<String, String>> handleTipoInvalido(TipoProductoInvalidoException ex) {
@@ -30,6 +70,14 @@ public class GlobalExceptionHandler {
             .body(Map.of("error", ex.getMessage()));
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(Map.of("error", ex.getMessage()));
+    }
+
+    // ==================== Validation Exceptions ====================
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, List<String>>> handleValidation(MethodArgumentNotValidException ex) {
         List<String> errores = ex.getBindingResult().getFieldErrors().stream()
@@ -37,5 +85,13 @@ public class GlobalExceptionHandler {
             .toList();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(Map.of("errores", errores));
+    }
+
+    // ==================== Generic Exception ====================
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, String>> handleGenericException(Exception ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(Map.of("error", "Error interno del servidor: " + ex.getMessage()));
     }
 }

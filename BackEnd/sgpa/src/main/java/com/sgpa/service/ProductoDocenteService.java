@@ -6,21 +6,22 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.sgpa.dto.request.ProductoDocenteRequestDTO;
-import com.sgpa.dto.response.ProductoDocenteResponseDTO;
+import com.sgpa.dto.request.ProductoDocenteRequest;
+import com.sgpa.dto.response.ProductoDocenteResponse;
+import com.sgpa.dto.response.ProductoOpcionesResponse;
 
-// service/ProductoDocenteService.java
 public interface ProductoDocenteService {
 
-    ProductoDocenteResponseDTO crear(ProductoDocenteRequestDTO dto, MultipartFile archivo);
-    ProductoDocenteResponseDTO actualizar(Long id, ProductoDocenteRequestDTO dto);
-    List<ProductoDocenteResponseDTO> buscarTodos();
+    ProductoDocenteResponse crear(ProductoDocenteRequest dto, MultipartFile archivo);
+    ProductoDocenteResponse buscarPorId(Long id);
+    List<ProductoDocenteResponse> buscarTodos();
+    List<ProductoDocenteResponse> buscarPorTipo(String tipo);
+    List<ProductoDocenteResponse> buscarPorDocente(Long docenteId);
+    List<ProductoDocenteResponse> buscarPublicados();
+    Page<ProductoDocenteResponse> buscarPorDocentePaginado(Long docenteId, Pageable pageable);
+    ProductoDocenteResponse actualizar(Long id, ProductoDocenteRequest dto);
+    ProductoDocenteResponse publicar(Long id);
+    ProductoDocenteResponse despublicar(Long id);
     void eliminar(Long id);
-    ProductoDocenteResponseDTO buscarPorId(Long id);
-    Page<ProductoDocenteResponseDTO> buscarTodosPaginado(Pageable pageable);
-    List<ProductoDocenteResponseDTO> buscarPorCategoria(String categoria);
-    List<ProductoDocenteResponseDTO> buscarPorSubcategoria(String subcategoria);
-    List<ProductoDocenteResponseDTO> buscarPorTipo(String tipo);
-    List<ProductoDocenteResponseDTO> buscarPorNombre(String nombre);
-   
+    ProductoOpcionesResponse obtenerOpcionesDisponibles();
 }

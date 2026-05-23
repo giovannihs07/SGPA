@@ -3,26 +3,24 @@ package com.sgpa.builder;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.stereotype.Component;
-
-import com.sgpa.model.products.CategoriaProducto;
-import com.sgpa.model.products.EstadoProducto;
+import com.sgpa.model.Docente;
 import com.sgpa.model.products.ProductoDocente;
-import com.sgpa.model.products.SubcategoriaProducto;
 import com.sgpa.model.products.TipoProducto;
 
-@Component
 public class ProductoDocenteBuilder {
 
-    private ProductoDocente producto = new ProductoDocente();
+    private ProductoDocente producto;
+
+    private ProductoDocenteBuilder() {
+        this.producto = new ProductoDocente();
+    }
+
+    public static ProductoDocenteBuilder nuevo() {
+        return new ProductoDocenteBuilder();
+    }
 
     public ProductoDocenteBuilder nombre(String nombre) {
         producto.setNombre(nombre);
-        return this;
-    }
-
-    public ProductoDocenteBuilder estado(EstadoProducto estado) {
-        producto.setEstado(estado);
         return this;
     }
 
@@ -31,27 +29,20 @@ public class ProductoDocenteBuilder {
         return this;
     }
 
-    public ProductoDocenteBuilder tipo(TipoProducto tipo) {
-        producto.setTipo(tipo);
-        producto.setSubcategoria(tipo.getSubcategoria());
-        producto.setCategoria(resolverCategoria(tipo.getSubcategoria()));
+    public ProductoDocenteBuilder publicado(Boolean publicado) {
+        producto.setPublicado(publicado);
         return this;
     }
 
-    private CategoriaProducto resolverCategoria(SubcategoriaProducto sub) {
-    return switch (sub) {
-        case NUEVO_CONOCIMIENTO,
-             DESARROLLO_TECNOLOGICO,
-             APROPIACION_SOCIAL,
-             DIVULGACION_PUBLICA_CIENCIA,
-             FORMACION_RECURSO_HUMANO -> CategoriaProducto.INVESTIGATIVO;
+    public ProductoDocenteBuilder tipo(TipoProducto tipo) {
+        producto.setTipo(tipo);
+        return this;
+    }
 
-        case MATERIAL_DIDACTICO,
-             ACTIVIDAD_DOCENTE,
-             GESTION_ACADEMICA,
-             EXTENSION              -> CategoriaProducto.ACADEMICO;
-    };
-}
+    public ProductoDocenteBuilder docente(Docente docente) {
+        producto.setDocente(docente);
+        return this;
+    }
 
     public ProductoDocenteBuilder atributo(String clave, Object valor) {
         producto.getAtributos().put(clave, valor);
@@ -59,25 +50,33 @@ public class ProductoDocenteBuilder {
     }
 
     public ProductoDocenteBuilder atributos(Map<String, Object> atributos) {
-        producto.getAtributos().putAll(atributos);
+        if (atributos != null)
+            producto.getAtributos().putAll(atributos);
         return this;
     }
 
     public ProductoDocente build() {
         validar();
-        ProductoDocente resultado = this.producto;
-        this.producto = new ProductoDocente(); // reset
-        return resultado;
+        return this.producto;
     }
 
     private void validar() {
+        if (producto.getTipo() == null)
+            throw new IllegalStateException("El tipo del producto es obligatorio");
+
+        if (producto.getNombre() == null || producto.getNombre().isBlank())
+            throw new IllegalStateException("El nombre del producto es obligatorio");
+
         List<String> requeridos = producto.getTipo().getAtributosRequeridos();
         List<String> faltantes = requeridos.stream()
-                .filter(attr -> !producto.getAtributos().containsKey(attr))
-                .toList();
+            .filter(attr -> !producto.getAtributos().containsKey(attr)
+                || producto.getAtributos().get(attr) == null
+                || producto.getAtributos().get(attr).toString().isBlank())
+            .toList();
 
         if (!faltantes.isEmpty())
             throw new IllegalStateException(
-                    "Faltan atributos requeridos para " + producto.getTipo() + ": " + faltantes);
+                "Faltan atributos requeridos para "
+                + producto.getTipo() + ": " + faltantes);
     }
 }

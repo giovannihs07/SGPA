@@ -1,96 +1,99 @@
 package com.sgpa.controller;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sgpa.dto.request.UserRequest;
-import com.sgpa.dto.response.UserResponse;
+import com.sgpa.dto.request.ActualizarEmailRequest;
+import com.sgpa.dto.request.CambiarPasswordRequest;
+import com.sgpa.dto.request.CambiarRolesRequest;
+import com.sgpa.dto.response.RoleResponse;
+import com.sgpa.dto.response.UserDetalleResponse;
+import com.sgpa.dto.response.UserResumenResponse;
+import com.sgpa.model.users.EstadoUsuario;
 import com.sgpa.service.UserService;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/users") 
+@RequestMapping("/api/usuarios")
+@RequiredArgsConstructor
 public class UserController {
-   
-    @Autowired
-    private UserService service;
 
-    // Métodos handler GET
+    private final UserService userService;
+
     @GetMapping
-    public List<UserResponse> list() {
-        return service.findAll();
+    public ResponseEntity<List<UserResumenResponse>> listarTodos() {
+        return ResponseEntity.ok(userService.listarTodos());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> show(@PathVariable Long id) {
-        Optional<UserResponse> userOptional = service.findById(id);
-        
-        if (userOptional.isPresent()) {
-            return ResponseEntity.ok(userOptional.orElseThrow());
-        }
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<UserResumenResponse> buscarPorId(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(userService.buscarPorId(id));
     }
 
-    // Métodos handler POST
-
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED) // El "BindingResult result" debe ir justo despues del objeto
-    public ResponseEntity<?> create(@Valid @RequestBody UserRequest user, BindingResult result) {
-        if (result.hasErrors()) {
-            return validation(result);
-        }
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.save(user));
+    @PatchMapping("/{userId}/roles")
+    public ResponseEntity<Void> cambiarRoles(
+            @PathVariable Long userId,
+            @RequestBody @Valid CambiarRolesRequest dto) {
+        userService.cambiarRoles(userId, dto.getRoles());
+        return ResponseEntity.noContent().build();
     }
 
-    // Métodos handler PUT
-
-    @PutMapping("/{id}")
-    public ResponseEntity<?> update(@Valid @RequestBody UserRequest user,BindingResult result, @PathVariable Long id) {
-        if (result.hasErrors()) {
-            return validation(result);
-        }
-        Optional<UserResponse> o = service.update(user, id);
-        if (o.isPresent()) {
-            return ResponseEntity.ok(o.get());
-        }
-        return ResponseEntity.notFound().build();
+    @PatchMapping("/{userId}/email")
+    public ResponseEntity<UserResumenResponse> actualizarEmail(
+            @PathVariable Long userId,
+            @RequestBody @Valid ActualizarEmailRequest dto) {
+        return ResponseEntity.ok(userService.actualizarEmail(userId, dto));
     }
 
-    // Métodos handler DELETE
+    @PatchMapping("/cambiar-password")
+    public ResponseEntity<Void> cambiarPassword(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody @Valid CambiarPasswordRequest dto) {
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id) {
-        if (service.findById(id).isPresent()) {
-            service.remove(id);
-            return ResponseEntity.noContent().build(); // 204
-        }
-        return ResponseEntity.notFound().build();
+        userService.cambiarPassword(
+                userDetails.getUsername(), // email viene del token JWT
+                dto.getPasswordActual(),
+                dto.getPasswordNuevo());
+        return ResponseEntity.noContent().build();
     }
 
-    // Método utilitario para reutilizar
-    private ResponseEntity<?> validation(BindingResult result) {
-        Map<String, String> errors = new HashMap<>();
-        
-        result.getFieldErrors().forEach(err -> {
-            errors.put(err.getField(), "El campo " + err.getField() + " " + err.getDefaultMessage());
-        });
-        return ResponseEntity.badRequest().body(errors);
+    // Ver todos los pendientes de aprobación
+    @GetMapping("/pendientes")
+    public ResponseEntity<List<UserDetalleResponse>> listarPendientes() {
+        return ResponseEntity.ok(userService.listarPorEstado(EstadoUsuario.PENDIENTE));
     }
+
+    // Activar registro de usuario
+    @PatchMapping("/{userId}/activar")
+    public ResponseEntity<Void> activar(@PathVariable Long userId) {
+        userService.activar(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    // Desactivar usuario
+    @PatchMapping("/{userId}/desactivar")
+    public ResponseEntity<Void> desactivar(@PathVariable Long userId) {
+        userService.desactivar(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    // Rechazar registro
+    @PatchMapping("/{userId}/rechazar")
+    public ResponseEntity<Void> rechazar(@PathVariable Long userId) {
+        userService.rechazar(userId);
+        return ResponseEntity.noContent().build();
+    }
+
 }
