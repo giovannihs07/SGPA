@@ -3,6 +3,8 @@ package com.sgpa.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sgpa.dto.request.ActualizarEmailRequest;
+import com.sgpa.dto.request.CambiarPasswordRequest;
 import com.sgpa.dto.request.CambiarRolesRequest;
 import com.sgpa.dto.response.RoleResponse;
 import com.sgpa.dto.response.UserResumenResponse;
@@ -62,6 +65,18 @@ public class UserController {
             @PathVariable Long userId,
             @RequestBody @Valid ActualizarEmailRequest dto) {
         return ResponseEntity.ok(userService.actualizarEmail(userId, dto));
+    }
+
+    @PatchMapping("/cambiar-password")
+    public ResponseEntity<Void> cambiarPassword(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody @Valid CambiarPasswordRequest dto) {
+
+        userService.cambiarPassword(
+                userDetails.getUsername(), // email viene del token JWT
+                dto.getPasswordActual(),
+                dto.getPasswordNuevo());
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/roles")
