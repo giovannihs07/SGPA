@@ -17,7 +17,6 @@ import com.sgpa.dto.request.TituloAcademicoRequest;
 import com.sgpa.dto.response.AdministrativoResponse;
 import com.sgpa.dto.response.DocenteAdministrativoResponse;
 import com.sgpa.dto.response.DocenteResponse;
-
 import com.sgpa.mapper.AdministrativoMapper;
 import com.sgpa.mapper.DocenteMapper;
 import com.sgpa.model.Administrativo;

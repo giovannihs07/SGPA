@@ -15,5 +15,4 @@ public interface UserService {
     void cambiarRoles(Long userId, Set<String> nuevosRoles);
     UserResumenResponse actualizarEmail(Long userId, ActualizarEmailRequest dto);
     void cambiarPassword(String email, String passwordActual, String passwordNuevo);
-    List<RoleResponse> listarRoles();
 }
