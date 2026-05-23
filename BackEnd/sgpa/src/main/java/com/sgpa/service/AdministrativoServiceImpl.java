@@ -58,7 +58,6 @@ public class AdministrativoServiceImpl implements AdministrativoService {
         Administrativo administrativo = new Administrativo();
         administrativo.setPersona(persona);
         administrativo.setCargo(dto.getCargo());
-        administrativo.setTipoContrato(dto.getTipoContrato());
         administrativo.setDependencia(dto.getDependencia());
         administrativo = administrativoRepository.save(administrativo);
 
@@ -109,7 +108,6 @@ public class AdministrativoServiceImpl implements AdministrativoService {
         personaRepository.save(persona);
 
         administrativo.setCargo(dto.getCargo());
-        administrativo.setTipoContrato(dto.getTipoContrato());
         administrativo.setDependencia(dto.getDependencia());
 
         return mapper.toDTO(administrativoRepository.save(administrativo));

@@ -58,7 +58,6 @@ public class AdministrativoMapper {
             .activo(user != null ? user.getActivo() : null)
             .roles(roles)
             .cargo(administrativo.getCargo())
-            .tipoContrato(administrativo.getTipoContrato())
             .dependencia(administrativo.getDependencia())
             .build();
     }

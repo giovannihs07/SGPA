@@ -12,6 +12,5 @@ import lombok.Setter;
 public class RegistroAdminParaDocenteRequest {
     @NotBlank
     private String cargo;
-    private String tipoContrato;
     private String dependencia;
 }

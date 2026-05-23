@@ -28,7 +28,6 @@ public class Administrativo {
     @JoinColumn(name="persona_id")
     private Persona persona;       
 
-    private String cargo;
-    private String tipoContrato; // Tiempo completo, Medio tiempo, Catedrático
+    private String cargo; 
     private String dependencia;
 }

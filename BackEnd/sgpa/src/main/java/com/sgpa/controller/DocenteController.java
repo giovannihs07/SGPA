@@ -45,7 +45,7 @@ public class DocenteController {
                 .body(service.registrar(dto));
     }
 
-    @PostMapping("/registro-docente-administrativo")
+    @PostMapping("/registro-docente-admin")
     public ResponseEntity<DocenteAdministrativoResponse> registrarDocenteAdministrativo(
             @RequestBody @Valid RegistroDocenteAdminRequest dto) {
         return ResponseEntity.status(HttpStatus.CREATED)

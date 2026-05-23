@@ -31,6 +31,5 @@ public class AdministrativoResponse {
 
     // Datos propios del Administrativo
     private String cargo;
-    private String tipoContrato;
     private String dependencia;
 }

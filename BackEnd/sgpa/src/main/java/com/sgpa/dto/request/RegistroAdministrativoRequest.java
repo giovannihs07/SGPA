@@ -39,6 +39,5 @@ public class RegistroAdministrativoRequest {
     @NotBlank 
     private String cargo;
     
-    private String tipoContrato;
     private String dependencia;
 }

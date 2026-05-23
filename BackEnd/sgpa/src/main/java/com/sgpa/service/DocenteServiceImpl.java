@@ -17,7 +17,7 @@ import com.sgpa.dto.request.TituloAcademicoRequest;
 import com.sgpa.dto.response.AdministrativoResponse;
 import com.sgpa.dto.response.DocenteAdministrativoResponse;
 import com.sgpa.dto.response.DocenteResponse;
-import com.sgpa.exception.ProgramaNotFoundException;
+
 import com.sgpa.mapper.AdministrativoMapper;
 import com.sgpa.mapper.DocenteMapper;
 import com.sgpa.model.Administrativo;
@@ -179,7 +179,6 @@ public class DocenteServiceImpl implements DocenteService {
         Administrativo admin = new Administrativo();
         admin.setPersona(persona);
         admin.setCargo(adminDto.getCargo());
-        admin.setTipoContrato(adminDto.getTipoContrato());
         admin.setDependencia(adminDto.getDependencia());
         administrativoRepository.save(admin);
 
