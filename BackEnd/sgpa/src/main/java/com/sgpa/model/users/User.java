@@ -2,6 +2,8 @@ package com.sgpa.model.users;
 
 import java.util.List;
 
+import com.sgpa.model.Persona;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -10,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Email;
@@ -56,4 +59,8 @@ public class User {
         uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "role_id"})
     )
     private List<Role> roles;
+
+    @OneToOne
+    @JoinColumn(name = "persona_id")
+    private Persona persona;
 }
