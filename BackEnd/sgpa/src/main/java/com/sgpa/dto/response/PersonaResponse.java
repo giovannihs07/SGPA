@@ -25,6 +25,6 @@ public class PersonaResponse {
 
     // Datos del User asociado — útil para saber el email y roles
     private String email;
-    private Boolean activo;
+    private String estado;
     private Set<String> roles;
 }

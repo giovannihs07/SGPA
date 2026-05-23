@@ -11,6 +11,7 @@ import com.sgpa.dto.response.AdministrativoResponse;
 import com.sgpa.mapper.AdministrativoMapper;
 import com.sgpa.model.Administrativo;
 import com.sgpa.model.Persona;
+import com.sgpa.model.users.EstadoUsuario;
 import com.sgpa.model.users.Role;
 import com.sgpa.model.users.RoleName;
 import com.sgpa.model.users.User;
@@ -69,7 +70,7 @@ public class AdministrativoServiceImpl implements AdministrativoService {
         User user = new User();
         user.setEmail(dto.getEmail());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        user.setActivo(true);
+        user.setEstado(EstadoUsuario.PENDIENTE);
         user.setPersona(persona);
         user.setRoles(Set.of(rolAdmin));
         userRepository.save(user);

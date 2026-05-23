@@ -55,7 +55,7 @@ public class AdministrativoMapper {
             .fechaCreacion(persona != null
                 ? persona.getFechaCreacion() : null)
             .email(user != null ? user.getEmail() : null)
-            .activo(user != null ? user.getActivo() : null)
+            .estado(user != null ? user.getEstado().name() : null)
             .roles(roles)
             .cargo(administrativo.getCargo())
             .dependencia(administrativo.getDependencia())

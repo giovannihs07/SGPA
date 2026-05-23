@@ -10,8 +10,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.sgpa.dto.request.ActualizarEmailRequest;
 import com.sgpa.dto.response.RoleResponse;
+import com.sgpa.dto.response.UserDetalleResponse;
 import com.sgpa.dto.response.UserResumenResponse;
+import com.sgpa.mapper.UserDetalleMapper;
 import com.sgpa.mapper.UserMapper;
+import com.sgpa.model.users.EstadoUsuario;
 import com.sgpa.model.users.Role;
 import com.sgpa.model.users.RoleName;
 import com.sgpa.model.users.User;
@@ -28,6 +31,7 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper mapper;
+    private final UserDetalleMapper userDetalleMapper;
 
     @Override
     @Transactional(readOnly = true)
@@ -45,7 +49,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void activar(Long userId) {
         User user = buscarEntidad(userId);
-        user.setActivo(true);
+        user.setEstado(EstadoUsuario.ACTIVO);
         userRepository.save(user);
     }
 
@@ -53,8 +57,19 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void desactivar(Long userId) {
         User user = buscarEntidad(userId);
-        user.setActivo(false);
+        user.setEstado(EstadoUsuario.INACTIVO);
         userRepository.save(user);
+    }
+
+    @Transactional
+    public void rechazar(Long userId) {
+        User user = buscarEntidad(userId);
+        user.setEstado(EstadoUsuario.RECHAZADO);
+        userRepository.save(user);
+    }
+
+    public List<UserDetalleResponse> listarPorEstado(EstadoUsuario estado) {
+        return userDetalleMapper.toDTOList(userRepository.findByEstado(estado));
     }
 
     @Override
@@ -63,10 +78,10 @@ public class UserServiceImpl implements UserService {
         User user = buscarEntidad(userId);
 
         Set<Role> roles = nuevosRoles.stream()
-            .map(nombre -> roleRepository.findByName(RoleName.valueOf(nombre))
-                .orElseThrow(() -> new RuntimeException(
-                    "Rol no encontrado: " + nombre)))
-            .collect(Collectors.toSet());
+                .map(nombre -> roleRepository.findByName(RoleName.valueOf(nombre))
+                        .orElseThrow(() -> new RuntimeException(
+                                "Rol no encontrado: " + nombre)))
+                .collect(Collectors.toSet());
 
         user.setRoles(roles);
         userRepository.save(user);
@@ -80,11 +95,11 @@ public class UserServiceImpl implements UserService {
 
         if (!passwordEncoder.matches(dto.getPasswordActual(), user.getPassword()))
             throw new IllegalArgumentException(
-                "La contraseña actual es incorrecta");
+                    "La contraseña actual es incorrecta");
 
         if (userRepository.existsByEmail(dto.getEmailNuevo()))
             throw new IllegalStateException(
-                "Ya existe un usuario con ese email");
+                    "Ya existe un usuario con ese email");
 
         user.setEmail(dto.getEmailNuevo());
         return mapper.toDTO(userRepository.save(user));
@@ -107,7 +122,7 @@ public class UserServiceImpl implements UserService {
 
     private User buscarEntidad(Long id) {
         return userRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException(
-                "Usuario no encontrado con id: " + id));
+                .orElseThrow(() -> new RuntimeException(
+                        "Usuario no encontrado con id: " + id));
     }
 }

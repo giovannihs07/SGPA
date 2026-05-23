@@ -26,7 +26,7 @@ public class UserMapper {
         return UserResumenResponse.builder()
             .id(user.getId())
             .email(user.getEmail())
-            .activo(user.getActivo())
+            .estado(user.getEstado().name())
             .roles(roles)
             .personaId(persona != null ? persona.getId() : null)
             .nombre(persona != null ? persona.getNombre() : null)

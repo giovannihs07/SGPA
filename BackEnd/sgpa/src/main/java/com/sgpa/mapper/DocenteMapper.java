@@ -101,7 +101,7 @@ public class DocenteMapper {
             .telefono(persona != null ? persona.getTelefono() : null)
             .fechaCreacion(persona != null ? persona.getFechaCreacion() : null)
             .email(user != null ? user.getEmail() : null)
-            .activo(user != null ? user.getActivo() : null)
+            .estado(user != null ? user.getEstado().name() : null)
             .roles(roles)
             .codigoDocente(docente.getCodigoDocente())
             .tipoContrato(docente.getTipoContrato())

@@ -18,7 +18,7 @@ public class UserResumenResponse {
 
     private Long id;
     private String email;
-    private Boolean activo;
+    private String estado;
     private Set<String> roles;
     private Long personaId;
     private String nombre;

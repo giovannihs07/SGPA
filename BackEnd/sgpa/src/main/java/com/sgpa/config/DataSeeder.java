@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.sgpa.model.Persona;
+import com.sgpa.model.users.EstadoUsuario;
 import com.sgpa.model.users.Role;
 import com.sgpa.model.users.RoleName;
 import com.sgpa.model.users.User;
@@ -70,7 +71,7 @@ public class DataSeeder implements ApplicationRunner {
         User superAdmin = new User();
         superAdmin.setEmail(superAdminEmail);
         superAdmin.setPassword(passwordEncoder.encode(superAdminPassword));
-        superAdmin.setActivo(true);
+        superAdmin.setEstado(EstadoUsuario.ACTIVO);
         superAdmin.setPersona(persona);
         superAdmin.setRoles(Set.of(rolSuperAdmin));
         userRepository.save(superAdmin);

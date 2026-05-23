@@ -26,7 +26,7 @@ public class AdministrativoResponse {
 
     // Datos del User
     private String email;
-    private Boolean activo;
+    private String estado;
     private Set<String> roles;
 
     // Datos propios del Administrativo

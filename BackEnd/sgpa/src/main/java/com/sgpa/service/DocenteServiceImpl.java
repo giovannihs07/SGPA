@@ -24,6 +24,7 @@ import com.sgpa.model.Docente;
 import com.sgpa.model.Persona;
 import com.sgpa.model.Programa;
 import com.sgpa.model.TituloAcademico;
+import com.sgpa.model.users.EstadoUsuario;
 import com.sgpa.model.users.Role;
 import com.sgpa.model.users.RoleName;
 import com.sgpa.model.users.User;
@@ -112,7 +113,7 @@ public class DocenteServiceImpl implements DocenteService {
         User user = new User();
         user.setEmail(dto.getEmail());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        user.setActivo(true);
+        user.setEstado(EstadoUsuario.PENDIENTE);
         user.setPersona(persona);
         user.setRoles(Set.of(rolDocente));
         userRepository.save(user);
@@ -188,7 +189,7 @@ public class DocenteServiceImpl implements DocenteService {
         User user = new User();
         user.setEmail(docenteDto.getEmail());
         user.setPassword(passwordEncoder.encode(docenteDto.getPassword()));
-        user.setActivo(true);
+        user.setEstado(EstadoUsuario.PENDIENTE);
         user.setPersona(persona);
         user.setRoles(Set.of(rolDocente, rolAdmin));
         userRepository.save(user);

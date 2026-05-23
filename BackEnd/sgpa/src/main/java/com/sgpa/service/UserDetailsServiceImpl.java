@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.sgpa.model.users.EstadoUsuario;
 import com.sgpa.model.users.User;
 import com.sgpa.repository.UserRepository;
 
@@ -41,7 +42,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return new org.springframework.security.core.userdetails.User(
             user.getEmail(),
             user.getPassword(),
-            user.getActivo(),   // enabled — false bloquea el login
+            user.getEstado() == EstadoUsuario.ACTIVO,   // enabled — Si no es activo bloquea el login
             true,               // accountNonExpired
             true,               // credentialsNonExpired
             true,               // accountNonLocked

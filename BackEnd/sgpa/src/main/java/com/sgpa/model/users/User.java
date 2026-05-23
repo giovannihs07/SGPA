@@ -12,6 +12,8 @@ import com.sgpa.model.Persona;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -39,16 +41,13 @@ import lombok.NoArgsConstructor;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) //IDENTITY con MySQL
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // IDENTITY con MySQL
     private Long id;
 
     @NotBlank
     @NotEmpty
     @Email
-    @Pattern(
-        regexp = "^[a-zA-Z0-9._%+-]+@unicartagena\\.edu\\.co$",
-        message = "El email debe ser institucional (@unicartagena.edu.co)"
-    )
+    @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@unicartagena\\.edu\\.co$", message = "El email debe ser institucional (@unicartagena.edu.co)")
     @Column(unique = true, nullable = false)
     private String email;
 
@@ -59,9 +58,10 @@ public class User {
 
     @CreationTimestamp
     private LocalDate fechaCreacion;
-    
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Boolean activo = false;
+    private EstadoUsuario estado = EstadoUsuario.PENDIENTE;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "persona_id", nullable = false, unique = true)
@@ -70,11 +70,7 @@ public class User {
 
     // Crea una relación ManyToMany entre User y Role
     @ManyToMany
-    @JoinTable(
-        name = "users_roles", 
-        joinColumns = @JoinColumn(name = "user_id"), 
-        inverseJoinColumns = @JoinColumn(name = "role_id"),
-        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "role_id"})
-    )
+    @JoinTable(name = "users_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"), uniqueConstraints = @UniqueConstraint(columnNames = {
+            "user_id", "role_id" }))
     private Set<Role> roles = new HashSet<>();
 }

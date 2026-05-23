@@ -28,7 +28,7 @@ public class DocenteResponse {
 
     // Datos de User
     private String email;
-    private Boolean activo;
+    private String estado;
     private Set<String> roles;
 
     // Datos de Docente
