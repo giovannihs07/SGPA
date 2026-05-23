@@ -40,14 +40,4 @@ public class UserMapper {
         return users.stream().map(this::toDTO).toList();
     }
 
-    public RoleResponse toRolDTO(Role role) {
-        return RoleResponse.builder()
-            .id(role.getId())
-            .nombre(role.getName().name())
-            .build();
-    }
-
-    public List<RoleResponse> toRolDTOList(List<Role> roles) {
-        return roles.stream().map(this::toRolDTO).toList();
-    }
 }

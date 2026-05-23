@@ -79,8 +79,4 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/roles")
-    public ResponseEntity<List<RoleResponse>> listarRoles() {
-        return ResponseEntity.ok(userService.listarRoles());
-    }
 }

@@ -105,12 +105,6 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<RoleResponse> listarRoles() {
-        return mapper.toRolDTOList(roleRepository.findAll());
-    }
-
     private User buscarEntidad(Long id) {
         return userRepository.findById(id)
             .orElseThrow(() -> new RuntimeException(
