@@ -14,7 +14,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.web.cors.CorsConfigurationSource;
-import jakarta.servlet.http.HttpServletResponse;
 
 import com.sgpa.repository.UserRepository;
 import com.sgpa.security.auth.filters.JwtAuthenticationFilter;
@@ -71,6 +70,12 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/administrativos/registro").permitAll()
                 .requestMatchers(HttpMethod.PATCH, "/api/auth/cambiar-password").authenticated()
+
+                // Rutas públicas para listar facultades y programas (necesarias para el registro de docentes)
+                .requestMatchers(HttpMethod.GET, "/api/facultades").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/facultades/{id}").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/programas").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/programas/{id}").permitAll()
                 // Descargas de archivos permitidas públicamente
                 .requestMatchers(HttpMethod.GET, "/api/productos/{id}/archivo").permitAll()
                 // Rutas públicas de Swagger/OpenAPI

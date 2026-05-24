@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import com.sgpa.dto.request.ProgramaRequest;
 import com.sgpa.dto.response.ProgramaResponse;
 import com.sgpa.model.Facultad;
 import com.sgpa.model.Institucion;

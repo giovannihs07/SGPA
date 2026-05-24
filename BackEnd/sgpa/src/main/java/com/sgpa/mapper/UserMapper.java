@@ -7,10 +7,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 import com.sgpa.dto.response.UserResumenResponse;
-import com.sgpa.dto.response.RoleResponse;
-
 import com.sgpa.model.Persona;
-import com.sgpa.model.users.Role;
 import com.sgpa.model.users.User;
 
 @Component

@@ -2,8 +2,6 @@ package com.sgpa.dto.response;
 
 import java.util.Set;
 
-import com.sgpa.model.users.RoleName;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

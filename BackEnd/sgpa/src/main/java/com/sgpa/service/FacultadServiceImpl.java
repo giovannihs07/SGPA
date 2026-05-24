@@ -2,14 +2,11 @@ package com.sgpa.service;
 
 import java.util.List;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.sgpa.dto.request.FacultadRequest;
 import com.sgpa.dto.response.FacultadResponse;
-import com.sgpa.exception.ProductoDocenteNotFoundException;
 import com.sgpa.mapper.FacultadMapper;
 import com.sgpa.model.Facultad;
 import com.sgpa.model.Institucion;

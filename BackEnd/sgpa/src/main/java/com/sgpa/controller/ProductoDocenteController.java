@@ -28,8 +28,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.sgpa.dto.request.ProductoDocenteRequest;
 import com.sgpa.dto.response.ProductoDocenteResponse;
 import com.sgpa.dto.response.ProductoOpcionesResponse;
-import com.sgpa.exception.ProductoDocenteNotFoundException;
-import com.sgpa.model.products.ProductoDocente;
 import com.sgpa.model.products.TipoProducto;
 import com.sgpa.service.FileStorageService;
 import com.sgpa.service.ProductoDocenteService;

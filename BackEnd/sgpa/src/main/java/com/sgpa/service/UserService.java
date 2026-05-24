@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Set;
 
 import com.sgpa.dto.request.ActualizarEmailRequest;
-import com.sgpa.dto.response.RoleResponse;
 import com.sgpa.dto.response.UserDetalleResponse;
 import com.sgpa.dto.response.UserResumenResponse;
 import com.sgpa.model.users.EstadoUsuario;

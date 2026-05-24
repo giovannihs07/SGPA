@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.sgpa.dto.request.ActualizarEmailRequest;
-import com.sgpa.dto.response.RoleResponse;
 import com.sgpa.dto.response.UserDetalleResponse;
 import com.sgpa.dto.response.UserResumenResponse;
 import com.sgpa.mapper.UserDetalleMapper;

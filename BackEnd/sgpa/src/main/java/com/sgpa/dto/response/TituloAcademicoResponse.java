@@ -2,8 +2,6 @@ package com.sgpa.dto.response;
 
 import java.time.LocalDate;
 
-import com.sgpa.model.NivelAcademico;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

@@ -2,14 +2,30 @@ import axiosInstance from "./axiosInstance";
 
 /**
  * @param {{ email: string, password: string }} credentials
- * @returns {Promise<{ token: string, user: object }>}
  */
-export const loginRequest = (credentials) =>
-  axiosInstance.post("/auth/login", credentials);
+export const loginUser = (credentials) =>
+    axiosInstance.post("/api/auth/login", credentials);
 
 /**
- * @param {{ nombre: string, apellido: string, email: string, password: string, rol: string }} data
- * @returns {Promise<{ token: string, user: object }>}
+ * Registro exclusivo de docente.
+ * POST /api/docentes/registro
+ * @param {RegistroDocenteRequest} data
  */
-export const registerRequest = (data) =>
-  axiosInstance.post("/auth/register", data);
+export const registerDocente = (data) =>
+    axiosInstance.post("/api/docentes/registro", data);
+
+/**
+ * Registro exclusivo de administrativo.
+ * POST /api/administrativos/registro
+ * @param {RegistroAdministrativoRequest} data
+ */
+export const registerAdministrativo = (data) =>
+    axiosInstance.post("/api/administrativos/registro", data);
+
+/**
+ * Registro de docente que también es administrativo.
+ * POST /api/docentes/registro-docente-admin
+ * @param {RegistroDocenteAdminRequest} data
+ */
+export const registerDocenteAdmin = (data) =>
+    axiosInstance.post("/api/docentes/registro-docente-admin", data);

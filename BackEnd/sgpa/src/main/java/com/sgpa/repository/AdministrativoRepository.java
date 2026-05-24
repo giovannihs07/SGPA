@@ -10,7 +10,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.sgpa.model.Administrativo;
-import com.sgpa.model.Docente;
 
 @Repository
 public interface AdministrativoRepository extends JpaRepository<Administrativo, Long> {

@@ -1,17 +1,14 @@
 package com.sgpa.service;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.sgpa.dto.request.RegistroAdminParaDocenteRequest;
-import com.sgpa.dto.request.RegistroAdministrativoRequest;
 import com.sgpa.dto.request.RegistroDocenteRequest;
 import com.sgpa.dto.request.TituloAcademicoRequest;
 import com.sgpa.dto.response.AdministrativoResponse;

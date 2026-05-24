@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.sgpa.dto.request.ActualizarEmailRequest;
 import com.sgpa.dto.request.CambiarPasswordRequest;
 import com.sgpa.dto.request.CambiarRolesRequest;
-import com.sgpa.dto.response.RoleResponse;
 import com.sgpa.dto.response.UserDetalleResponse;
 import com.sgpa.dto.response.UserResumenResponse;
 import com.sgpa.model.users.EstadoUsuario;
