@@ -17,8 +17,8 @@ public interface DocenteRepository extends JpaRepository<Docente, Long> {
     Optional<Docente> findByCodigoDocente(String codigoDocente);
 
     @Query("SELECT d FROM Docente d " +
-            "JOIN Persona p ON p.id = d.id " +
-            "JOIN User u ON u.persona.id = p.id " +
+            "JOIN d.persona p " +
+            "JOIN p.user u " +
             "WHERE u.email = :email"
         )
     Optional<Docente> findByUserEmail(@Param("email") String email);

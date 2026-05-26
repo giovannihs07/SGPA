@@ -15,9 +15,6 @@ export const getTiposProducto = async () => {
  *   - parte "datos"   → Blob JSON  (@RequestPart Spring)
  *   - parte "archivo" → File opcional
  *
- * IMPORTANTE: se pasa headers: { "Content-Type": undefined } para que Axios
- * deje que el browser genere el boundary del multipart automáticamente,
- * sobreescribiendo el "application/json" del interceptor global.
  */
 export const crearProducto = async (datos, archivo = null) => {
     const formData = new FormData();
@@ -31,9 +28,10 @@ export const crearProducto = async (datos, archivo = null) => {
         formData.append("archivo", archivo);
     }
 
-    const { data } = await axiosInstance.post("/api/productos", formData, {
-        headers: { "Content-Type": undefined },
-    });
+    const { data } = await axiosInstance.post(
+        "/api/productos",
+        formData
+    );
 
     return data;
 };

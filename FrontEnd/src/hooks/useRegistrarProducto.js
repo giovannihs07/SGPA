@@ -1,6 +1,6 @@
 // lógica del formulario en cascada
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { getTiposProducto, crearProducto } from "../services/productoServices";
 import { CATEGORIA_A_SUBCATEGORIAS } from "../pages/docente/productoConfig";
 import { notifySuccess, notifyError } from "../utils/notify";
@@ -53,7 +53,7 @@ export const useRegistrarProducto = () => {
     // Handlers
     const handleChange = useCallback(({ target: { name, value } }) => {
         setForm((prev) => {
-            if (name === "categoria")    return { ...INITIAL_FORM, categoria: value };
+            if (name === "categoria")    return { ...prev, categoria: value, subcategoria: "", tipo: "", atributos: {} };
             if (name === "subcategoria") return { ...prev, subcategoria: value, tipo: "", atributos: {} };
             if (name === "tipo")         return { ...prev, tipo: value, atributos: {} };
             return { ...prev, [name]: value };
@@ -82,12 +82,15 @@ export const useRegistrarProducto = () => {
         );
     }, [form, categoria, subcategoria, tipo, atributosRequeridos, atributos]);
 
+    const submittingRef = useRef(false);
     // Submit
     // El backend solo necesita: nombre, tipo, descripcion, atributos
-    // categoria y subcategoria los deriva internamente del TipoProducto enum
+    // categoria y subcategoria los deriva internamente del enum TipoProducto 
     const handleSubmit = useCallback(async (e) => {
         e.preventDefault();
         if (!isValid) return;
+        if (submittingRef.current) return;
+        submittingRef.current = true; 
 
         setLoading(true);
 
@@ -118,6 +121,7 @@ export const useRegistrarProducto = () => {
             );
         } finally {
             setLoading(false);
+            submittingRef.current = false;
         }
     }, [form, tipo, atributos, archivo, isValid]);
 

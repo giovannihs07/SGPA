@@ -20,7 +20,7 @@ export const notifySuccess = (title, text) =>
         icon:  "success",
         title,
         text,
-        timer:            2500,
+        timer:            3000,
         timerProgressBar: true,
         showConfirmButton: false,
     });
