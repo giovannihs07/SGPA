@@ -12,12 +12,20 @@ const PAGE_TITLES = {
     "/dashboard/docente/productos":    "Mis productos",
     "/dashboard/docente/buscar":       "Buscar",
     "/dashboard/docente/reportes":     "Reportes",
+
     "/dashboard/admin":                "Dashboard",
     "/dashboard/admin/usuarios":       "Usuarios",
     "/dashboard/admin/productos":      "Todos los productos",
     "/dashboard/admin/aprobaciones":   "Aprobar / rechazar",
     "/dashboard/admin/reportes":       "Reportes",
     "/dashboard/admin/configuracion":  "Configuración",
+
+    "/dashboard/superadmin":                "Dashboard",
+    "/dashboard/superadmin/usuarios":       "Usuarios",
+    "/dashboard/superadmin/aprobaciones":   "Aprobar / rechazar",
+    "/dashboard/superadmin/reportes":       "Reportes",
+    "/dashboard/superadmin/configuracion":  "Configuración",
+
     "/dashboard/estudiante":           "Dashboard",
     "/dashboard/estudiante/explorar":  "Explorar productos",
     "/dashboard/estudiante/buscar":    "Buscar",
@@ -29,7 +37,10 @@ export const DashboardLayout = () => {
     const { isCollapsed, toggleSidebar } = useSidebar();
     const location = useLocation();
 
-    const pageTitle = PAGE_TITLES[location.pathname] || "Dashboard";
+    const pageTitle = PAGE_TITLES[location.pathname]
+        ?? (location.pathname.match(/\/productos\/\d+\/editar$/)
+            ? "Editar producto"
+            : "Dashboard");
 
     return (
         <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">

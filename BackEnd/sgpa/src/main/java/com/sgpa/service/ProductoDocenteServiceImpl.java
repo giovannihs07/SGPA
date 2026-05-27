@@ -16,6 +16,10 @@ import org.springframework.web.multipart.MultipartFile;
 import com.sgpa.dto.request.ProductoDocenteRequest;
 import com.sgpa.dto.response.ProductoDocenteResponse;
 import com.sgpa.dto.response.ProductoOpcionesResponse;
+import com.sgpa.exception.AccesoDenegadoException;
+import com.sgpa.exception.ProductoDocenteNotFoundException;
+import com.sgpa.exception.ProductoNoEditableException;
+import com.sgpa.exception.ProductoNoEliminableException;
 import com.sgpa.factory.ProductoDocenteFactory;
 import com.sgpa.mapper.ProductoDocenteMapper;
 import com.sgpa.model.Docente;
@@ -80,6 +84,45 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
     }
 
     @Override
+    public List<ProductoDocenteResponse> buscarMisProductos() {
+        Docente docente = obtenerDocenteAutenticado();
+        return mapper.toDTOList(repository.findByDocenteId(docente.getId()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProductoDocenteResponse buscarMiProductoPorId(Long id) {
+        return mapper.toDTO(buscarEntidadPropia(id));
+    }
+
+    @Override
+    @Transactional
+    public ProductoDocenteResponse actualizarMiProducto(Long id,
+            ProductoDocenteRequest dto, MultipartFile archivo) {
+        ProductoDocente producto = buscarEntidadPropia(id);
+        verificarProductoEditable(producto);
+        validarTipo(dto.getTipo());
+
+        TipoProducto tipo = TipoProducto.valueOf(dto.getTipo());
+        producto.setNombre(dto.getNombre());
+        producto.setDescripcion(dto.getDescripcion());
+        producto.setTipo(tipo);
+        producto.setAtributos(dto.getAtributos());
+        producto.validarAtributos();
+
+        if (archivo != null && !archivo.isEmpty()) {
+            if (producto.getNombreArchivo() != null) {
+                fileStorageService.eliminarArchivo(producto.getNombreArchivo());
+            }
+            String[] nombres = fileStorageService.guardarArchivo(archivo, dto.getTipo());
+            producto.setNombreArchivo(nombres[0]);
+            producto.setNombreArchivoOriginal(nombres[1]);
+        }
+
+        return mapper.toDTO(repository.save(producto));
+    }
+
+    @Override
     public List<ProductoDocenteResponse> buscarPublicados() {
         return mapper.toDTOList(repository.findByPublicado(true));
     }
@@ -130,6 +173,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
     @Transactional
     public void eliminar(Long id) {
         ProductoDocente producto = buscarEntidad(id);
+        verificarProductoEliminable(producto);
         if (producto.getNombreArchivo() != null)
             fileStorageService.eliminarArchivo(producto.getNombreArchivo());
         repository.delete(producto);
@@ -170,8 +214,30 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
 
     private ProductoDocente buscarEntidad(Long id) {
         return repository.findById(id)
-            .orElseThrow(() -> new RuntimeException(
-                "Producto no encontrado con id: " + id));
+            .orElseThrow(() -> new ProductoDocenteNotFoundException(id));
+    }
+
+    private ProductoDocente buscarEntidadPropia(Long id) {
+        Docente docente = obtenerDocenteAutenticado();
+        ProductoDocente producto = buscarEntidad(id);
+        if (producto.getDocente() == null
+                || !producto.getDocente().getId().equals(docente.getId())) {
+            throw new AccesoDenegadoException(
+                "No tienes permiso para acceder a este producto");
+        }
+        return producto;
+    }
+
+    private void verificarProductoEditable(ProductoDocente producto) {
+        if (Boolean.TRUE.equals(producto.getPublicado())) {
+            throw new ProductoNoEditableException();
+        }
+    }
+
+    private void verificarProductoEliminable(ProductoDocente producto) {
+        if (Boolean.TRUE.equals(producto.getPublicado())) {
+            throw new ProductoNoEliminableException();
+        }
     }
 
     private Docente obtenerDocenteAutenticado() {

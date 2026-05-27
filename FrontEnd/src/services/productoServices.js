@@ -37,6 +37,14 @@ export const crearProducto = async (datos, archivo = null) => {
 };
 
 /**
+ * GET /api/productos/mis  (docente autenticado vía JWT)
+ */
+export const getMisProductos = async () => {
+    const { data } = await axiosInstance.get("/api/productos/mis");
+    return data;
+};
+
+/**
  * GET /api/productos?docenteId=X
  */
 export const getProductosDocente = async (docenteId) => {
@@ -65,7 +73,30 @@ export const getProductoPorId = async (id) => {
 };
 
 /**
- * PUT /api/productos/:id  (body JSON)
+ * GET /api/productos/mis/:id  (solo productos del docente autenticado)
+ */
+export const getMiProductoPorId = async (id) => {
+    const { data } = await axiosInstance.get(`/api/productos/mis/${id}`);
+    return data;
+};
+
+/**
+ * PUT /api/productos/mis/:id  (multipart: datos + archivo opcional)
+ */
+export const actualizarMiProducto = async (id, datos, archivo = null) => {
+    const formData = new FormData();
+    formData.append(
+        "datos",
+        new Blob([JSON.stringify(datos)], { type: "application/json" }),
+    );
+    if (archivo) formData.append("archivo", archivo);
+
+    const { data } = await axiosInstance.put(`/api/productos/mis/${id}`, formData);
+    return data;
+};
+
+/**
+ * PUT /api/productos/:id  (body JSON) — uso administrativo
  */
 export const actualizarProducto = async (id, datos) => {
     const { data } = await axiosInstance.put(`/api/productos/${id}`, datos);

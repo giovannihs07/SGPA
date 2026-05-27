@@ -23,7 +23,7 @@ public class PersonaResponse {
     private String telefono;
     private LocalDateTime fechaCreacion;
 
-    // Datos del User asociado — útil para saber el email y roles
+    // Datos del User asociado — para saber el email y roles
     private String email;
     private String estado;
     private Set<String> roles;

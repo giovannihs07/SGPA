@@ -12,6 +12,7 @@ import { RegisterPage } from "./pages/auth/RegisterPage";
 import { DashboardDocentePage }  from "./pages/docente/DashboardDocentePage";
 import { RegistrarProductoPage } from "./pages/docente/RegistrarProductoPage";
 import { MisProductosPage }      from "./pages/docente/MisProductosPage";
+import { EditarProductoPage }    from "./pages/docente/EditarProductoPage";
 import { BuscarDocentePage }     from "./pages/docente/BuscarDocentePage";
 import { ReportesDocentePage }   from "./pages/docente/ReportesDocentePage";
  
@@ -44,7 +45,8 @@ export default function App() {
                             <Route element={<DashboardLayout />}>
                                 <Route path="/dashboard/docente"            element={<DashboardDocentePage />} />
                                 <Route path="/dashboard/docente/registrar"  element={<RegistrarProductoPage />} />
-                                <Route path="/dashboard/docente/productos"  element={<MisProductosPage />} />
+                                <Route path="/dashboard/docente/productos"          element={<MisProductosPage />} />
+                                <Route path="/dashboard/docente/productos/:id/editar" element={<EditarProductoPage />} />
                                 <Route path="/dashboard/docente/buscar"     element={<BuscarDocentePage />} />
                                 <Route path="/dashboard/docente/reportes"   element={<ReportesDocentePage />} />
                             </Route>

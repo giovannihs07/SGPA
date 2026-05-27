@@ -74,7 +74,7 @@ public class UserController {
         return ResponseEntity.ok(userService.listarPorEstado(EstadoUsuario.PENDIENTE));
     }
 
-    // Activar registro de usuario
+    // Activar usuario (aprobar registro)
     @PatchMapping("/{userId}/activar")
     public ResponseEntity<Void> activar(@PathVariable Long userId) {
         userService.activar(userId);

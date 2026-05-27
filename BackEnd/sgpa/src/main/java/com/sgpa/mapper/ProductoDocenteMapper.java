@@ -39,6 +39,7 @@ public class ProductoDocenteMapper {
             .descripcion(producto.getDescripcion())
             .nombreArchivo(producto.getNombreArchivo())
             .nombreArchivoOriginal(producto.getNombreArchivoOriginal())
+            .extensionArchivo(extraerExtension(producto.getNombreArchivoOriginal()))
             .categoria(producto.getTipo() != null ? producto.getTipo().getCategoria().name() : null)
             .subcategoria(producto.getTipo() != null ? producto.getTipo().getSubcategoria().name() : null)
             .tipo(producto.getTipo() != null ? producto.getTipo().name() : null)
@@ -54,5 +55,12 @@ public class ProductoDocenteMapper {
 
     public List<ProductoDocenteResponse> toDTOList(List<ProductoDocente> productos) {
         return productos.stream().map(this::toDTO).toList();
+    }
+
+    private String extraerExtension(String nombreOriginal) {
+        if (nombreOriginal == null || !nombreOriginal.contains(".")) {
+            return null;
+        }
+        return nombreOriginal.substring(nombreOriginal.lastIndexOf('.') + 1).toUpperCase();
     }
 }

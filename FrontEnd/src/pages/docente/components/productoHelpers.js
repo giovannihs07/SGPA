@@ -1,0 +1,71 @@
+import { TIPO_LABELS, SUBCATEGORIA_LABELS, CATEGORIA_LABELS } from "../productoConfig";
+
+// Labels en español y utilidades visuales para la tabla y el modal
+export { TIPO_LABELS, SUBCATEGORIA_LABELS, CATEGORIA_LABELS };
+
+// Estado badge
+export const ESTADO_CONFIG = {
+    PUBLICADO: {
+        label: "Publicado",
+        className: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+        dot: "bg-green-500",
+    },
+    SIN_PUBLICAR: {
+        label: "Sin publicar",
+        className: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+        dot: "bg-amber-400",
+    },
+    EN_REVISION: {
+        label: "En revisión",
+        className: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+        dot: "bg-blue-500",
+    },
+    RECHAZADO: {
+        label: "Rechazado",
+        className: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+        dot: "bg-red-500",
+    },
+};
+
+export const getEstadoConfig = (publicado) =>
+    publicado ? ESTADO_CONFIG.PUBLICADO : ESTADO_CONFIG.SIN_PUBLICAR;
+
+export const formatFecha = (fecha) => {
+    if (!fecha) return "—";
+    return new Date(fecha).toLocaleDateString("es-CO", {
+        day: "2-digit", month: "short", year: "numeric",
+    });
+};
+
+// Recorta texto largo para la tabla
+export const truncar = (str, max = 60) =>
+    str && str.length > max ? str.slice(0, max) + "…" : (str ?? "—");
+
+export const getExtensionArchivo = (producto) => {
+    if (producto?.extensionArchivo) return producto.extensionArchivo;
+    const nombre = producto?.nombreArchivoOriginal;
+    if (!nombre || !nombre.includes(".")) return null;
+    return nombre.slice(nombre.lastIndexOf(".") + 1).toUpperCase();
+};
+
+export const esReciente = (fecha, dias = 30) => {
+    if (!fecha) return false;
+    const limite = new Date();
+    limite.setDate(limite.getDate() - dias);
+    return new Date(fecha) >= limite;
+};
+
+/** Solo productos sin publicar pueden editarse */
+export const puedeEditarProducto = (producto) => !producto?.publicado;
+
+/** Solo productos sin publicar pueden eliminarse */
+export const puedeEliminarProducto = (producto) => !producto?.publicado;
+
+export const MENSAJE_PRODUCTO_PUBLICADO =
+    "Este producto está publicado. Despublícalo desde Mis productos para editarlo o eliminarlo.";
+
+export const MENSAJE_EDICION_BLOQUEADA =
+    "Este producto está publicado. Despublícalo desde Mis productos para poder editarlo.";
+
+export const MENSAJE_ELIMINACION_BLOQUEADA =
+    "Este producto está publicado. Despublícalo desde Mis productos para poder eliminarlo.";

@@ -3,26 +3,22 @@ package com.sgpa.security.auth.filters;
 import static com.sgpa.config.TokenJwtConfig.*;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.sgpa.config.TokenJwtConfig;
-import com.sgpa.model.users.User;
-import com.sgpa.repository.UserRepository;
-import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sgpa.dto.response.LoginResponse;
+import com.sgpa.service.AuthService;
 
-import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,13 +26,14 @@ import jakarta.servlet.http.HttpServletResponse;
 
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
-    private final AuthenticationManager authenticationManager;
-    private final UserRepository userRepository;
+    private final AuthService authService;
+    private final ObjectMapper objectMapper;
 
-    public JwtAuthenticationFilter(AuthenticationManager authenticationManager, UserRepository userRepository) {
-        this.authenticationManager = authenticationManager;
-        this.userRepository = userRepository;
-        // Define la URL del endpoint de login
+    public JwtAuthenticationFilter(AuthenticationManager authenticationManager,
+            AuthService authService, ObjectMapper objectMapper) {
+        this.authService = authService;
+        this.objectMapper = objectMapper;
+        setAuthenticationManager(authenticationManager);
         setFilterProcessesUrl("/api/auth/login");
     }
 
@@ -48,20 +45,18 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         String password = null;
 
         try {
-            Map<?, ?> credentials = new ObjectMapper()
+            Map<?, ?> credentials = objectMapper
                 .readValue(request.getInputStream(), Map.class);
             email = (String) credentials.get("email");
             password = (String) credentials.get("password");
-        } catch (JacksonException e) {
-            e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new AuthenticationServiceException("Credenciales inválidas", e);
         }
 
         UsernamePasswordAuthenticationToken authToken =
             new UsernamePasswordAuthenticationToken(email, password);
 
-        return authenticationManager.authenticate(authToken);
+        return getAuthenticationManager().authenticate(authToken);
     }
 
     @Override
@@ -69,40 +64,19 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             HttpServletResponse response, FilterChain chain,
             Authentication authResult) throws IOException, ServletException {
 
-        String email = ((org.springframework.security.core.userdetails.User)
-            authResult.getPrincipal()).getUsername();
+        String email = authResult.getName();
 
-        Collection<? extends GrantedAuthority> roles = authResult.getAuthorities();
-
-        // Extrae todos los roles como lista de strings
-        // Resultado: ["ROLE_DOCENTE", "ROLE_ADMIN", etc.]
-        List<String> nombreRoles = roles.stream()
+        List<String> nombreRoles = authResult.getAuthorities().stream()
             .map(GrantedAuthority::getAuthority)
             .filter(role -> role.startsWith("ROLE_"))
             .toList();
 
-        String token = Jwts.builder()
-            .claim("roles", nombreRoles)
-            .subject(email)
-            .signWith(TokenJwtConfig.getSecretKey())
-            .issuedAt(new Date())
-            .expiration(new Date(System.currentTimeMillis() + 3600000))
-            .compact();
+        LoginResponse loginResponse = authService.completarLogin(email, nombreRoles);
 
-        response.addHeader(HEADER_AUTHORIZATION, PREFIX_TOKEN + token);
-
-        User user = userRepository.findByEmail(email).orElseThrow();
-
-        Map<String, Object> body = new HashMap<>();
-        body.put("token", token);
-        body.put("userId", user.getId());
-        body.put("message", String.format("¡Hola %s, has iniciado sesión con éxito!", email));
-        body.put("email", email);
-        body.put("roles", nombreRoles);
-
-        response.getWriter().write(new ObjectMapper().writeValueAsString(body));
-        response.setStatus(200);
+        response.addHeader(HEADER_AUTHORIZATION, PREFIX_TOKEN + loginResponse.getToken());
+        response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("application/json");
+        response.getWriter().write(objectMapper.writeValueAsString(loginResponse));
     }
 
     @Override
@@ -114,8 +88,8 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         body.put("message", "Error en la autenticación, email o password incorrecto!");
         body.put("error", failed.getMessage());
 
-        response.getWriter().write(new ObjectMapper().writeValueAsString(body));
-        response.setStatus(401);
+        response.getWriter().write(objectMapper.writeValueAsString(body));
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
     }
 }

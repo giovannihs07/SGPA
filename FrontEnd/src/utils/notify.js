@@ -10,8 +10,11 @@ const BASE = {
         popup:         "!rounded-xl !font-sans",
         confirmButton: "!rounded-lg !text-sm !font-semibold !px-5",
         cancelButton:  "!rounded-lg !text-sm !font-semibold !px-5",
+        denyButton:    "!rounded-lg !text-sm !font-semibold !px-5",
     },
 };
+
+export const SWAL_BASE = BASE;
 
 /** Alerta de operación exitosa (se cierra sola) */
 export const notifySuccess = (title, text) =>
@@ -23,6 +26,16 @@ export const notifySuccess = (title, text) =>
         timer:            3000,
         timerProgressBar: true,
         showConfirmButton: false,
+    });
+
+/** Alerta informativa */
+export const notifyInfo = (title, text) =>
+    Swal.fire({
+        ...BASE,
+        icon:              "info",
+        title,
+        text,
+        confirmButtonText: "Entendido",
     });
 
 /** Alerta de error */

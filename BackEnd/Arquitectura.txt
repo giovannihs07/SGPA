@@ -16,13 +16,14 @@ sgpa/
 │           │   ├── controller/         # Controladores REST (API pública) - Capa de presentación
 │           │   ├── dto/                # Data Transfer Objects
 │           │   ├── exception/          # Manejo de errores personalizados
+│           │   ├── mapper/             # Manepeos de dto-entity entity-dto
 │           │   ├── model/              # Entidades JPA (Usuario, Material, etc.)
 │           │   ├── repository/         # Interfaces de acceso a BD - Capa de acceso a datos
 │           │   ├── security/           # JWT, OAuth, filtros y configuración - Capa de seguridad
 │           │   ├── service/            # Lógica de negocio - Capa de lógica del negocio
 │           │   └── SGPAApplication.java# Clase principal
 │           └── resources/
-│               ├── application.yml     # Config. de Spring Boot
+│               ├── application.properties     # Config. de Spring Boot
 │               └── static/             # Recursos estáticos (si los hay)
 │
 ├── frontend/                           # 💻 React + Tailwind
@@ -35,6 +36,12 @@ sgpa/
 │       ├── context/                    # Contextos globales (auth, theme)
 │       ├── hooks/                      # Hooks personalizados
 │       ├── pages/                      # Vistas principales (Login, Dashboard)
+│       │   ├── admin/                  # 
+|       |   ├── auth/
+|       |   ├── docente/
+|       |   |   └── components/
+|       |   ├── public/
+│       │   └── superadmin/
 │       ├── routes/                     # Definición de rutas y rutas protegidas
 │       ├── services/                   # Axios: authService, apiService
 │       ├── styles/                     # Tailwind base y estilos globales
@@ -42,6 +49,10 @@ sgpa/
 │       ├── App.jsx                     # Componente raíz
 │       └── main.jsx                    # Entrada ReactDOM
 │
+|
+├── uploads/productos                   # archivos de productos docentes
+|
+|
 ├── docs/                               # 📄 Documentación técnica, diagramas
 │
 ├── scripts/                            # 🔧 Scripts de utilidad (deploy, etc.)

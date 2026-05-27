@@ -1,7 +1,73 @@
+import { useNavigate } from "react-router-dom";
+import { useMisProductos } from "../../hooks/useMisProductos";
+import { intentarEditarProducto } from "./components/misProductos/productoSwal";
+import { MisProductosHeader } from "./components/misProductos/MisProductosHeader";
+import { MisProductosKpiGrid } from "./components/misProductos/MisProductosKpiGrid";
+import { MisProductosFiltros } from "./components/misProductos/MisProductosFiltros";
+import { ProductosTabla } from "./components/misProductos/ProductosTabla";
+import { ProductoDetalleModal } from "./components/misProductos/ProductoDetalleModal";
+import { MisProductosLoading, MisProductosError } from "./components/misProductos/MisProductosEstados";
+
 export const MisProductosPage = () => {
+    const navigate = useNavigate();
+    const onEditar = (producto) =>
+        intentarEditarProducto(producto, (p) =>
+            navigate(`/dashboard/docente/productos/${p.id}/editar`),
+        );
+
+    const {
+        productos, productosFiltrados, resumen,
+        loading, error, refetch,
+        busqueda, setBusqueda,
+        filtroEstado, setFiltroEstado,
+        filtroCategoria, handleFiltroCategoria,
+        filtroTipo, setFiltroTipo,
+        categoriasDisponibles, tiposDisponibles,
+        pagina, totalPaginas, pageSize, irPagina,
+        abrirDetalle, eliminarProducto,
+        toggling, togglePublicacion, handleDescargar,
+        productoDetalle, cerrarDetalle, toggleFromDetalle, eliminarFromDetalle,
+    } = useMisProductos();
+
+    if (loading) return <MisProductosLoading />;
+    if (error)   return <MisProductosError error={error} onRetry={refetch} />;
+
     return (
-        <div className="p-8 text-xl font-semibold text-gray-800 dark:text-white">
-            Mis productos
+        <div className="space-y-5 max-w-7xl mx-auto">
+            <MisProductosHeader onRefresh={refetch} />
+            <MisProductosKpiGrid resumen={resumen} />
+            <MisProductosFiltros
+                busqueda={busqueda} setBusqueda={setBusqueda}
+                filtroEstado={filtroEstado} setFiltroEstado={setFiltroEstado}
+                filtroCategoria={filtroCategoria} handleFiltroCategoria={handleFiltroCategoria}
+                filtroTipo={filtroTipo} setFiltroTipo={setFiltroTipo}
+                categoriasDisponibles={categoriasDisponibles}
+                tiposDisponibles={tiposDisponibles}
+            />
+            <ProductosTabla
+                productos={productos}
+                productosFiltrados={productosFiltrados}
+                pagina={pagina}
+                totalPaginas={totalPaginas}
+                pageSize={pageSize}
+                irPagina={irPagina}
+                toggling={toggling}
+                onVer={abrirDetalle}
+                onEditar={onEditar}
+                onToggle={togglePublicacion}
+                onDescargar={handleDescargar}
+                onEliminar={eliminarProducto}
+            />
+
+            <ProductoDetalleModal
+                producto={productoDetalle}
+                toggling={toggling}
+                onClose={cerrarDetalle}
+                onToggle={toggleFromDetalle}
+                onEliminar={eliminarFromDetalle}
+                onEditar={onEditar}
+                onDescargar={handleDescargar}
+            />
         </div>
     );
 };

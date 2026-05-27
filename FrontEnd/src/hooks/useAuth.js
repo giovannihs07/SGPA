@@ -20,10 +20,14 @@ export const useAuth = () => {
     const handlerLogin = async ({ email, password }) => {
         try {
             const response = await loginUser({ email, password });
-            const token = response.data.token;
+            const { token, userId, personaId, email: respEmail, roles: respRoles } = response.data;
             const claims = JSON.parse(window.atob(token.split('.')[1]));
-            const user = { email: claims.sub };
-            const roles = claims.roles || [];
+            const user = {
+                email: respEmail ?? claims.sub,
+                id: userId,
+                personaId: personaId ?? null,
+            };
+            const roles = respRoles ?? claims.roles ?? [];
             const isAdmin      = roles.includes("ROLE_ADMIN");
             const isSuperAdmin = roles.includes("ROLE_SUPER_ADMIN");
             const isDocente    = roles.includes("ROLE_DOCENTE");

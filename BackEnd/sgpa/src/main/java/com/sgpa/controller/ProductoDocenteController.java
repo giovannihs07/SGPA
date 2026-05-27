@@ -43,6 +43,7 @@ public class ProductoDocenteController {
     private final ProductoDocenteService service;
     private final FileStorageService fileStorageService;
 
+    // Crear un nuevo producto docente con opción de subir un archivo
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ProductoDocenteResponse> crear(
             @RequestPart("datos") @Valid ProductoDocenteRequest dto,
@@ -51,12 +52,34 @@ public class ProductoDocenteController {
                 .body(service.crear(dto, archivo));
     }
 
+    // Productos del docente autenticado (JWT)
+    @GetMapping("/mis")
+    public ResponseEntity<List<ProductoDocenteResponse>> misProductos() {
+        return ResponseEntity.ok(service.buscarMisProductos());
+    }
+
+    @GetMapping("/mis/{id}")
+    public ResponseEntity<ProductoDocenteResponse> buscarMiProducto(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(service.buscarMiProductoPorId(id));
+    }
+
+    @PutMapping(value = "/mis/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ProductoDocenteResponse> actualizarMiProducto(
+            @PathVariable Long id,
+            @RequestPart("datos") @Valid ProductoDocenteRequest dto,
+            @RequestPart(value = "archivo", required = false) MultipartFile archivo) {
+        return ResponseEntity.ok(service.actualizarMiProducto(id, dto, archivo));
+    }
+
+    // Obtener un producto docente por ID del producto
     @GetMapping("/{id}")
     public ResponseEntity<ProductoDocenteResponse> buscarPorId(
             @PathVariable Long id) {
         return ResponseEntity.ok(service.buscarPorId(id));
     }
 
+    // Obtener todos los productos docentes con filtros opcionales
     @GetMapping
     public ResponseEntity<?> buscarTodos(
             @RequestParam(required = false) String tipo,
@@ -64,21 +87,23 @@ public class ProductoDocenteController {
             @RequestParam(required = false) Boolean publicado,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size) {
-        if (tipo != null)
+        if (tipo != null) // Buscar por tipo de producto (categoría, subcategoría o tipo específico)
             return ResponseEntity.ok(service.buscarPorTipo(tipo));
-        if (docenteId != null && page != null) {
+        if (docenteId != null && page != null) { // Buscar por ID de docente con paginación
             Pageable pageable = PageRequest.of(page, size != null ? size : 10);
             return ResponseEntity.ok(
                     service.buscarPorDocentePaginado(docenteId, pageable));
         }
-        if (docenteId != null)
+        if (docenteId != null) // Buscar publicados por ID de docente
             return ResponseEntity.ok(service.buscarPorDocente(docenteId));
         if (Boolean.TRUE.equals(publicado))
             return ResponseEntity.ok(service.buscarPublicados());
 
-        return ResponseEntity.ok(service.buscarTodos());
+        // Buscar todos sin filtros (no recomendado para grandes volúmenes de datos)
+        return ResponseEntity.ok(service.buscarTodos()); 
     }
 
+    // Actualizar un producto docente por ID del producto
     @PutMapping("/{id}")
     public ResponseEntity<ProductoDocenteResponse> actualizar(
             @PathVariable Long id,
@@ -86,24 +111,28 @@ public class ProductoDocenteController {
         return ResponseEntity.ok(service.actualizar(id, dto));
     }
 
+    // Publicar un producto docente por ID del producto
     @PatchMapping("/{id}/publicar")
     public ResponseEntity<ProductoDocenteResponse> publicar(
             @PathVariable Long id) {
         return ResponseEntity.ok(service.publicar(id));
     }
 
+    // Despublicar un producto docente por ID del producto
     @PatchMapping("/{id}/despublicar")
     public ResponseEntity<ProductoDocenteResponse> despublicar(
             @PathVariable Long id) {
         return ResponseEntity.ok(service.despublicar(id));
     }
 
+    // Eliminar un producto docente por ID del producto
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         service.eliminar(id);
         return ResponseEntity.noContent().build();
     }
 
+    // Descargar el archivo asociado a un producto docente por ID del producto
     @GetMapping("/{id}/archivo")
     public ResponseEntity<Resource> descargarArchivo(@PathVariable Long id) {
         ProductoDocenteResponse dto = service.buscarPorId(id);
@@ -121,6 +150,7 @@ public class ProductoDocenteController {
                 .body(archivo);
     }
 
+    // Listar las categorías, subcategorías y tipos de productos disponibles
     @GetMapping("/tipos")
     public ResponseEntity<Map<String, Map<String, List<String>>>> listarTipos() {
         Map<String, Map<String, List<String>>> tipos = Arrays.stream(TipoProducto.values())

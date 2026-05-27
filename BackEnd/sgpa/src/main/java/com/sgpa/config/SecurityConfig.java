@@ -15,9 +15,10 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.web.cors.CorsConfigurationSource;
 
-import com.sgpa.repository.UserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sgpa.security.auth.filters.JwtAuthenticationFilter;
 import com.sgpa.security.auth.filters.JwtValidationFilter;
+import com.sgpa.service.AuthService;
 
 @Configuration
 public class SecurityConfig {
@@ -32,7 +33,12 @@ public class SecurityConfig {
     private CorsConfigurationSource corsConfigurationSource;
 
     @Autowired
-    private UserRepository userRepository;
+    private AuthService authService;
+
+    @Bean
+    ObjectMapper objectMapper() {
+        return new ObjectMapper();
+    }
 
     @Bean
     PasswordEncoder passwordEncoder() {
@@ -45,7 +51,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain filterChain(HttpSecurity http, ObjectMapper objectMapper) throws Exception {
 
         AuthenticationManager authManager = authenticationManager();
 
@@ -92,7 +98,7 @@ public class SecurityConfig {
                     "/webjars/**"
                 ).permitAll()
             )
-            .addFilter(new JwtAuthenticationFilter(authManager, userRepository))
+            .addFilter(new JwtAuthenticationFilter(authManager, authService, objectMapper))
             .addFilter(new JwtValidationFilter(authManager, userDetailsService))
             // .exceptionHandling(ex -> ex
             //     .authenticationEntryPoint((request, response, authException) -> {

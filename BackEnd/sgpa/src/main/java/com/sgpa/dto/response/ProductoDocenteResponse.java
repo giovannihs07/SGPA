@@ -25,6 +25,7 @@ public class ProductoDocenteResponse {
     private Boolean publicado;
     private String nombreArchivo;
     private String nombreArchivoOriginal;
+    private String extensionArchivo;
     private LocalDate fechaCreacion;
     private LocalDate fechaPublicacion;
     private Map<String, Object> atributos;

@@ -17,6 +17,9 @@ public interface ProductoDocenteService {
     List<ProductoDocenteResponse> buscarTodos();
     List<ProductoDocenteResponse> buscarPorTipo(String tipo);
     List<ProductoDocenteResponse> buscarPorDocente(Long docenteId);
+    List<ProductoDocenteResponse> buscarMisProductos();
+    ProductoDocenteResponse buscarMiProductoPorId(Long id);
+    ProductoDocenteResponse actualizarMiProducto(Long id, ProductoDocenteRequest dto, MultipartFile archivo);
     List<ProductoDocenteResponse> buscarPublicados();
     Page<ProductoDocenteResponse> buscarPorDocentePaginado(Long docenteId, Pageable pageable);
     ProductoDocenteResponse actualizar(Long id, ProductoDocenteRequest dto);
