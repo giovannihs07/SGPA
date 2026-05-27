@@ -12,6 +12,7 @@ public interface UserService {
     List<UserResumenResponse> listarTodos();
     UserResumenResponse buscarPorId(Long id);
     void activar(Long userId);
+    void aprobar(Long userId, Set<String> roles);
     void desactivar(Long userId);
     void rechazar(Long userId);
     void cambiarRoles(Long userId, Set<String> nuevosRoles);

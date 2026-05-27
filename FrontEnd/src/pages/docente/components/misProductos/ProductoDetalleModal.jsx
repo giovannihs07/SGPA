@@ -38,6 +38,7 @@ export const ProductoDetalleModal = ({
     onEliminar,
     onEditar,
     onDescargar,
+    permitirEditar = true,
 }) => {
     useEffect(() => {
         if (!producto) return;
@@ -54,7 +55,7 @@ export const ProductoDetalleModal = ({
 
     if (!producto) return null;
 
-    const editable   = puedeEditarProducto(producto);
+    const editable   = permitirEditar && puedeEditarProducto(producto);
     const eliminable = puedeEliminarProducto(producto);
     const atributos  = Object.entries(producto.atributos ?? {});
     const togglingEste = toggling === producto.id;
@@ -109,7 +110,7 @@ export const ProductoDetalleModal = ({
                 {/* Body */}
                 <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
 
-                    {!editable && (
+                    {!editable && permitirEditar && (
                         <div className="flex items-start gap-2.5 p-3 rounded-xl
                             bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
                             <Info size={16} className="text-blue-600 shrink-0 mt-0.5" />
@@ -211,6 +212,7 @@ export const ProductoDetalleModal = ({
                         </div>
                     )}
 
+                    {permitirEditar && (
                     <div className="text-center pt-1 pb-2 space-y-1">
                         {editable ? (
                             <button
@@ -236,6 +238,7 @@ export const ProductoDetalleModal = ({
                             </p>
                         )}
                     </div>
+                    )}
                 </div>
 
                 {/* Footer acciones */}

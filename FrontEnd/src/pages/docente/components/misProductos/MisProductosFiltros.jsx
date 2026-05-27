@@ -8,6 +8,7 @@ export const MisProductosFiltros = ({
     filtroCategoria, handleFiltroCategoria,
     filtroTipo, setFiltroTipo,
     categoriasDisponibles, tiposDisponibles,
+    ocultarFiltroEstado = false,
 }) => (
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100
         dark:border-gray-700 p-4 flex flex-wrap items-center gap-3">
@@ -31,11 +32,13 @@ export const MisProductosFiltros = ({
         <div className="flex items-center gap-2 flex-wrap">
             <Filter size={13} className="text-gray-400 shrink-0" />
 
-            <SelectFilter value={filtroEstado} onChange={setFiltroEstado}>
-                <option value="TODOS">Todos los estados</option>
-                <option value="PUBLICADO">Publicado</option>
-                <option value="SIN_PUBLICAR">Sin publicar</option>
-            </SelectFilter>
+            {!ocultarFiltroEstado && (
+                <SelectFilter value={filtroEstado} onChange={setFiltroEstado}>
+                    <option value="TODOS">Todos los estados</option>
+                    <option value="PUBLICADO">Publicado</option>
+                    <option value="SIN_PUBLICAR">Sin publicar</option>
+                </SelectFilter>
+            )}
 
             <SelectFilter value={filtroCategoria} onChange={handleFiltroCategoria}>
                 {categoriasDisponibles.map((c) => (

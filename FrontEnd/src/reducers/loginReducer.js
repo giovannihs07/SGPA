@@ -13,6 +13,7 @@ export const loginReducer = (state = {}, action) => {
             return {
                 isAuth: false,
                 isAdmin: false,
+                isSuperAdmin: false,
                 isDocente: false,
                 user: undefined,
             };

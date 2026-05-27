@@ -4,10 +4,13 @@ import { EstadoBadge } from "./EstadoBadge";
 import { ArchivoBadge } from "./ArchivoBadge";
 import { ProductosPaginacion } from "./ProductosPaginacion";
 
-const COLUMNAS = ["Nombre", "Tipo", "Categoría", "Estado", "Fecha", "Archivo", "Acciones"];
+const COLUMNAS_BASE = ["Nombre", "Tipo", "Categoría", "Estado", "Fecha", "Archivo", "Acciones"];
 
 // Componente para las acciones de la fila de la tabla de productos
-const AccionesFila = ({ producto, toggling, onVer, onEditar, onToggle, onDescargar, onEliminar }) => {
+const AccionesFila = ({
+    producto, toggling, onVer, onEditar, onToggle, onDescargar, onEliminar,
+    mostrarEditar = true,
+}) => {
     const editBloqueado = !puedeEditarProducto(producto);
     const elimBloqueado = !puedeEliminarProducto(producto);
 
@@ -22,6 +25,7 @@ const AccionesFila = ({ producto, toggling, onVer, onEditar, onToggle, onDescarg
             <Eye size={14} />
         </button>
 
+        {mostrarEditar && (
         <button
             onClick={() => onEditar(producto)}
             title={editBloqueado ? MENSAJE_EDICION_BLOQUEADA : "Editar"}
@@ -33,6 +37,7 @@ const AccionesFila = ({ producto, toggling, onVer, onEditar, onToggle, onDescarg
         >
             <Pencil size={14} />
         </button>
+        )}
         <button
             onClick={() => onToggle(producto)}
             disabled={toggling === producto.id}
@@ -84,7 +89,14 @@ export const ProductosTabla = ({
     productos, productosFiltrados,
     pagina, totalPaginas, pageSize, irPagina,
     toggling, onVer, onEditar, onToggle, onDescargar, onEliminar,
-}) => (
+    mostrarEditar = true,
+    mostrarDocente = false,
+}) => {
+    const columnas = mostrarDocente
+        ? ["Nombre", "Docente", "Tipo", "Categoría", "Estado", "Fecha", "Archivo", "Acciones"]
+        : COLUMNAS_BASE;
+
+    return (
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100
         dark:border-gray-700 overflow-hidden">
 
@@ -105,7 +117,7 @@ export const ProductosTabla = ({
                         <thead>
                             <tr className="border-b border-gray-100 dark:border-gray-700
                                 bg-linear-to-r from-[#ffc20e]/5 to-transparent dark:from-[#ffc20e]/10">
-                                {COLUMNAS.map((h) => (
+                                {columnas.map((h) => (
                                     <th key={h}
                                         className="px-4 py-3 text-left text-[10px] font-bold
                                             uppercase tracking-widest text-gray-400 dark:text-gray-500 whitespace-nowrap">
@@ -134,6 +146,11 @@ export const ProductosTabla = ({
                                             </div>
                                         </div>
                                     </td>
+                                    {mostrarDocente && (
+                                        <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
+                                            #{p.docenteId ?? "—"}
+                                        </td>
+                                    )}
                                     <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400 max-w-37.5">
                                         <span className="line-clamp-2">{TIPO_LABELS[p.tipo] ?? p.tipo ?? "—"}</span>
                                     </td>
@@ -158,6 +175,7 @@ export const ProductosTabla = ({
                                             onToggle={onToggle}
                                             onDescargar={onDescargar}
                                             onEliminar={onEliminar}
+                                            mostrarEditar={mostrarEditar}
                                         />
                                     </td>
                                 </tr>
@@ -176,4 +194,5 @@ export const ProductosTabla = ({
             </>
         )}
     </div>
-);
+    );
+};

@@ -37,6 +37,24 @@ export const crearProducto = async (datos, archivo = null) => {
 };
 
 /**
+ * GET /api/productos  (listado global — admin/superadmin)
+ */
+export const getAllProductos = async (params = {}) => {
+    const { data } = await axiosInstance.get("/api/productos", { params });
+    return data;
+};
+
+/**
+ * GET /api/productos?publicado=true  (solo productos publicados por docentes)
+ */
+export const getProductosPublicados = async () => {
+    const { data } = await axiosInstance.get("/api/productos", {
+        params: { publicado: true },
+    });
+    return data;
+};
+
+/**
  * GET /api/productos/mis  (docente autenticado vía JWT)
  */
 export const getMisProductos = async () => {

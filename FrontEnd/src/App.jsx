@@ -16,6 +16,14 @@ import { EditarProductoPage }    from "./pages/docente/EditarProductoPage";
 import { BuscarDocentePage }     from "./pages/docente/BuscarDocentePage";
 import { ReportesDocentePage }   from "./pages/docente/ReportesDocentePage";
  
+// Páginas de super admin
+import { DashboardSuperAdminPage }    from "./pages/superAdmin/DashboardSuperAdminPage";
+import { SuperAdminUsuariosPage }     from "./pages/superAdmin/SuperAdminUsuariosPage";
+import { SuperAdminAprobacionesPage } from "./pages/superAdmin/SuperAdminAprobacionesPage";
+import { SuperAdminProductosPage }    from "./pages/superAdmin/SuperAdminProductosPage";
+import { SuperAdminReportesPage }     from "./pages/superAdmin/SuperAdminReportesPage";
+import { SuperAdminConfiguracionPage } from "./pages/superAdmin/SuperAdminConfiguracionPage";
+ 
 // Páginas de admin
 import { DashboardAdminPage } from "./pages/admin/DashboardAdminPage";
  
@@ -76,12 +84,12 @@ export default function App() {
                         {/* SuperAdmin */}
                         <Route element={<ProtectedRoute onlySuperAdmin />}>
                             <Route element={<DashboardLayout />}>
-                                <Route path="/dashboard/superadmin"                  element={<div>Dashboard SuperAdmin</div>} />
-                                <Route path="/dashboard/superadmin/usuarios"         element={<div>Usuarios</div>} />
-                                <Route path="/dashboard/superadmin/productos"        element={<div>Todos los productos</div>} />
-                                <Route path="/dashboard/superadmin/aprobaciones"     element={<div>Aprobaciones</div>} />
-                                <Route path="/dashboard/superadmin/reportes"         element={<div>Reportes</div>} />
-                                <Route path="/dashboard/superadmin/configuracion"    element={<div>Configuración</div>} />
+                                <Route path="/dashboard/superadmin"               element={<DashboardSuperAdminPage />} />
+                                <Route path="/dashboard/superadmin/usuarios"      element={<SuperAdminUsuariosPage />} />
+                                <Route path="/dashboard/superadmin/productos"     element={<SuperAdminProductosPage />} />
+                                <Route path="/dashboard/superadmin/aprobaciones"  element={<SuperAdminAprobacionesPage />} />
+                                <Route path="/dashboard/superadmin/reportes"     element={<SuperAdminReportesPage />} />
+                                <Route path="/dashboard/superadmin/configuracion" element={<SuperAdminConfiguracionPage />} />
                             </Route>
                         </Route>
  

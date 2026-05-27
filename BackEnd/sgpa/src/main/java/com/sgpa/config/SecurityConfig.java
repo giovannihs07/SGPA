@@ -60,6 +60,7 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(HttpMethod.PATCH, "/usuarios/{id}/activar").permitAll()
                 .requestMatchers(HttpMethod.PATCH, "/usuarios/{id}/desactivar").permitAll()
                 .requestMatchers(HttpMethod.POST, "/usuarios").permitAll()

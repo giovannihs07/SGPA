@@ -53,17 +53,17 @@ export const NAV_ITEMS = {
         {
             section: "Principal",
             items: [
-                { label: "Dashboard",      icon: LayoutDashboard, path: "/dashboard/admin" },
-                { label: "Usuarios",       icon: Users,           path: "/dashboard/admin/usuarios" },
-                { label: "Todos los productos", icon: BookOpen,   path: "/dashboard/admin/productos" },
+                { label: "Dashboard",           icon: LayoutDashboard, path: "/dashboard/superadmin" },
+                { label: "Usuarios",            icon: Users,           path: "/dashboard/superadmin/usuarios" },
+                { label: "Todos los productos", icon: BookOpen,        path: "/dashboard/superadmin/productos" },
             ],
         },
         {
             section: "Gestión",
             items: [
-                { label: "Aprobar / rechazar", icon: CheckSquare, path: "/dashboard/admin/aprobaciones" },
-                { label: "Reportes",           icon: BarChart2,   path: "/dashboard/admin/reportes" },
-                { label: "Configuración",      icon: Settings,    path: "/dashboard/admin/configuracion" },
+                { label: "Aprobar / rechazar", icon: CheckSquare, path: "/dashboard/superadmin/aprobaciones" },
+                { label: "Reportes",           icon: BarChart2,   path: "/dashboard/superadmin/reportes" },
+                { label: "Configuración",      icon: Settings,    path: "/dashboard/superadmin/configuracion" },
             ],
         },
     ],

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sgpa.dto.request.ActualizarEmailRequest;
+import com.sgpa.dto.request.AprobarUsuarioRequest;
 import com.sgpa.dto.request.CambiarPasswordRequest;
 import com.sgpa.dto.request.CambiarRolesRequest;
 import com.sgpa.dto.response.UserDetalleResponse;
@@ -74,7 +75,16 @@ public class UserController {
         return ResponseEntity.ok(userService.listarPorEstado(EstadoUsuario.PENDIENTE));
     }
 
-    // Activar usuario (aprobar registro)
+    // Aprobar registro asignando roles
+    @PatchMapping("/{userId}/aprobar")
+    public ResponseEntity<Void> aprobar(
+            @PathVariable Long userId,
+            @RequestBody @Valid AprobarUsuarioRequest dto) {
+        userService.aprobar(userId, dto.getRoles());
+        return ResponseEntity.noContent().build();
+    }
+
+    // Activar usuario (reactivar sin cambiar roles)
     @PatchMapping("/{userId}/activar")
     public ResponseEntity<Void> activar(@PathVariable Long userId) {
         userService.activar(userId);

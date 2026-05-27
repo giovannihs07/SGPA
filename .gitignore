@@ -1,0 +1,3 @@
+# Archivos subidos por docentes (almacenamiento local, no versionar)
+uploads/productos/*
+!uploads/productos/.gitkeep

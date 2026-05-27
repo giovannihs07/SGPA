@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.sgpa.dto.request.ActualizarEmailRequest;
 import com.sgpa.dto.response.UserDetalleResponse;
 import com.sgpa.dto.response.UserResumenResponse;
+import com.sgpa.exception.UsuarioNoPendienteException;
 import com.sgpa.mapper.UserDetalleMapper;
 import com.sgpa.mapper.UserMapper;
 import com.sgpa.model.users.EstadoUsuario;
@@ -54,15 +55,27 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    public void aprobar(Long userId, Set<String> roles) {
+        User user = buscarEntidad(userId);
+        verificarPendiente(user, "aprobar");
+        asignarRoles(user, roles);
+        user.setEstado(EstadoUsuario.ACTIVO);
+        userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
     public void desactivar(Long userId) {
         User user = buscarEntidad(userId);
         user.setEstado(EstadoUsuario.INACTIVO);
         userRepository.save(user);
     }
 
+    @Override
     @Transactional
     public void rechazar(Long userId) {
         User user = buscarEntidad(userId);
+        verificarPendiente(user, "rechazar");
         user.setEstado(EstadoUsuario.RECHAZADO);
         userRepository.save(user);
     }
@@ -75,15 +88,23 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void cambiarRoles(Long userId, Set<String> nuevosRoles) {
         User user = buscarEntidad(userId);
+        asignarRoles(user, nuevosRoles);
+        userRepository.save(user);
+    }
 
+    private void verificarPendiente(User user, String accion) {
+        if (user.getEstado() != EstadoUsuario.PENDIENTE) {
+            throw new UsuarioNoPendienteException(accion);
+        }
+    }
+
+    private void asignarRoles(User user, Set<String> nuevosRoles) {
         Set<Role> roles = nuevosRoles.stream()
                 .map(nombre -> roleRepository.findByName(RoleName.valueOf(nombre))
                         .orElseThrow(() -> new RuntimeException(
                                 "Rol no encontrado: " + nombre)))
                 .collect(Collectors.toSet());
-
         user.setRoles(roles);
-        userRepository.save(user);
     }
 
     @Override

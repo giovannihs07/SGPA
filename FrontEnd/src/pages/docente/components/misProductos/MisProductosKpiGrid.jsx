@@ -13,11 +13,20 @@ const KpiCard = ({ label, value, icon: Icon, accent }) => (
     </div>
 );
 
-export const MisProductosKpiGrid = ({ resumen }) => (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <KpiCard label="Total productos"  value={resumen.total}         icon={BookOpen}  accent="bg-[#ffc20e]/15 text-[#EC7A21]" />
-        <KpiCard label="Publicados"       value={resumen.publicados}    icon={Globe}     accent="bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400" />
-        <KpiCard label="Sin publicar"     value={resumen.sinPublicar}   icon={FileCheck} accent="bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400" />
-        <KpiCard label="Nuevos (30 días)" value={resumen.ultimos30Dias} icon={Clock}     accent="bg-orange-50 text-[#EC7A21] dark:bg-orange-900/20 dark:text-[#EFB357]" />
+export const MisProductosKpiGrid = ({ resumen, soloPublicados = false }) => (
+    <div className={`grid gap-3 ${soloPublicados ? "grid-cols-2" : "grid-cols-2 lg:grid-cols-4"}`}>
+        {soloPublicados ? (
+            <>
+                <KpiCard label="Productos publicados" value={resumen.total} icon={Globe} accent="bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400" />
+                <KpiCard label="Nuevos (30 días)" value={resumen.ultimos30Dias} icon={Clock} accent="bg-orange-50 text-[#EC7A21] dark:bg-orange-900/20 dark:text-[#EFB357]" />
+            </>
+        ) : (
+            <>
+                <KpiCard label="Total productos"  value={resumen.total}         icon={BookOpen}  accent="bg-[#ffc20e]/15 text-[#EC7A21]" />
+                <KpiCard label="Publicados"       value={resumen.publicados}    icon={Globe}     accent="bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400" />
+                <KpiCard label="Sin publicar"     value={resumen.sinPublicar}   icon={FileCheck} accent="bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400" />
+                <KpiCard label="Nuevos (30 días)" value={resumen.ultimos30Dias} icon={Clock}     accent="bg-orange-50 text-[#EC7A21] dark:bg-orange-900/20 dark:text-[#EFB357]" />
+            </>
+        )}
     </div>
 );

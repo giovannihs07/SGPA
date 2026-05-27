@@ -9,7 +9,16 @@ import { loginUser } from "../services/authService";
 const init = () => JSON.parse(sessionStorage.getItem('login')) || {
     isAuth: false,
     isAdmin: false,
+    isSuperAdmin: false,
+    isDocente: false,
     user: undefined,
+};
+
+const dashboardPath = ({ isSuperAdmin, isAdmin, isDocente }) => {
+    if (isSuperAdmin) return "/dashboard/superadmin";
+    if (isAdmin)      return "/dashboard/admin";
+    if (isDocente)    return "/dashboard/docente";
+    return "/dashboard/public";
 };
 
 // Manejo de autenticación utilizando un reducer para gestionar el estado de login/logout.
@@ -45,7 +54,7 @@ export const useAuth = () => {
             }));
             sessionStorage.setItem('token', `Bearer ${token}`);
 
-            navigate(isAdmin ? '/dashboard/admin' : '/dashboard/docente');
+            navigate(dashboardPath({ isSuperAdmin, isAdmin, isDocente }));
 
         } catch (error) {
             if (error.response?.status === 401) {

@@ -22,6 +22,7 @@ const PAGE_TITLES = {
 
     "/dashboard/superadmin":                "Dashboard",
     "/dashboard/superadmin/usuarios":       "Usuarios",
+    "/dashboard/superadmin/productos":    "Todos los productos",
     "/dashboard/superadmin/aprobaciones":   "Aprobar / rechazar",
     "/dashboard/superadmin/reportes":       "Reportes",
     "/dashboard/superadmin/configuracion":  "Configuración",
