@@ -10,6 +10,8 @@ import com.sgpa.dto.response.FacultadResponse;
 import com.sgpa.mapper.FacultadMapper;
 import com.sgpa.model.Facultad;
 import com.sgpa.model.Institucion;
+import com.sgpa.model.audit.ModuloAuditoria;
+import com.sgpa.model.audit.ResultadoAuditoria;
 import com.sgpa.repository.FacultadRepository;
 import com.sgpa.repository.InstitucionRepository;
 
@@ -22,6 +24,7 @@ public class FacultadServiceImpl implements FacultadService {
     private final FacultadRepository facultadRepository;
     private final InstitucionRepository institucionRepository;
     private final FacultadMapper mapper;
+    private final AuditService auditService;
 
     @Override
     @Transactional
@@ -48,7 +51,12 @@ public class FacultadServiceImpl implements FacultadService {
         facultad.setCodigo(dto.getCodigo());
         facultad.setInstitucion(institucion);
 
-        return mapper.toDTO(facultadRepository.save(facultad));
+        Facultad guardada = facultadRepository.save(facultad);
+        auditService.registrar(ModuloAuditoria.CONFIGURACION, "CREAR_FACULTAD",
+                "Creó la facultad \"" + guardada.getNombre() + "\"",
+                "Facultad", guardada.getId(), guardada.getNombre(), null,
+                ResultadoAuditoria.EXITOSO);
+        return mapper.toDTO(guardada);
     }
 
     @Override
@@ -96,16 +104,24 @@ public class FacultadServiceImpl implements FacultadService {
         facultad.setCodigo(dto.getCodigo());
         facultad.setInstitucion(institucion);
 
-        return mapper.toDTO(facultadRepository.save(facultad));
+        Facultad guardada = facultadRepository.save(facultad);
+        auditService.registrar(ModuloAuditoria.CONFIGURACION, "EDITAR_FACULTAD",
+                "Editó la facultad \"" + guardada.getNombre() + "\"",
+                "Facultad", guardada.getId(), guardada.getNombre(), null,
+                ResultadoAuditoria.EXITOSO);
+        return mapper.toDTO(guardada);
     }
 
     @Override
     @Transactional
     public void eliminar(Long id) {
-        if (!facultadRepository.existsById(id))
-            throw new RuntimeException(
-                "Facultad no encontrada con id: " + id);
+        Facultad facultad = buscarEntidad(id);
+        String nombre = facultad.getNombre();
         facultadRepository.deleteById(id);
+        auditService.registrar(ModuloAuditoria.CONFIGURACION, "ELIMINAR_FACULTAD",
+                "Eliminó la facultad \"" + nombre + "\"",
+                "Facultad", id, nombre, null,
+                ResultadoAuditoria.CRITICO);
     }
 
     private Facultad buscarEntidad(Long id) {

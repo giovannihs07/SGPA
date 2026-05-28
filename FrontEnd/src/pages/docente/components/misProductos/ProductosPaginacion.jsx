@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { tablePaginationBar, text } from "../../../../components/ui/themeTokens";
 
 export const ProductosPaginacion = ({ pagina, totalPaginas, totalItems, pageSize, irPagina }) => {
     if (totalItems === 0) return null;
@@ -7,11 +8,10 @@ export const ProductosPaginacion = ({ pagina, totalPaginas, totalItems, pageSize
     const fin    = Math.min((pagina + 1) * pageSize, totalItems);
 
     return (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3
-            px-4 py-3 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
-            <p className="text-xs text-gray-400">
-                Mostrando <span className="font-semibold text-gray-600 dark:text-gray-300">{inicio}–{fin}</span>
-                {" "}de <span className="font-semibold text-gray-600 dark:text-gray-300">{totalItems}</span>
+        <div className={`flex flex-col sm:flex-row items-center justify-between gap-3 ${tablePaginationBar}`}>
+            <p className={`text-xs ${text.muted}`}>
+                Mostrando <span className={`font-semibold ${text.secondary}`}>{inicio}–{fin}</span>
+                {" "}de <span className={`font-semibold ${text.secondary}`}>{totalItems}</span>
             </p>
             <div className="flex items-center gap-1">
                 <button

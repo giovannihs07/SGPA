@@ -1,5 +1,12 @@
 import Swal from "sweetalert2";
 
+/** Evita alertas duplicadas cuando el interceptor ya manejó la sesión expirada */
+let suppressNotifications = false;
+
+export const setSuppressNotifications = (value) => {
+    suppressNotifications = value;
+};
+
 /** Configuración base compartida por todas las alertas.
     Ajuste de colores.
  */
@@ -39,14 +46,16 @@ export const notifyInfo = (title, text) =>
     });
 
 /** Alerta de error */
-export const notifyError = (title, text) =>
-    Swal.fire({
+export const notifyError = (title, text) => {
+    if (suppressNotifications) return Promise.resolve();
+    return Swal.fire({
         ...BASE,
         icon:  "error",
         title,
         text,
         confirmButtonText: "Entendido",
     });
+};
 
 /**
  * Diálogo de confirmación. Devuelve true si el usuario confirmó.

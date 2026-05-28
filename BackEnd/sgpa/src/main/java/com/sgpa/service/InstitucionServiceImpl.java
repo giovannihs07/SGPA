@@ -9,6 +9,8 @@ import com.sgpa.dto.request.InstitucionRequest;
 import com.sgpa.dto.response.InstitucionResponse;
 import com.sgpa.mapper.InstitucionMapper;
 import com.sgpa.model.Institucion;
+import com.sgpa.model.audit.ModuloAuditoria;
+import com.sgpa.model.audit.ResultadoAuditoria;
 import com.sgpa.repository.InstitucionRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ public class InstitucionServiceImpl implements InstitucionService {
 
     private final InstitucionRepository repository;
     private final InstitucionMapper mapper;
+    private final AuditService auditService;
 
     @Override
     @Transactional
@@ -31,7 +34,12 @@ public class InstitucionServiceImpl implements InstitucionService {
             throw new IllegalStateException(
                 "Ya existe una institución con nombre: " + dto.getNombre());
 
-        return mapper.toDTO(repository.save(mapper.toEntity(dto)));
+        Institucion guardada = repository.save(mapper.toEntity(dto));
+        auditService.registrar(ModuloAuditoria.CONFIGURACION, "CREAR_INSTITUCION",
+                "Creó la institución \"" + guardada.getNombre() + "\"",
+                "Institucion", guardada.getId(), guardada.getNombre(), null,
+                ResultadoAuditoria.EXITOSO);
+        return mapper.toDTO(guardada);
     }
 
     @Override
@@ -60,16 +68,24 @@ public class InstitucionServiceImpl implements InstitucionService {
         institucion.setCiudad(dto.getCiudad());
         institucion.setPais(dto.getPais());
 
-        return mapper.toDTO(repository.save(institucion));
+        Institucion guardada = repository.save(institucion);
+        auditService.registrar(ModuloAuditoria.CONFIGURACION, "EDITAR_INSTITUCION",
+                "Editó la institución \"" + guardada.getNombre() + "\"",
+                "Institucion", guardada.getId(), guardada.getNombre(), null,
+                ResultadoAuditoria.EXITOSO);
+        return mapper.toDTO(guardada);
     }
 
     @Override
     @Transactional
     public void eliminar(Long id) {
-        if (!repository.existsById(id))
-            throw new RuntimeException(
-                "Institución no encontrada con id: " + id);
+        Institucion institucion = buscarEntidad(id);
+        String nombre = institucion.getNombre();
         repository.deleteById(id);
+        auditService.registrar(ModuloAuditoria.CONFIGURACION, "ELIMINAR_INSTITUCION",
+                "Eliminó la institución \"" + nombre + "\"",
+                "Institucion", id, nombre, null,
+                ResultadoAuditoria.CRITICO);
     }
 
     private Institucion buscarEntidad(Long id) {

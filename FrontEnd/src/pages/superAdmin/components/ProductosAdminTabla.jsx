@@ -1,50 +1,49 @@
 import { RefreshCw, Search } from "lucide-react";
 import { Globe, GlobeLock, Trash2 } from "lucide-react";
+import {
+    tableWrapper, tableHeadRow, tableHeadCell, tableBody, tableRow,
+    tableCellPrimary, tableCellSecondary, tableCellMuted,
+    inputSm, selectSm, inputIcon, btnIcon,
+} from "../../../components/ui/themeTokens";
 import { TIPO_LABELS, CATEGORIA_LABELS, formatFecha } from "../../docente/components/productoHelpers";
 import { EstadoBadge } from "../../docente/components/misProductos/EstadoBadge";
 
 export const ProductosAdminTabla = ({
     productos, toggling, onToggle, onEliminar,
 }) => (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100
-        dark:border-gray-700 overflow-hidden">
+    <div className={tableWrapper}>
         <div className="overflow-x-auto">
             <table className="w-full text-sm">
                 <thead>
-                    <tr className="border-b border-gray-100 dark:border-gray-700
-                        bg-linear-to-r from-[#ffc20e]/5 to-transparent">
+                    <tr className={tableHeadRow}>
                         {["Producto", "Tipo", "Categoría", "Estado", "Fecha", "Acciones"].map((h) => (
-                            <th key={h}
-                                className="px-4 py-3 text-left text-[10px] font-bold uppercase
-                                    tracking-widest text-gray-400 whitespace-nowrap">
-                                {h}
-                            </th>
+                            <th key={h} className={tableHeadCell}>{h}</th>
                         ))}
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50 dark:divide-gray-700/50">
+                <tbody className={tableBody}>
                     {productos.map((p) => (
-                        <tr key={p.id} className="hover:bg-[#ffc20e]/5 transition group">
+                        <tr key={p.id} className={`${tableRow} group`}>
                             <td className="px-4 py-3 max-w-55">
-                                <p className="font-medium text-gray-800 dark:text-gray-100 text-xs line-clamp-2">
+                                <p className={`${tableCellPrimary} line-clamp-2`}>
                                     {p.nombre}
                                 </p>
                                 {p.docenteId && (
-                                    <p className="text-[10px] text-gray-400 mt-0.5">
+                                    <p className={`${tableCellMuted} text-[10px] mt-0.5`}>
                                         Docente #{p.docenteId}
                                     </p>
                                 )}
                             </td>
-                            <td className="px-4 py-3 text-xs text-gray-600 max-w-37.5">
+                            <td className={`px-4 py-3 ${tableCellSecondary} max-w-37.5`}>
                                 <span className="line-clamp-2">{TIPO_LABELS[p.tipo] ?? p.tipo ?? "—"}</span>
                             </td>
-                            <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
+                            <td className={`px-4 py-3 ${tableCellMuted} whitespace-nowrap`}>
                                 {CATEGORIA_LABELS[p.categoria] ?? p.categoria ?? "—"}
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap">
                                 <EstadoBadge publicado={p.publicado} />
                             </td>
-                            <td className="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">
+                            <td className={`px-4 py-3 ${tableCellMuted} whitespace-nowrap`}>
                                 {formatFecha(p.fechaCreacion)}
                             </td>
                             <td className="px-4 py-3">
@@ -89,22 +88,21 @@ export const AdminFiltrosBar = ({
 }) => (
     <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search size={14} className={inputIcon} aria-hidden="true" />
             <input
-                type="text"
+                type="search"
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
                 placeholder={placeholder}
-                className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-gray-200
-                    dark:border-gray-700 bg-white dark:bg-gray-800
-                    focus:outline-none focus:ring-2 focus:ring-[#ffc20e]/40"
+                aria-label={placeholder}
+                className={`${inputSm} pl-9`}
             />
         </div>
         <select
             value={filtroEstado}
             onChange={(e) => setFiltroEstado(e.target.value)}
-            className="px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700
-                bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-[#ffc20e]/40"
+            aria-label="Filtrar por estado"
+            className={selectSm}
         >
             {estados.map(({ value, label }) => (
                 <option key={value} value={value}>{label}</option>
@@ -114,8 +112,9 @@ export const AdminFiltrosBar = ({
             <button
                 onClick={onRefresh}
                 title="Actualizar"
-                className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700
-                    text-gray-500 hover:text-[#EC7A21] hover:border-[#ffc20e]/40 transition"
+                aria-label="Actualizar listado"
+                className={`${btnIcon} px-3 py-2 border border-gray-300 dark:border-gray-600
+                    text-gray-600 dark:text-gray-400 hover:text-[#EC7A21] hover:border-[#ffc20e]/40`}
             >
                 <RefreshCw size={16} />
             </button>

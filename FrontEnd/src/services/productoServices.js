@@ -1,5 +1,6 @@
 
 import axiosInstance from "./axiosInstance";
+import { getApiErrorMessageAsync } from "../utils/apiError";
 
 /**
  * GET /api/productos/tipos
@@ -133,13 +134,37 @@ export const eliminarProducto = async (id) => {
  * Devuelve un blob para que el componente genere un link de descarga.
  */
 export const descargarArchivo = async (id, nombreOriginal) => {
-    const response = await axiosInstance.get(`/api/productos/${id}/archivo`, {
-        responseType: "blob",
-    });
-    const url = URL.createObjectURL(response.data);
-    const a   = document.createElement("a");
-    a.href    = url;
-    a.download = nombreOriginal;
+    let response;
+    try {
+        response = await axiosInstance.get(`/api/productos/${id}/archivo`, {
+            responseType: "blob",
+            skipAuth: true,
+        });
+    } catch (error) {
+        const message = await getApiErrorMessageAsync(
+            error,
+            "No se pudo descargar el archivo",
+        );
+        throw new Error(message);
+    }
+
+    const blob = response.data;
+
+    if (blob.type?.includes("application/json")) {
+        const message = await getApiErrorMessageAsync(
+            { response: { data: blob } },
+            "No se pudo descargar el archivo",
+        );
+        throw new Error(message);
+    }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = nombreOriginal || `producto-${id}`;
+    a.style.display = "none";
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
 };

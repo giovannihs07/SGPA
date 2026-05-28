@@ -4,6 +4,7 @@ import  { AuthContext } from "../../context/AuthContext";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { useSidebar } from "../../hooks/useSidebar";
+import { surface } from "../../components/ui/themeTokens";
 
 // Mapeo de rutas a títulos para el Header
 const PAGE_TITLES = {
@@ -25,6 +26,7 @@ const PAGE_TITLES = {
     "/dashboard/superadmin/productos":    "Todos los productos",
     "/dashboard/superadmin/aprobaciones":   "Aprobar / rechazar",
     "/dashboard/superadmin/reportes":       "Reportes",
+    "/dashboard/superadmin/auditoria":      "Logs de auditoría",
     "/dashboard/superadmin/configuracion":  "Configuración",
 
     "/dashboard/estudiante":           "Dashboard",
@@ -44,7 +46,7 @@ export const DashboardLayout = () => {
             : "Dashboard");
 
     return (
-        <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className={`flex min-h-screen ${surface.page}`}>
             <Sidebar
                 isCollapsed={isCollapsed}
                 onToggle={toggleSidebar}

@@ -1,4 +1,8 @@
 import { Shield, UserX, UserCheck, Ban } from "lucide-react";
+import {
+    tableWrapper, tableHeadRow, tableHeadCell, tableBody, tableRow,
+    tableCellPrimary, tableCellMuted, tableCellSubtext,
+} from "../../../components/ui/themeTokens";
 import { EstadoUsuarioBadge } from "./EstadoUsuarioBadge";
 import { RolesBadge } from "./RolesBadge";
 import { nombreCompleto, normalizarRoles } from "../superAdminHelpers";
@@ -7,29 +11,24 @@ import { nombreCompleto, normalizarRoles } from "../superAdminHelpers";
 export const UsuariosTabla = ({
     usuarios, onActivar, onDesactivar, onRechazar, onCambiarRoles,
 }) => (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div className={tableWrapper}>
         <div className="overflow-x-auto">
             <table className="w-full text-sm">
                 <thead>
-                    <tr className="border-b border-gray-100 dark:border-gray-700 bg-linear-to-r from-[#ffc20e]/5 to-transparent">
+                    <tr className={tableHeadRow}>
                         {["Usuario", "Cédula", "Estado", "Roles", "Acciones"].map((h) => (
-                            <th key={h}
-                                className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 whitespace-nowrap">
-                                {h}
-                            </th>
+                            <th key={h} className={tableHeadCell}>{h}</th>
                         ))}
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50 dark:divide-gray-700/50">
+                <tbody className={tableBody}>
                     {usuarios.map((u) => (
-                        <tr key={u.id} className="hover:bg-[#ffc20e]/5 transition">
+                        <tr key={u.id} className={tableRow}>
                             <td className="px-4 py-3">
-                                <p className="font-medium text-gray-800 dark:text-gray-100 text-xs">
-                                    {nombreCompleto(u)}
-                                </p>
-                                <p className="text-[11px] text-gray-400">{u.email}</p>
+                                <p className={tableCellPrimary}>{nombreCompleto(u)}</p>
+                                <p className={tableCellSubtext}>{u.email}</p>
                             </td>
-                            <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
+                            <td className={`px-4 py-3 ${tableCellMuted} whitespace-nowrap`}>
                                 {u.cedula ?? "—"}
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap">

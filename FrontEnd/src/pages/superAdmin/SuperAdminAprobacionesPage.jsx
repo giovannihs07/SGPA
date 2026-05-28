@@ -39,7 +39,7 @@ export const SuperAdminAprobacionesPage = () => {
             </div>
 
             <div className="flex items-center justify-between gap-3">
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                     {pendientes.length} solicitud{pendientes.length !== 1 ? "es" : ""} pendiente{pendientes.length !== 1 ? "s" : ""}
                 </p>
                 <button onClick={refetch}

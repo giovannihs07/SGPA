@@ -4,6 +4,7 @@ import { AuthContext } from "../../context/AuthContext";
 import { LoadingButton } from "../../components/ui/LoadingButton";
 import { PasswordInput } from "../../components/ui/PasswordInput";
 import { InstitutionalPanel } from "../../components/ui/InstitutionalPanel";
+import { inputMd, labelBold } from "../../components/ui/themeTokens";
 
 const initialForm = { email: "", password: "" };
 
@@ -33,7 +34,7 @@ export const LoginPage = () => {
         <div className="min-h-screen flex font-sans">
 
             {/* Panel izquierdo — formulario */}
-            <div className="w-full lg:w-1/2 bg-white flex flex-col justify-center px-10 py-12 lg:px-16">
+            <div className="w-full lg:w-1/2 bg-white flex flex-col justify-center px-10 py-12 lg:px-16 overflow-y-auto">
 
                 {/* Logo universidad */}
                 <div className="mb-6 flex flex-col items-start gap-1">
@@ -67,7 +68,7 @@ export const LoginPage = () => {
 
                     {/* Email */}
                     <div>
-                        <label className="block text-xs font-semibold text-gray-700 mb-2">
+                        <label className={labelBold}>
                             Correo electrónico
                         </label>
                         <input
@@ -77,13 +78,13 @@ export const LoginPage = () => {
                             onChange={onInputChange}
                             placeholder="usuario@unicartagena.edu.co"
                             autoComplete="email"
-                            className="w-full px-4 py-2 pr-11 rounded-lg border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#EFB357] focus:border-transparent transition"
+                            className={inputMd}
                         />
                     </div>
 
                     {/* Contraseña */}
                     <div>
-                        <label className="block text-xs font-semibold text-gray-700 mb-2">
+                        <label className={labelBold}>
                             Contraseña
                         </label>
                         <PasswordInput
@@ -124,10 +125,10 @@ export const LoginPage = () => {
 
                 </form>
 
-                <p className="text-center text-xs text-gray-400 mt-4">
-                    ¿No tienes cuenta?{' '}
+                <p className="text-center text-sm text-gray-500 mt-6">
+                    ¿No tienes cuenta?{" "}
                     <Link to="/register" className="text-[#A43D29] font-bold hover:underline">
-                        Regístrate aquí
+                        Regístrese
                     </Link>
                 </p>
             </div>

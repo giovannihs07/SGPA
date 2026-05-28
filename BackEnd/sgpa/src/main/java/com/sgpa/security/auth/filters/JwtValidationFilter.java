@@ -17,6 +17,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sgpa.config.TokenJwtConfig;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -47,6 +49,12 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
             requestURI.startsWith("/webjars") ||
             requestURI.equals("/swagger-ui.html") ||
             requestURI.equals("/api/auth/login")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
+        // Descarga pública — no bloquear por JWT expirado o inválido
+        if (requestURI.matches("/api/productos/\\d+/archivo")) {
             chain.doFilter(request, response);
             return;
         }
@@ -106,15 +114,28 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
 
             chain.doFilter(request, response);
 
+        } catch (ExpiredJwtException e) {
+            writeAuthError(response, HttpServletResponse.SC_UNAUTHORIZED,
+                    "SESSION_EXPIRED",
+                    "Tu sesión ha expirado. Por favor, inicia sesión nuevamente.");
+        } catch (JwtException e) {
+            writeAuthError(response, HttpServletResponse.SC_UNAUTHORIZED,
+                    "INVALID_TOKEN",
+                    "Tu sesión no es válida. Por favor, inicia sesión nuevamente.");
         } catch (Exception e) {
-            Map<String, String> body = new HashMap<>();
-            body.put("error", e.getMessage());
-            body.put("message", "Token inválido o expirado");
-
-            response.getWriter()
-                .write(new ObjectMapper().writeValueAsString(body));
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            response.setContentType("application/json");
+            writeAuthError(response, HttpServletResponse.SC_UNAUTHORIZED,
+                    "INVALID_TOKEN",
+                    "Tu sesión no es válida. Por favor, inicia sesión nuevamente.");
         }
+    }
+
+    private void writeAuthError(HttpServletResponse response, int status,
+            String code, String message) throws IOException {
+        Map<String, String> body = new HashMap<>();
+        body.put("error", code);
+        body.put("message", message);
+        response.setStatus(status);
+        response.setContentType("application/json");
+        response.getWriter().write(new ObjectMapper().writeValueAsString(body));
     }
 }

@@ -8,6 +8,7 @@ import { notifySuccess, notifyError } from "../utils/notify";
 import { esReciente } from "../pages/docente/components/productoHelpers";
 import {
     intentarEliminarProducto,
+    confirmTogglePublicacion,
 } from "../pages/docente/components/misProductos/productoSwal";
 import axiosInstance from "../services/axiosInstance";
 
@@ -109,15 +110,21 @@ export const useMisProductos = () => {
     const handleFiltroTipo = useCallback((v) => { setFiltroTipo(v); resetPagina(); }, [resetPagina]);
 
     const handleDescargar = useCallback(async (producto) => {
-        if (!producto.nombreArchivo) return;
+        if (!producto.nombreArchivo) {
+            notifyError("Sin archivo", "Este producto no tiene un archivo adjunto.");
+            return;
+        }
         try {
             await descargarArchivo(producto.id, producto.nombreArchivoOriginal);
-        } catch {
-            notifyError("Error", "No se pudo descargar el archivo");
+        } catch (e) {
+            notifyError("Error", e.message ?? "No se pudo descargar el archivo");
         }
     }, []);
 
     const togglePublicacion = useCallback(async (producto) => {
+        const ok = await confirmTogglePublicacion(producto);
+        if (!ok) return;
+
         setToggling(producto.id);
         try {
             const fn = producto.publicado ? despublicarProducto : publicarProducto;

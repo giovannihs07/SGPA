@@ -1,7 +1,8 @@
 import { cargoOptions, dependenciaOptions } from "../registerConfig";
 import { SelectWithArrow } from "../../../components/ui/SelectWithArrow";
+import { labelBold } from "../../../components/ui/themeTokens";
 
-const labelClass = "block text-xs font-bold text-gray-700 mb-1.5";
+const labelClass = labelBold;
 
 export const AdministrativoFields = ({ cargo, dependencia, onInputChange }) => (
     <div className="grid grid-cols-2 gap-3">

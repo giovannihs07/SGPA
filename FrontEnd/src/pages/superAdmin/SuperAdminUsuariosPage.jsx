@@ -45,7 +45,7 @@ export const SuperAdminUsuariosPage = () => {
     return (
         <div className="space-y-4 max-w-7xl mx-auto">
             <div className="flex items-center justify-between gap-3">
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                     {usuarios.length} usuario{usuarios.length !== 1 ? "s" : ""}
                 </p>
             </div>

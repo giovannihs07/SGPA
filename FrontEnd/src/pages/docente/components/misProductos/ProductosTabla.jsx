@@ -1,4 +1,9 @@
 import { Download, Globe, GlobeLock, Trash2, Eye, Pencil, FileText } from "lucide-react";
+import {
+    tableWrapper, tableHeadRow, tableHeadCell, tableBody, tableRow,
+    tableCellPrimary, tableCellSecondary, tableCellMuted, tableCellSubtext,
+    btnIcon,
+} from "../../../../components/ui/themeTokens";
 import { TIPO_LABELS, CATEGORIA_LABELS, formatFecha, truncar, puedeEditarProducto, puedeEliminarProducto, MENSAJE_EDICION_BLOQUEADA, MENSAJE_ELIMINACION_BLOQUEADA } from "../productoHelpers";
 import { EstadoBadge } from "./EstadoBadge";
 import { ArchivoBadge } from "./ArchivoBadge";
@@ -19,8 +24,7 @@ const AccionesFila = ({
         <button
             onClick={() => onVer(producto)}
             title="Ver detalle"
-            className="w-7 h-7 flex items-center justify-center rounded-lg
-                text-gray-500 hover:bg-[#ffc20e]/15 hover:text-[#EC7A21] transition"
+            className={`${btnIcon} w-7 h-7 text-gray-600 dark:text-gray-400 hover:bg-[#ffc20e]/15 hover:text-[#EC7A21]`}
         >
             <Eye size={14} />
         </button>
@@ -29,7 +33,7 @@ const AccionesFila = ({
         <button
             onClick={() => onEditar(producto)}
             title={editBloqueado ? MENSAJE_EDICION_BLOQUEADA : "Editar"}
-            className={`w-7 h-7 flex items-center justify-center rounded-lg transition
+            className={`${btnIcon} w-7 h-7 transition
                 ${editBloqueado
                     ? "text-gray-300 cursor-not-allowed opacity-50"
                     : "text-gray-500 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 dark:hover:text-blue-400"
@@ -42,8 +46,7 @@ const AccionesFila = ({
             onClick={() => onToggle(producto)}
             disabled={toggling === producto.id}
             title={producto.publicado ? "Despublicar" : "Publicar"}
-            className={`w-7 h-7 flex items-center justify-center rounded-lg transition
-                disabled:opacity-40 disabled:cursor-not-allowed
+            className={`${btnIcon} w-7 h-7 transition disabled:opacity-40 disabled:cursor-not-allowed
                 ${producto.publicado
                     ? "text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20"
                     : "text-gray-400 hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-900/20"
@@ -61,9 +64,7 @@ const AccionesFila = ({
             <button
                 onClick={() => onDescargar(producto)}
                 title="Descargar archivo"
-                className="w-7 h-7 flex items-center justify-center rounded-lg
-                    text-gray-400 hover:bg-orange-50 hover:text-[#EC7A21]
-                    dark:hover:bg-orange-900/20 transition"
+                className={`${btnIcon} w-7 h-7 text-gray-500 dark:text-gray-400 hover:bg-orange-50 hover:text-[#EC7A21] dark:hover:bg-orange-900/20`}
             >
                 <Download size={14} />
             </button>
@@ -72,7 +73,7 @@ const AccionesFila = ({
         <button
             onClick={() => onEliminar(producto)}
             title={elimBloqueado ? MENSAJE_ELIMINACION_BLOQUEADA : "Eliminar"}
-            className={`w-7 h-7 flex items-center justify-center rounded-lg transition
+            className={`${btnIcon} w-7 h-7 transition
                 ${elimBloqueado
                     ? "text-gray-300 cursor-not-allowed opacity-50"
                     : "text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
@@ -97,8 +98,7 @@ export const ProductosTabla = ({
         : COLUMNAS_BASE;
 
     return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100
-        dark:border-gray-700 overflow-hidden">
+    <div className={tableWrapper}>
 
         {/* Si no hay productos filtrados, se muestra el mensaje de sin resultados */}
         {productosFiltrados.length === 0 ? (
@@ -115,31 +115,24 @@ export const ProductosTabla = ({
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead>
-                            <tr className="border-b border-gray-100 dark:border-gray-700
-                                bg-linear-to-r from-[#ffc20e]/5 to-transparent dark:from-[#ffc20e]/10">
+                            <tr className={tableHeadRow}>
                                 {columnas.map((h) => (
-                                    <th key={h}
-                                        className="px-4 py-3 text-left text-[10px] font-bold
-                                            uppercase tracking-widest text-gray-400 dark:text-gray-500 whitespace-nowrap">
-                                        {h}
-                                    </th>
+                                    <th key={h} className={tableHeadCell}>{h}</th>
                                 ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-50 dark:divide-gray-700/50">
+                        <tbody className={tableBody}>
                             {productos.map((p) => (
-                                <tr key={p.id}
-                                    className="hover:bg-[#ffc20e]/5 dark:hover:bg-[#ffc20e]/5 transition group">
+                                <tr key={p.id} className={`${tableRow} group`}>
                                     <td className="px-4 py-3 max-w-55">
                                         <div className="flex items-start gap-2">
                                             {p.nombreArchivo && (
                                                 <FileText size={13} className="text-[#EC7A21] shrink-0 mt-0.5" />
                                             )}
                                             <div>
-                                                <p className="font-medium text-gray-800 dark:text-gray-100
-                                                    leading-snug line-clamp-2 text-xs">{p.nombre}</p>
+                                                <p className={`${tableCellPrimary} leading-snug line-clamp-2`}>{p.nombre}</p>
                                                 {p.descripcion && (
-                                                    <p className="text-[11px] text-gray-400 mt-0.5 line-clamp-1">
+                                                    <p className={`${tableCellSubtext} mt-0.5 line-clamp-1`}>
                                                         {truncar(p.descripcion, 55)}
                                                     </p>
                                                 )}
@@ -147,20 +140,20 @@ export const ProductosTabla = ({
                                         </div>
                                     </td>
                                     {mostrarDocente && (
-                                        <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
+                                        <td className={`px-4 py-3 ${tableCellMuted} whitespace-nowrap`}>
                                             #{p.docenteId ?? "—"}
                                         </td>
                                     )}
-                                    <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400 max-w-37.5">
+                                    <td className={`px-4 py-3 ${tableCellSecondary} max-w-37.5`}>
                                         <span className="line-clamp-2">{TIPO_LABELS[p.tipo] ?? p.tipo ?? "—"}</span>
                                     </td>
-                                    <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
+                                    <td className={`px-4 py-3 ${tableCellMuted} whitespace-nowrap`}>
                                         {CATEGORIA_LABELS[p.categoria] ?? p.categoria ?? "—"}
                                     </td>
                                     <td className="px-4 py-3 whitespace-nowrap">
                                         <EstadoBadge publicado={p.publicado} />
                                     </td>
-                                    <td className="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">
+                                    <td className={`px-4 py-3 ${tableCellMuted} whitespace-nowrap`}>
                                         {formatFecha(p.fechaCreacion)}
                                     </td>
                                     <td className="px-4 py-3 whitespace-nowrap">

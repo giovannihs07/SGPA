@@ -43,7 +43,7 @@ export const SuperAdminConfiguracionPage = () => {
                             rounded-t-lg transition border-b-2 -mb-px
                             ${tab === id
                                 ? "border-[#EC7A21] text-[#EC7A21] bg-[#ffc20e]/5"
-                                : "border-transparent text-gray-500 hover:text-gray-700"
+                                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                             }`}
                     >
                         <Icon size={14} /> {label}

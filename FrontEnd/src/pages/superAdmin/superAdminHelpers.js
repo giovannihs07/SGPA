@@ -28,7 +28,7 @@ export const ESTADO_USUARIO_CONFIG = {
 export const getEstadoUsuarioConfig = (estado) =>
     ESTADO_USUARIO_CONFIG[estado] ?? {
         label: estado ?? "—",
-        className: "bg-gray-100 text-gray-600",
+        className: "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300",
     };
 
 // Función para obtener el nombre completo del usuario

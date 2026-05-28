@@ -2,16 +2,13 @@ import { Link } from "react-router-dom";
 import { LoadingButton }          from "../../components/ui/LoadingButton";
 import { PasswordInput }          from "../../components/ui/PasswordInput";
 import { InstitutionalPanel }     from "../../components/ui/InstitutionalPanel";
+import { inputAuth, labelBold }   from "../../components/ui/themeTokens";
 import { useRegisterForm }        from "./hooks/useRegisterForm";
 import { useFacultadesProgramas } from "../../hooks/useFacultadesProgramas";
 import { UserTypeSelector }       from "./components/UserTypeSelector";
 import { DocenteFields }          from "./components/DocenteFields";
 import { AdministrativoFields }   from "./components/AdministrativoFields";
 
-const inputClass =
-    "w-full px-3 py-2 rounded-md border-2 border-[#cab4b4] bg-white text-sm text-gray-800 " +
-    "placeholder-gray-300 focus:outline-none focus:border-[#EFB357] transition shadow-[5px_2px_10px_3px_#0000000d]";
-const labelClass = "block text-xs font-bold text-gray-700 mb-1.5";
 
 export const RegisterPage = () => {
     const {
@@ -61,24 +58,24 @@ export const RegisterPage = () => {
                     {/* Nombres y Apellidos */}
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className={labelClass}>Nombres</label>
-                            <input type="text" name="firstName" value={firstName} onChange={onInputChange} autoComplete="given-name" className={inputClass} />
+                            <label className={labelBold}>Nombres</label>
+                            <input type="text" name="firstName" value={firstName} onChange={onInputChange} autoComplete="given-name" className={inputAuth} />
                         </div>
                         <div>
-                            <label className={labelClass}>Apellidos</label>
-                            <input type="text" name="lastName" value={lastName} onChange={onInputChange} autoComplete="family-name" className={inputClass} />
+                            <label className={labelBold}>Apellidos</label>
+                            <input type="text" name="lastName" value={lastName} onChange={onInputChange} autoComplete="family-name" className={inputAuth} />
                         </div>
                     </div>
 
                     {/* Cédula y Teléfono */}
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className={labelClass}>Cédula</label>
-                            <input type="text" name="documentId" value={documentId} onChange={onInputChange} inputMode="numeric" autoComplete="off" className={inputClass} />
+                            <label className={labelBold}>Cédula</label>
+                            <input type="text" name="documentId" value={documentId} onChange={onInputChange} inputMode="numeric" autoComplete="off" className={inputAuth} />
                         </div>
                         <div>
-                            <label className={labelClass}>Teléfono</label>
-                            <input type="tel" name="phone" value={phone} onChange={onInputChange} autoComplete="tel" className={inputClass} />
+                            <label className={labelBold}>Teléfono</label>
+                            <input type="tel" name="phone" value={phone} onChange={onInputChange} autoComplete="tel" className={inputAuth} />
                         </div>
                     </div>
 
@@ -114,19 +111,19 @@ export const RegisterPage = () => {
 
                     {/* Correo */}
                     <div>
-                        <label className={labelClass}>Correo electrónico</label>
-                        <input type="email" name="email" value={email} onChange={onInputChange} placeholder="usuario@unicartagena.edu.co" autoComplete="email" className={inputClass} />
+                        <label className={labelBold}>Correo electrónico</label>
+                        <input type="email" name="email" value={email} onChange={onInputChange} placeholder="usuario@unicartagena.edu.co" autoComplete="email" className={inputAuth} />
                     </div>
 
                     {/* Contraseña */}
                     <div>
-                        <label className={labelClass}>Contraseña</label>
+                        <label className={labelBold}>Contraseña</label>
                         <PasswordInput name="password" value={password} onChange={onInputChange} autoComplete="new-password" />
                     </div>
 
                     {/* Confirmar contraseña */}
                     <div>
-                        <label className={labelClass}>Confirmar contraseña</label>
+                        <label className={labelBold}>Confirmar contraseña</label>
                         <PasswordInput name="confirmPassword" value={confirmPassword} onChange={onInputChange} autoComplete="new-password" />
                         {confirmPassword && password !== confirmPassword && (
                             <p className="text-red-500 text-xs mt-1">Las contraseñas no coinciden</p>

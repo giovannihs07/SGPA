@@ -2,11 +2,7 @@ import { nivelOptions, tipoContratoOptions } from "../registerConfig";
 import { SelectWithArrow } from "../../../components/ui/SelectWithArrow";
 import { SectionHeader }   from "../../../components/ui/SectionHeader";
 import { RepeatCard }      from "../../../components/ui/RepeatCard";
-
-const inputClass =
-    "w-full px-3 py-2 rounded-md border-2 border-[#cab4b4] bg-white text-sm text-gray-800 " +
-    "placeholder-gray-300 focus:outline-none focus:border-[#EFB357] transition shadow-[5px_2px_10px_3px_#0000000d]";
-const labelClass = "block text-xs font-bold text-gray-700 mb-1.5";
+import { inputAuth, labelBold } from "../../../components/ui/themeTokens";
 
 export const DocenteFields = ({
     codigoDocente, tipoContrato, onInputChange,  // ← tipoContrato añadido
@@ -19,7 +15,7 @@ export const DocenteFields = ({
         {/* Código docente y tipo de contrato */}
         <div className="grid grid-cols-2 gap-3">
             <div>
-                <label className={labelClass}>
+                <label className={labelBold}>
                     Código docente <span className="text-[#EC7A21]">*</span>
                 </label>
                 <input
@@ -29,13 +25,13 @@ export const DocenteFields = ({
                     onChange={onInputChange}
                     placeholder="Ej. DOC-2024-001"
                     autoComplete="off"
-                    className={inputClass}
+                    className={inputAuth}
                 />
             </div>
 
             {/* Tipo de contrato */}
             <div>
-                <label className={labelClass}>
+                <label className={labelBold}>
                     Tipo de contrato <span className="text-[#EC7A21]">*</span>
                 </label>
                 <SelectWithArrow
@@ -67,7 +63,7 @@ export const DocenteFields = ({
                         <RepeatCard key={i} index={i} total={programas.length} onRemove={removePrograma}>
                             <div className="grid grid-cols-2 gap-2">
                                 <div>
-                                    <label className={labelClass}>Facultad</label>
+                                    <label className={labelBold}>Facultad</label>
                                     <SelectWithArrow
                                         value={p.facultadId}
                                         onChange={({ target }) => {
@@ -83,7 +79,7 @@ export const DocenteFields = ({
                                     />
                                 </div>
                                 <div>
-                                    <label className={labelClass}>
+                                    <label className={labelBold}>
                                         Programa{" "}
                                         {!p.facultadId && (
                                             <span className="font-light text-gray-400">(elige facultad primero)</span>
@@ -121,17 +117,17 @@ export const DocenteFields = ({
                     <RepeatCard key={i} index={i} total={titulos.length} onRemove={removeTitulo}>
                         <div className="grid grid-cols-2 gap-2">
                             <div>
-                                <label className={labelClass}>Título</label>
+                                <label className={labelBold}>Título</label>
                                 <input
                                     type="text"
                                     value={t.titulo}
                                     onChange={({ target }) => onTituloChange(i, "titulo", target.value)}
                                     placeholder="Ej. Ingeniería de Sistemas"
-                                    className={inputClass}
+                                    className={inputAuth}
                                 />
                             </div>
                             <div>
-                                <label className={labelClass}>Nivel</label>
+                                <label className={labelBold}>Nivel</label>
                                 <SelectWithArrow
                                     value={t.nivel}
                                     onChange={({ target }) => onTituloChange(i, "nivel", target.value)}
@@ -143,33 +139,33 @@ export const DocenteFields = ({
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                             <div>
-                                <label className={labelClass}>Institución</label>
+                                <label className={labelBold}>Institución</label>
                                 <input
                                     type="text"
                                     value={t.institucion}
                                     onChange={({ target }) => onTituloChange(i, "institucion", target.value)}
                                     placeholder="Ej. Universidad de Cartagena"
-                                    className={inputClass}
+                                    className={inputAuth}
                                 />
                             </div>
                             <div>
-                                <label className={labelClass}>País</label>
+                                <label className={labelBold}>País</label>
                                 <input
                                     type="text"
                                     value={t.pais}
                                     onChange={({ target }) => onTituloChange(i, "pais", target.value)}
                                     placeholder="Ej. Colombia"
-                                    className={inputClass}
+                                    className={inputAuth}
                                 />
                             </div>
                         </div>
                         <div>
-                            <label className={labelClass}>Fecha de obtención</label>
+                            <label className={labelBold}>Fecha de obtención</label>
                             <input
                                 type="date"
                                 value={t.fechaObtencion}
                                 onChange={({ target }) => onTituloChange(i, "fechaObtencion", target.value)}
-                                className={inputClass}
+                                className={inputAuth}
                             />
                         </div>
                     </RepeatCard>

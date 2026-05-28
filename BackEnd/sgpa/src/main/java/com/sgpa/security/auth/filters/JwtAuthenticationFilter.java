@@ -17,6 +17,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sgpa.dto.response.LoginResponse;
+import com.sgpa.model.audit.ModuloAuditoria;
+import com.sgpa.model.audit.ResultadoAuditoria;
+import com.sgpa.service.AuditService;
 import com.sgpa.service.AuthService;
 
 import jakarta.servlet.FilterChain;
@@ -28,11 +31,15 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     private final AuthService authService;
     private final ObjectMapper objectMapper;
+    private final AuditService auditService;
+    private final ThreadLocal<String> ultimoEmailIntento = new ThreadLocal<>();
 
     public JwtAuthenticationFilter(AuthenticationManager authenticationManager,
-            AuthService authService, ObjectMapper objectMapper) {
+            AuthService authService, ObjectMapper objectMapper,
+            AuditService auditService) {
         this.authService = authService;
         this.objectMapper = objectMapper;
+        this.auditService = auditService;
         setAuthenticationManager(authenticationManager);
         setFilterProcessesUrl("/api/auth/login");
     }
@@ -52,6 +59,8 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         } catch (IOException e) {
             throw new AuthenticationServiceException("Credenciales inválidas", e);
         }
+
+        ultimoEmailIntento.set(email != null ? email : "desconocido");
 
         UsernamePasswordAuthenticationToken authToken =
             new UsernamePasswordAuthenticationToken(email, password);
@@ -77,6 +86,11 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("application/json");
         response.getWriter().write(objectMapper.writeValueAsString(loginResponse));
+
+        auditService.registrar(ModuloAuditoria.AUTH, "LOGIN",
+                "Inicio de sesión exitoso",
+                "User", loginResponse.getUserId(), email, null,
+                ResultadoAuditoria.EXITOSO, email, request.getRemoteAddr());
     }
 
     @Override
@@ -87,6 +101,16 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         Map<String, Object> body = new HashMap<>();
         body.put("message", "Error en la autenticación, email o password incorrecto!");
         body.put("error", failed.getMessage());
+
+        String email = ultimoEmailIntento.get();
+        if (email == null) email = "desconocido";
+        ultimoEmailIntento.remove();
+
+        auditService.registrar(ModuloAuditoria.AUTH, "LOGIN_FALLIDO",
+                "Intento de inicio de sesión fallido",
+                "User", null, email,
+                Map.of("motivo", failed.getMessage() != null ? failed.getMessage() : "Credenciales inválidas"),
+                ResultadoAuditoria.FALLIDO, email, request.getRemoteAddr());
 
         response.getWriter().write(objectMapper.writeValueAsString(body));
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

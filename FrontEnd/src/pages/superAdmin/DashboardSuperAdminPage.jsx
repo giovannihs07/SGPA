@@ -1,5 +1,5 @@
 import { AlertCircle, RefreshCw } from "lucide-react";
-import { Users, UserCheck, BookOpen, Settings } from "lucide-react";
+import { Users, UserCheck, BookOpen, Settings, ScrollText } from "lucide-react";
 import { useSuperAdminDashboard } from "../../hooks/superadmin/useSuperAdminDashboard";
 import { SuperAdminKpiGrid } from "./components/SuperAdminKpiGrid";
 import { QuickLinkCard } from "./components/QuickLinkCard";
@@ -26,7 +26,7 @@ export const DashboardSuperAdminPage = () => {
                     <h2 className="text-lg font-bold text-gray-900 dark:text-white">
                         Panel de Super Admin
                     </h2>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                         Gestión global del sistema SGPA — Universidad de Cartagena
                     </p>
                 </div>
@@ -73,6 +73,12 @@ export const DashboardSuperAdminPage = () => {
                         icon={Settings}
                         title="Configuración institucional"
                         description="Administra instituciones, facultades y programas académicos."
+                    />
+                    <QuickLinkCard
+                        to="/dashboard/superadmin/auditoria"
+                        icon={ScrollText}
+                        title="Logs de auditoría"
+                        description="Consulta quién hizo qué y cuándo en el sistema."
                     />
                 </div>
             </div>

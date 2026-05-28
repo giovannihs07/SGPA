@@ -13,6 +13,26 @@ export const intentarEditarProducto = (producto, onEditar) => {
     onEditar?.(producto);
 };
 
+/** Confirmación antes de publicar o despublicar un producto */
+export const confirmTogglePublicacion = (producto) => {
+    const publicando = !producto.publicado;
+
+    return Swal.fire({
+        ...SWAL_BASE,
+        icon: "warning",
+        title: publicando ? "¿Publicar producto?" : "¿Despublicar producto?",
+        html: `<p class="text-sm text-gray-600 dark:text-gray-300">
+            ${publicando
+                ? `El producto <strong>"${producto.nombre}"</strong> será visible para todos los usuarios de la plataforma.`
+                : `El producto <strong>"${producto.nombre}"</strong> dejará de ser visible para todos los usuarios.`
+            }
+        </p>`,
+        showCancelButton: true,
+        confirmButtonText: publicando ? "Sí, publicar" : "Sí, despublicar",
+        cancelButtonText: "Cancelar",
+    }).then((r) => r.isConfirmed);
+};
+
 /** Confirmación de eliminación con SweetAlert2 */
 export const confirmEliminarProducto = (producto) => {
     const avisoArchivo = producto.nombreArchivo

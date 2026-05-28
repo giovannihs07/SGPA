@@ -8,23 +8,66 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.sgpa.exception.ArchivoNotFoundException;
+
 @Service
 public class FileStorageServiceImpl implements FileStorageService {
 
     private final Path directorioBase;
 
-    public FileStorageServiceImpl(@Value("${app.upload.dir:uploads}") String uploadDir) {
-        this.directorioBase = Paths.get(uploadDir).toAbsolutePath().normalize();
+    public FileStorageServiceImpl(@Value("${app.upload.dir:uploads/productos}") String uploadDir) {
+        this.directorioBase = resolveUploadDirectory(uploadDir);
         try {
             Files.createDirectories(this.directorioBase);
         } catch (IOException e) {
             throw new RuntimeException("No se pudo crear el directorio de uploads", e);
+        }
+    }
+
+    /**
+     * Resuelve la carpeta de uploads según desde dónde se ejecute la app:
+     * - Raíz del repo (IDE): uploads/productos
+     * - BackEnd/sgpa (Maven): ../../uploads/productos
+     */
+    private Path resolveUploadDirectory(String uploadDir) {
+        List<Path> candidates = List.of(
+            Paths.get("uploads/productos"),
+            Paths.get("../../uploads/productos"),
+            Paths.get(uploadDir)
+        );
+
+        for (Path candidate : candidates) {
+            Path absolute = candidate.toAbsolutePath().normalize();
+            if (Files.isDirectory(absolute) && tieneArchivosDeProducto(absolute)) {
+                return absolute;
+            }
+        }
+
+        for (Path candidate : candidates) {
+            Path absolute = candidate.toAbsolutePath().normalize();
+            if (Files.isDirectory(absolute)) {
+                return absolute;
+            }
+        }
+
+        return Paths.get(uploadDir).toAbsolutePath().normalize();
+    }
+
+    private boolean tieneArchivosDeProducto(Path dir) {
+        try (Stream<Path> files = Files.list(dir)) {
+            return files.anyMatch(p ->
+                Files.isRegularFile(p)
+                && !".gitkeep".equals(p.getFileName().toString())
+            );
+        } catch (IOException e) {
+            return false;
         }
     }
 
@@ -49,12 +92,15 @@ public class FileStorageServiceImpl implements FileStorageService {
     public Resource cargarArchivo(String nombreArchivo) {
         try {
             Path ruta = directorioBase.resolve(nombreArchivo).normalize();
-            Resource resource = new UrlResource(ruta.toUri());
-            if (resource.exists())
-                return resource;
-            throw new RuntimeException("Archivo no encontrado: " + nombreArchivo);
+            if (!ruta.startsWith(directorioBase)) {
+                throw new ArchivoNotFoundException(nombreArchivo);
+            }
+            if (Files.exists(ruta) && Files.isRegularFile(ruta)) {
+                return new UrlResource(ruta.toUri());
+            }
+            throw new ArchivoNotFoundException(nombreArchivo);
         } catch (MalformedURLException e) {
-            throw new RuntimeException("Archivo no encontrado: " + nombreArchivo, e);
+            throw new ArchivoNotFoundException(nombreArchivo);
         }
     }
 

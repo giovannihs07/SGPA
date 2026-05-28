@@ -1,26 +1,12 @@
 import { Tag, FlaskConical, BookOpen, ChevronDown } from "lucide-react";
+import { Label } from "../../../components/ui/Label";
+import { card, cardHeaderBorder, selectSm, focusRing } from "../../../components/ui/themeTokens";
 import {
     CATEGORIA_LABELS,
     SUBCATEGORIA_LABELS,
     TIPO_LABELS,
 } from "../productoConfig";
- 
-// UI primitivos locales
- 
-const Label = ({ children, required }) => (
-    <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
-        {children}
-        {required && <span className="text-[#EC7A21] ml-0.5">*</span>}
-    </label>
-);
- 
-const inputBase =
-    "w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 " +
-    "bg-white dark:bg-gray-800 text-sm text-gray-800 dark:text-gray-100 " +
-    "placeholder-gray-300 dark:placeholder-gray-600 " +
-    "focus:outline-none focus:ring-2 focus:ring-[#EFB357]/50 focus:border-[#EFB357] " +
-    "transition disabled:opacity-40 disabled:cursor-not-allowed";
- 
+
 const SelectField = ({ name, value, onChange, disabled, placeholder, children }) => (
     <div className="relative">
         <select
@@ -28,20 +14,18 @@ const SelectField = ({ name, value, onChange, disabled, placeholder, children })
             value={value}
             onChange={onChange}
             disabled={disabled}
-            className={`${inputBase} appearance-none pr-9 ${disabled ? "bg-gray-50 dark:bg-gray-900" : ""}`}
+            className={`${selectSm} pr-9 ${disabled ? "bg-gray-100 dark:bg-gray-900" : ""}`}
         >
             <option value="" disabled>{placeholder}</option>
             {children}
         </select>
         <ChevronDown
             size={14}
-            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400"
+            aria-hidden="true"
         />
     </div>
 );
- 
-// Componente principal
- 
 /**
  * Sección de clasificación en cascada: categoría → subcategoría → tipo.
  *
@@ -56,9 +40,8 @@ export const ClasificacionSection = ({
     subcategoriasDisponibles,
     tiposDisponibles,
 }) => (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm">
-        {/* Header */}
-        <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-100 dark:border-gray-700 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/10">
+    <div className={card}>
+        <div className={`flex items-center gap-2.5 px-5 py-3.5 ${cardHeaderBorder} text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/10`}>
             <Tag size={15} className="shrink-0" />
             <span className="text-xs font-bold uppercase tracking-widest">Clasificación del producto</span>
         </div>
@@ -80,10 +63,10 @@ export const ClasificacionSection = ({
                                 }
                                 className={`
                                     flex items-center gap-2.5 px-4 py-3 rounded-lg border-2
-                                    text-sm font-medium transition text-left
+                                    text-sm font-medium transition text-left ${focusRing}
                                     ${active
-                                        ? "border-[#EFB357] bg-amber-50 dark:bg-amber-900/20 text-gray-800 dark:text-white"
-                                        : "border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300 dark:hover:border-gray-600"
+                                        ? "border-[#EFB357] bg-amber-50 dark:bg-amber-900/20 text-gray-900 dark:text-gray-50"
+                                        : "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-gray-400 dark:hover:border-gray-500"
                                     }
                                 `}
                             >

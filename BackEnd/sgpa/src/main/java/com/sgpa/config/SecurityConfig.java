@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sgpa.security.auth.filters.JwtAuthenticationFilter;
 import com.sgpa.security.auth.filters.JwtValidationFilter;
 import com.sgpa.service.AuthService;
+import com.sgpa.service.AuditService;
 
 @Configuration
 public class SecurityConfig {
@@ -35,10 +36,8 @@ public class SecurityConfig {
     @Autowired
     private AuthService authService;
 
-    @Bean
-    ObjectMapper objectMapper() {
-        return new ObjectMapper();
-    }
+    @Autowired
+    private AuditService auditService;
 
     @Bean
     PasswordEncoder passwordEncoder() {
@@ -99,7 +98,7 @@ public class SecurityConfig {
                     "/webjars/**"
                 ).permitAll()
             )
-            .addFilter(new JwtAuthenticationFilter(authManager, authService, objectMapper))
+            .addFilter(new JwtAuthenticationFilter(authManager, authService, objectMapper, auditService))
             .addFilter(new JwtValidationFilter(authManager, userDetailsService))
             // .exceptionHandling(ex -> ex
             //     .authenticationEntryPoint((request, response, authException) -> {

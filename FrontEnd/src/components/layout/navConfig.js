@@ -8,6 +8,7 @@ import {
     CheckSquare,
     Settings,
     Library,
+    ScrollText,
 } from "lucide-react";
 
 // Navegación según rol
@@ -63,6 +64,7 @@ export const NAV_ITEMS = {
             items: [
                 { label: "Aprobar / rechazar", icon: CheckSquare, path: "/dashboard/superadmin/aprobaciones" },
                 { label: "Reportes",           icon: BarChart2,   path: "/dashboard/superadmin/reportes" },
+                { label: "Logs de auditoría",  icon: ScrollText,  path: "/dashboard/superadmin/auditoria" },
                 { label: "Configuración",      icon: Settings,    path: "/dashboard/superadmin/configuracion" },
             ],
         },

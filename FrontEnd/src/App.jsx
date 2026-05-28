@@ -23,6 +23,7 @@ import { SuperAdminAprobacionesPage } from "./pages/superAdmin/SuperAdminAprobac
 import { SuperAdminProductosPage }    from "./pages/superAdmin/SuperAdminProductosPage";
 import { SuperAdminReportesPage }     from "./pages/superAdmin/SuperAdminReportesPage";
 import { SuperAdminConfiguracionPage } from "./pages/superAdmin/SuperAdminConfiguracionPage";
+import { SuperAdminAuditoriaPage } from "./pages/superAdmin/SuperAdminAuditoriaPage";
  
 // Páginas de admin
 import { DashboardAdminPage } from "./pages/admin/DashboardAdminPage";
@@ -89,6 +90,7 @@ export default function App() {
                                 <Route path="/dashboard/superadmin/productos"     element={<SuperAdminProductosPage />} />
                                 <Route path="/dashboard/superadmin/aprobaciones"  element={<SuperAdminAprobacionesPage />} />
                                 <Route path="/dashboard/superadmin/reportes"     element={<SuperAdminReportesPage />} />
+                                <Route path="/dashboard/superadmin/auditoria"   element={<SuperAdminAuditoriaPage />} />
                                 <Route path="/dashboard/superadmin/configuracion" element={<SuperAdminConfiguracionPage />} />
                             </Route>
                         </Route>

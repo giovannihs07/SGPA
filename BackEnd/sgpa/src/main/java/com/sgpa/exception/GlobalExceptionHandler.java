@@ -14,6 +14,12 @@ public class GlobalExceptionHandler {
 
     // ==================== 404 Not Found Exceptions ====================
 
+    @ExceptionHandler(ArchivoNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleArchivoNotFound(ArchivoNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(Map.of("error", "El archivo adjunto no está disponible en el servidor."));
+    }
+
     @ExceptionHandler(ProductoDocenteNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleProductoDocenteNotFound(ProductoDocenteNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)

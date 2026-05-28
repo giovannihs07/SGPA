@@ -1,17 +1,9 @@
 import { Layers } from "lucide-react";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import { Label } from "../../../components/ui/Label";
+import { inputDense } from "../../../components/ui/themeTokens";
 import { ATRIBUTO_LABELS, ATRIBUTOS_FECHA, ATRIBUTOS_NUMERO } from "../productoConfig";
 
-// Estilos para los inputs de los atributos
-const inputBase =
-    "w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 " +
-    "bg-white dark:bg-gray-800 text-sm text-gray-800 dark:text-gray-100 " +
-    "placeholder-gray-300 dark:placeholder-gray-600 " +
-    "focus:outline-none focus:ring-2 focus:ring-[#EFB357]/50 focus:border-[#EFB357] " +
-    "transition disabled:opacity-40 disabled:cursor-not-allowed";
-
-// Función para obtener el tipo de input de los atributos
 const getInputType = (attr) => {
     if (ATRIBUTOS_FECHA.has(attr))  return "date";
     if (ATRIBUTOS_NUMERO.has(attr)) return "number";
@@ -43,7 +35,7 @@ export const AtributosSection = ({ atributosRequeridos, atributos, onAtributoCha
                                 onChange={onAtributoChange}
                                 min={inputType === "number" ? 0 : undefined}
                                 placeholder={inputType === "date" ? "" : `${ATRIBUTO_LABELS[attr] ?? attr}…`}
-                                className={inputBase}
+                                className={inputDense}
                             />
                         </div>
                     );

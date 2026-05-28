@@ -12,6 +12,8 @@ import com.sgpa.mapper.ProgramaMapper;
 import com.sgpa.model.Facultad;
 import com.sgpa.model.NivelFormacion;
 import com.sgpa.model.Programa;
+import com.sgpa.model.audit.ModuloAuditoria;
+import com.sgpa.model.audit.ResultadoAuditoria;
 import com.sgpa.repository.FacultadRepository;
 import com.sgpa.repository.ProgramaRepository;
 
@@ -24,6 +26,7 @@ public class ProgramaServiceImpl implements ProgramaService {
     private final ProgramaRepository programaRepository;
     private final FacultadRepository facultadRepository;
     private final ProgramaMapper mapper;
+    private final AuditService auditService;
 
     @Override
     @Transactional
@@ -48,7 +51,12 @@ public class ProgramaServiceImpl implements ProgramaService {
         programa.setNivel(dto.getNivel());
         programa.setFacultad(facultad);
 
-        return mapper.toDTO(programaRepository.save(programa));
+        Programa guardado = programaRepository.save(programa);
+        auditService.registrar(ModuloAuditoria.CONFIGURACION, "CREAR_PROGRAMA",
+                "Creó el programa \"" + guardado.getNombre() + "\"",
+                "Programa", guardado.getId(), guardado.getNombre(), null,
+                ResultadoAuditoria.EXITOSO);
+        return mapper.toDTO(guardado);
     }
 
     @Override
@@ -105,16 +113,24 @@ public class ProgramaServiceImpl implements ProgramaService {
         programa.setNivel(dto.getNivel());
         programa.setFacultad(facultad);
 
-        return mapper.toDTO(programaRepository.save(programa));
+        Programa guardado = programaRepository.save(programa);
+        auditService.registrar(ModuloAuditoria.CONFIGURACION, "EDITAR_PROGRAMA",
+                "Editó el programa \"" + guardado.getNombre() + "\"",
+                "Programa", guardado.getId(), guardado.getNombre(), null,
+                ResultadoAuditoria.EXITOSO);
+        return mapper.toDTO(guardado);
     }
 
     @Override
     @Transactional
     public void eliminar(Long id) {
-        if (!programaRepository.existsById(id))
-            throw new RuntimeException(
-                "Programa no encontrado con id: " + id);
+        Programa programa = buscarEntidad(id);
+        String nombre = programa.getNombre();
         programaRepository.deleteById(id);
+        auditService.registrar(ModuloAuditoria.CONFIGURACION, "ELIMINAR_PROGRAMA",
+                "Eliminó el programa \"" + nombre + "\"",
+                "Programa", id, nombre, null,
+                ResultadoAuditoria.CRITICO);
     }
 
     private Programa buscarEntidad(Long id) {

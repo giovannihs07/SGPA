@@ -1,4 +1,8 @@
 import { Check, X, Loader2 } from "lucide-react";
+import {
+    tableWrapper, tableHeadRow, tableHeadCell, tableBody, tableRow,
+    tableCellPrimary, tableCellMuted, tableCellSubtext,
+} from "../../../components/ui/themeTokens";
 import { RolesBadge } from "./RolesBadge";
 import { nombreCompleto, normalizarRoles } from "../superAdminHelpers";
 
@@ -9,42 +13,34 @@ const perfilLabel = (u) => {
 };
 
 export const AprobacionesTabla = ({ pendientes, procesando, onAprobar, onRechazar }) => (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100
-        dark:border-gray-700 overflow-hidden">
+    <div className={tableWrapper}>
         <div className="overflow-x-auto">
             <table className="w-full text-sm">
                 <thead>
-                    <tr className="border-b border-gray-100 dark:border-gray-700
-                        bg-linear-to-r from-[#ffc20e]/5 to-transparent">
+                    <tr className={tableHeadRow}>
                         {["Solicitante", "Perfil", "Roles", "Registro", "Acciones"].map((h) => (
-                            <th key={h}
-                                className="px-4 py-3 text-left text-[10px] font-bold uppercase
-                                    tracking-widest text-gray-400 whitespace-nowrap">
-                                {h}
-                            </th>
+                            <th key={h} className={tableHeadCell}>{h}</th>
                         ))}
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50 dark:divide-gray-700/50">
+                <tbody className={tableBody}>
                     {pendientes.map((u) => {
                         const uid = u.userId ?? u.id;
                         const busy = procesando === uid;
                         return (
-                            <tr key={uid} className="hover:bg-[#ffc20e]/5 transition">
+                            <tr key={uid} className={tableRow}>
                                 <td className="px-4 py-3">
-                                    <p className="font-medium text-gray-800 dark:text-gray-100 text-xs">
-                                        {nombreCompleto(u)}
-                                    </p>
-                                    <p className="text-[11px] text-gray-400">{u.email}</p>
-                                    <p className="text-[11px] text-gray-400">{u.cedula ?? "—"}</p>
+                                    <p className={tableCellPrimary}>{nombreCompleto(u)}</p>
+                                    <p className={tableCellSubtext}>{u.email}</p>
+                                    <p className={tableCellSubtext}>{u.cedula ?? "—"}</p>
                                 </td>
-                                <td className="px-4 py-3 text-xs text-gray-500">
+                                <td className={`px-4 py-3 ${tableCellMuted}`}>
                                     {perfilLabel(u)}
                                 </td>
                                 <td className="px-4 py-3">
                                     <RolesBadge roles={normalizarRoles(u.roles)} />
                                 </td>
-                                <td className="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">
+                                <td className={`px-4 py-3 ${tableCellMuted} whitespace-nowrap`}>
                                     {u.fechaRegistro
                                         ? new Date(u.fechaRegistro).toLocaleDateString("es-CO")
                                         : "—"}
@@ -56,8 +52,8 @@ export const AprobacionesTabla = ({ pendientes, procesando, onAprobar, onRechaza
                                             disabled={busy}
                                             title="Aprobar"
                                             className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg
-                                                text-xs font-semibold text-green-700 bg-green-50
-                                                hover:bg-green-100 disabled:opacity-50 transition"
+                                                text-xs font-semibold text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/30
+                                                hover:bg-green-100 dark:hover:bg-green-900/50 disabled:opacity-50 transition"
                                         >
                                             {busy ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
                                             Aprobar
@@ -67,8 +63,8 @@ export const AprobacionesTabla = ({ pendientes, procesando, onAprobar, onRechaza
                                             disabled={busy}
                                             title="Rechazar"
                                             className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg
-                                                text-xs font-semibold text-red-600 bg-red-50
-                                                hover:bg-red-100 disabled:opacity-50 transition"
+                                                text-xs font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30
+                                                hover:bg-red-100 dark:hover:bg-red-900/50 disabled:opacity-50 transition"
                                         >
                                             <X size={12} /> Rechazar
                                         </button>

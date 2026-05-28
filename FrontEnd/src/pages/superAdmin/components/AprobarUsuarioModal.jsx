@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { X, UserCheck, Info } from "lucide-react";
+import { btnGhost } from "../../../components/ui/themeTokens";
 import { ROLE_LABELS, normalizarRoles, nombreCompleto } from "../superAdminHelpers";
 import { RolesBadge } from "./RolesBadge";
 
@@ -101,8 +102,7 @@ export const AprobarUsuarioModal = ({
                 </div>
 
                 <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-2">
-                    <button type="button" onClick={onClose}
-                        className="px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 rounded-lg">
+                    <button type="button" onClick={onClose} className={btnGhost}>
                         Cancelar
                     </button>
                     <button

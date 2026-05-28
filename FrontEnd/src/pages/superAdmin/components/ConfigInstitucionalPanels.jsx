@@ -1,12 +1,9 @@
 import { Building2, Pencil, Trash2, Plus } from "lucide-react";
-
-const inputCls = `w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700
-    bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-[#ffc20e]/40`;
-
-const btnPrimary = `px-4 py-2 text-sm font-semibold text-white bg-[#EC7A21]
-    hover:bg-[#d96a15] rounded-lg disabled:opacity-50`;
-
-const btnGhost = `px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 rounded-lg`;
+import {
+    tableWrapper, tableHeadRow, tableHeadCell, tableBody, tableRow,
+    tableCellPrimary, tableCellMuted,
+    inputSm, selectSm, btnPrimary, btnGhost, label, text,
+} from "../../../components/ui/themeTokens";
 
 export const InstitucionPanel = ({
     instituciones, formInst, setFormInst, editInstId, saving,
@@ -21,23 +18,23 @@ export const InstitucionPanel = ({
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                    <label className="text-[10px] font-bold uppercase text-gray-400">Nombre *</label>
-                    <input required className={inputCls} value={formInst.nombre}
+                    <label className={label}>Nombre *</label>
+                    <input required className={inputSm} value={formInst.nombre}
                         onChange={(e) => setFormInst({ ...formInst, nombre: e.target.value })} />
                 </div>
                 <div>
-                    <label className="text-[10px] font-bold uppercase text-gray-400">NIT *</label>
-                    <input required className={inputCls} value={formInst.nit}
+                    <label className={label}>NIT *</label>
+                    <input required className={inputSm} value={formInst.nit}
                         onChange={(e) => setFormInst({ ...formInst, nit: e.target.value })} />
                 </div>
                 <div>
-                    <label className="text-[10px] font-bold uppercase text-gray-400">Ciudad *</label>
-                    <input required className={inputCls} value={formInst.ciudad}
+                    <label className={label}>Ciudad *</label>
+                    <input required className={inputSm} value={formInst.ciudad}
                         onChange={(e) => setFormInst({ ...formInst, ciudad: e.target.value })} />
                 </div>
                 <div>
-                    <label className="text-[10px] font-bold uppercase text-gray-400">País *</label>
-                    <input required className={inputCls} value={formInst.pais}
+                    <label className={label}>País *</label>
+                    <input required className={inputSm} value={formInst.pais}
                         onChange={(e) => setFormInst({ ...formInst, pais: e.target.value })} />
                 </div>
             </div>
@@ -52,24 +49,22 @@ export const InstitucionPanel = ({
         </form>
 
         {instituciones.length > 0 && (
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100
-                dark:border-gray-700 overflow-hidden">
+            <div className={tableWrapper}>
                 <table className="w-full text-sm">
                     <thead>
-                        <tr className="border-b border-gray-100 dark:border-gray-700 bg-gray-50/50">
+                        <tr className={tableHeadRow}>
                             {["Nombre", "NIT", "Ciudad", "País", "Acciones"].map((h) => (
-                                <th key={h} className="px-4 py-2 text-left text-[10px] font-bold
-                                    uppercase tracking-widest text-gray-400">{h}</th>
+                                <th key={h} className={tableHeadCell}>{h}</th>
                             ))}
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50 dark:divide-gray-700/50">
+                    <tbody className={tableBody}>
                         {instituciones.map((inst) => (
-                            <tr key={inst.id} className="hover:bg-[#ffc20e]/5">
-                                <td className="px-4 py-3 text-xs font-medium">{inst.nombre}</td>
-                                <td className="px-4 py-3 text-xs text-gray-500">{inst.nit}</td>
-                                <td className="px-4 py-3 text-xs text-gray-500">{inst.ciudad}</td>
-                                <td className="px-4 py-3 text-xs text-gray-500">{inst.pais}</td>
+                            <tr key={inst.id} className={tableRow}>
+                                <td className={`px-4 py-3 ${tableCellPrimary}`}>{inst.nombre}</td>
+                                <td className={`px-4 py-3 ${tableCellMuted}`}>{inst.nit}</td>
+                                <td className={`px-4 py-3 ${tableCellMuted}`}>{inst.ciudad}</td>
+                                <td className={`px-4 py-3 ${tableCellMuted}`}>{inst.pais}</td>
                                 <td className="px-4 py-3">
                                     <div className="flex gap-1">
                                         <button onClick={() => onEdit(inst)} title="Editar"
@@ -100,9 +95,9 @@ export const FacultadesPanel = ({
 }) => (
     <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-3">
-            <label className="text-xs font-semibold text-gray-500">Institución:</label>
+            <label className={`text-xs font-semibold ${text.muted}`}>Institución:</label>
             <select value={institucionSel} onChange={(e) => setInstitucionSel(e.target.value)}
-                className={`${inputCls} max-w-xs`}>
+                className={`${selectSm} max-w-xs`}>
                 <option value="">Seleccionar…</option>
                 {instituciones.map((i) => (
                     <option key={i.id} value={i.id}>{i.nombre}</option>
@@ -120,13 +115,13 @@ export const FacultadesPanel = ({
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                            <label className="text-[10px] font-bold uppercase text-gray-400">Nombre *</label>
-                            <input required className={inputCls} value={formFac.nombre}
+                            <label className={label}>Nombre *</label>
+                            <input required className={inputSm} value={formFac.nombre}
                                 onChange={(e) => setFormFac({ ...formFac, nombre: e.target.value })} />
                         </div>
                         <div>
-                            <label className="text-[10px] font-bold uppercase text-gray-400">Código</label>
-                            <input className={inputCls} value={formFac.codigo ?? ""}
+                            <label className={label}>Código</label>
+                            <input className={inputSm} value={formFac.codigo ?? ""}
                                 onChange={(e) => setFormFac({ ...formFac, codigo: e.target.value })} />
                         </div>
                     </div>
@@ -138,25 +133,23 @@ export const FacultadesPanel = ({
                     </div>
                 </form>
 
-                <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100
-                    dark:border-gray-700 overflow-hidden">
+                <div className={tableWrapper}>
                     {facultades.length === 0 ? (
-                        <p className="text-sm text-gray-400 text-center py-10">Sin facultades registradas</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-10">Sin facultades registradas</p>
                     ) : (
                         <table className="w-full text-sm">
                             <thead>
-                                <tr className="border-b border-gray-100 dark:border-gray-700">
+                                <tr className={tableHeadRow}>
                                     {["Nombre", "Código", "Acciones"].map((h) => (
-                                        <th key={h} className="px-4 py-2 text-left text-[10px] font-bold
-                                            uppercase text-gray-400">{h}</th>
+                                        <th key={h} className={tableHeadCell}>{h}</th>
                                     ))}
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-50 dark:divide-gray-700/50">
+                            <tbody className={tableBody}>
                                 {facultades.map((f) => (
-                                    <tr key={f.id} className="hover:bg-[#ffc20e]/5">
-                                        <td className="px-4 py-3 text-xs font-medium">{f.nombre}</td>
-                                        <td className="px-4 py-3 text-xs text-gray-500">{f.codigo ?? "—"}</td>
+                                    <tr key={f.id} className={tableRow}>
+                                        <td className={`px-4 py-3 ${tableCellPrimary}`}>{f.nombre}</td>
+                                        <td className={`px-4 py-3 ${tableCellMuted}`}>{f.codigo ?? "—"}</td>
                                         <td className="px-4 py-3">
                                             <div className="flex gap-1">
                                                 <button onClick={() => onEdit(f)}
@@ -189,9 +182,9 @@ export const ProgramasPanel = ({
 }) => (
     <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-3">
-            <label className="text-xs font-semibold text-gray-500">Facultad:</label>
+            <label className={`text-xs font-semibold ${text.muted}`}>Facultad:</label>
             <select value={facultadSel} onChange={(e) => setFacultadSel(e.target.value)}
-                className={`${inputCls} max-w-xs`}>
+                className={`${selectSm} max-w-xs`}>
                 <option value="">Seleccionar…</option>
                 {facultades.map((f) => (
                     <option key={f.id} value={f.id}>{f.nombre}</option>
@@ -209,18 +202,18 @@ export const ProgramasPanel = ({
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
-                            <label className="text-[10px] font-bold uppercase text-gray-400">Nombre *</label>
-                            <input required className={inputCls} value={formProg.nombre}
+                            <label className={label}>Nombre *</label>
+                            <input required className={inputSm} value={formProg.nombre}
                                 onChange={(e) => setFormProg({ ...formProg, nombre: e.target.value })} />
                         </div>
                         <div>
-                            <label className="text-[10px] font-bold uppercase text-gray-400">Código</label>
-                            <input className={inputCls} value={formProg.codigo ?? ""}
+                            <label className={label}>Código</label>
+                            <input className={inputSm} value={formProg.codigo ?? ""}
                                 onChange={(e) => setFormProg({ ...formProg, codigo: e.target.value })} />
                         </div>
                         <div>
-                            <label className="text-[10px] font-bold uppercase text-gray-400">Nivel *</label>
-                            <select required className={inputCls} value={formProg.nivel}
+                            <label className={label}>Nivel *</label>
+                            <select required className={selectSm} value={formProg.nivel}
                                 onChange={(e) => setFormProg({ ...formProg, nivel: e.target.value })}>
                                 <option value="">Seleccionar…</option>
                                 {niveles.map((n) => (
@@ -237,26 +230,24 @@ export const ProgramasPanel = ({
                     </div>
                 </form>
 
-                <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100
-                    dark:border-gray-700 overflow-hidden">
+                <div className={tableWrapper}>
                     {programas.length === 0 ? (
-                        <p className="text-sm text-gray-400 text-center py-10">Sin programas registrados</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-10">Sin programas registrados</p>
                     ) : (
                         <table className="w-full text-sm">
                             <thead>
-                                <tr className="border-b border-gray-100 dark:border-gray-700">
+                                <tr className={tableHeadRow}>
                                     {["Nombre", "Código", "Nivel", "Acciones"].map((h) => (
-                                        <th key={h} className="px-4 py-2 text-left text-[10px] font-bold
-                                            uppercase text-gray-400">{h}</th>
+                                        <th key={h} className={tableHeadCell}>{h}</th>
                                     ))}
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-50 dark:divide-gray-700/50">
+                            <tbody className={tableBody}>
                                 {programas.map((p) => (
-                                    <tr key={p.id} className="hover:bg-[#ffc20e]/5">
-                                        <td className="px-4 py-3 text-xs font-medium">{p.nombre}</td>
-                                        <td className="px-4 py-3 text-xs text-gray-500">{p.codigo ?? "—"}</td>
-                                        <td className="px-4 py-3 text-xs text-gray-500">
+                                    <tr key={p.id} className={tableRow}>
+                                        <td className={`px-4 py-3 ${tableCellPrimary}`}>{p.nombre}</td>
+                                        <td className={`px-4 py-3 ${tableCellMuted}`}>{p.codigo ?? "—"}</td>
+                                        <td className={`px-4 py-3 ${tableCellMuted}`}>
                                             {NIVEL_LABELS[p.nivel] ?? p.nivel}
                                         </td>
                                         <td className="px-4 py-3">

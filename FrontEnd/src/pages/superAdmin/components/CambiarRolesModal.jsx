@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import { btnGhost } from "../../../components/ui/themeTokens";
 import { ROLE_LABELS, normalizarRoles } from "../superAdminHelpers";
 
 export const CambiarRolesModal = ({ usuario, rolesDisponibles, onClose, onGuardar, saving }) => {
@@ -60,7 +61,7 @@ export const CambiarRolesModal = ({ usuario, rolesDisponibles, onClose, onGuarda
                     <button 
                         type="button"
                         onClick={onClose}
-                        className="px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 rounded-lg"
+                        className={btnGhost}
                     >
                         Cancelar
                     </button>

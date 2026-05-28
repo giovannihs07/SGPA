@@ -23,6 +23,8 @@ import com.sgpa.exception.ProductoNoEliminableException;
 import com.sgpa.factory.ProductoDocenteFactory;
 import com.sgpa.mapper.ProductoDocenteMapper;
 import com.sgpa.model.Docente;
+import com.sgpa.model.audit.ModuloAuditoria;
+import com.sgpa.model.audit.ResultadoAuditoria;
 import com.sgpa.model.products.CategoriaProducto;
 import com.sgpa.model.products.ProductoDocente;
 import com.sgpa.model.products.SubcategoriaProducto;
@@ -41,6 +43,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
     private final ProductoDocenteFactory factory;
     private final ProductoDocenteMapper mapper;
     private final FileStorageService fileStorageService;
+    private final AuditService auditService;
 
     @Override
     @Transactional
@@ -60,7 +63,12 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
             producto.setNombreArchivoOriginal(nombres[1]);
         }
 
-        return mapper.toDTO(repository.save(producto));
+        ProductoDocente guardado = repository.save(producto);
+        auditService.registrar(ModuloAuditoria.PRODUCTOS, "CREAR_PRODUCTO",
+                "Registró el producto \"" + guardado.getNombre() + "\"",
+                "ProductoDocente", guardado.getId(), guardado.getNombre(),
+                Map.of("tipo", dto.getTipo()), ResultadoAuditoria.EXITOSO);
+        return mapper.toDTO(guardado);
     }
 
     @Override
@@ -119,7 +127,12 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
             producto.setNombreArchivoOriginal(nombres[1]);
         }
 
-        return mapper.toDTO(repository.save(producto));
+        ProductoDocente guardado = repository.save(producto);
+        auditService.registrar(ModuloAuditoria.PRODUCTOS, "EDITAR_PRODUCTO",
+                "Editó el producto \"" + guardado.getNombre() + "\"",
+                "ProductoDocente", guardado.getId(), guardado.getNombre(), null,
+                ResultadoAuditoria.EXITOSO);
+        return mapper.toDTO(guardado);
     }
 
     @Override
@@ -157,7 +170,12 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
         ProductoDocente producto = buscarEntidad(id);
         producto.setPublicado(true);
         producto.setFechaPublicacion(LocalDate.now());
-        return mapper.toDTO(repository.save(producto));
+        ProductoDocente guardado = repository.save(producto);
+        auditService.registrar(ModuloAuditoria.PRODUCTOS, "PUBLICAR_PRODUCTO",
+                "Publicó el producto \"" + guardado.getNombre() + "\"",
+                "ProductoDocente", guardado.getId(), guardado.getNombre(), null,
+                ResultadoAuditoria.EXITOSO);
+        return mapper.toDTO(guardado);
     }
 
     @Override
@@ -166,7 +184,12 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
         ProductoDocente producto = buscarEntidad(id);
         producto.setPublicado(false);
         producto.setFechaPublicacion(null);
-        return mapper.toDTO(repository.save(producto));
+        ProductoDocente guardado = repository.save(producto);
+        auditService.registrar(ModuloAuditoria.PRODUCTOS, "DESPUBLICAR_PRODUCTO",
+                "Despublicó el producto \"" + guardado.getNombre() + "\"",
+                "ProductoDocente", guardado.getId(), guardado.getNombre(), null,
+                ResultadoAuditoria.EXITOSO);
+        return mapper.toDTO(guardado);
     }
 
     @Override
@@ -174,9 +197,14 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
     public void eliminar(Long id) {
         ProductoDocente producto = buscarEntidad(id);
         verificarProductoEliminable(producto);
+        String nombre = producto.getNombre();
         if (producto.getNombreArchivo() != null)
             fileStorageService.eliminarArchivo(producto.getNombreArchivo());
         repository.delete(producto);
+        auditService.registrar(ModuloAuditoria.PRODUCTOS, "ELIMINAR_PRODUCTO",
+                "Eliminó el producto \"" + nombre + "\"",
+                "ProductoDocente", id, nombre, null,
+                ResultadoAuditoria.CRITICO);
     }
 
     @Override
