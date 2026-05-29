@@ -73,6 +73,9 @@ export const selectXs = `${inputXs} appearance-none cursor-pointer`;
 export const inputIcon =
     "absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 pointer-events-none";
 
+/** Campos de filtro en fila con el mismo ancho */
+export const filtroCampoIgual = "flex-1 min-w-0 basis-0";
+
 export const filterBar = `${card} p-4 flex flex-wrap items-center gap-3`;
 
 export const btnPrimary =

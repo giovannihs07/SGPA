@@ -61,6 +61,19 @@ export const puedeEditarProducto = (producto) => !producto?.publicado;
 /** Solo productos sin publicar pueden eliminarse */
 export const puedeEliminarProducto = (producto) => !producto?.publicado;
 
+/** Compara YYYY-MM-DD contra rango [fechaDesde, fechaHasta] inclusive */
+export const matchRangoFecha = (producto, { fechaDesde, fechaHasta, campo = "fechaCreacion" }) => {
+    if (!fechaDesde && !fechaHasta) return true;
+
+    const raw = producto?.[campo];
+    if (!raw) return false;
+
+    const fecha = String(raw).slice(0, 10);
+    if (fechaDesde && fecha < fechaDesde) return false;
+    if (fechaHasta && fecha > fechaHasta) return false;
+    return true;
+};
+
 export const MENSAJE_PRODUCTO_PUBLICADO =
     "Este producto está publicado. Despublícalo desde Mis productos para editarlo o eliminarlo.";
 

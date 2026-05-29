@@ -15,7 +15,7 @@ const getInitials = (user) => {
 
 const getRolLabel = (login) => {
     if (login?.isSuperAdmin) return "Super Admin";
-    if (login?.isAdmin)      return "Administrador";
+    if (login?.isAdmin)      return "Administrativo";
     if (login?.isDocente)    return "Docente";
     return "Estudiante";
 };

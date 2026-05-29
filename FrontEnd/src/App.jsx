@@ -26,7 +26,11 @@ import { SuperAdminConfiguracionPage } from "./pages/superAdmin/SuperAdminConfig
 import { SuperAdminAuditoriaPage } from "./pages/superAdmin/SuperAdminAuditoriaPage";
  
 // Páginas de admin
-import { DashboardAdminPage } from "./pages/admin/DashboardAdminPage";
+import { DashboardAdminPage }        from "./pages/admin/DashboardAdminPage";
+import { AdminUsuariosPage }         from "./pages/admin/AdminUsuariosPage";
+import { AdminProductosPage }        from "./pages/admin/AdminProductosPage";
+import { AdminAprobacionesPage }     from "./pages/admin/AdminAprobacionesPage";
+import { AdminReportesPage }         from "./pages/admin/AdminReportesPage";
  
 // Páginas de estudiante o público general
 import { DashboardPublicPage } from "./pages/public/DashboardPublicPage";
@@ -74,11 +78,10 @@ export default function App() {
                         <Route element={<ProtectedRoute onlyAdmin />}>
                             <Route element={<DashboardLayout />}>
                                 <Route path="/dashboard/admin"               element={<DashboardAdminPage />} />
-                                <Route path="/dashboard/admin/usuarios"      element={<div>Usuarios</div>} />
-                                <Route path="/dashboard/admin/productos"     element={<div>Todos los productos</div>} />
-                                <Route path="/dashboard/admin/aprobaciones"  element={<div>Aprobaciones</div>} />
-                                <Route path="/dashboard/admin/reportes"      element={<div>Reportes</div>} />
-                                <Route path="/dashboard/admin/configuracion" element={<div>Configuración</div>} />
+                                <Route path="/dashboard/admin/usuarios"      element={<AdminUsuariosPage />} />
+                                <Route path="/dashboard/admin/productos"     element={<AdminProductosPage />} />
+                                <Route path="/dashboard/admin/aprobaciones"  element={<AdminAprobacionesPage />} />
+                                <Route path="/dashboard/admin/reportes"      element={<AdminReportesPage />} />
                             </Route>
                         </Route>
  

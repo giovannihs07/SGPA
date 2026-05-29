@@ -19,7 +19,6 @@ const PAGE_TITLES = {
     "/dashboard/admin/productos":      "Todos los productos",
     "/dashboard/admin/aprobaciones":   "Aprobar / rechazar",
     "/dashboard/admin/reportes":       "Reportes",
-    "/dashboard/admin/configuracion":  "Configuración",
 
     "/dashboard/superadmin":                "Dashboard",
     "/dashboard/superadmin/usuarios":       "Usuarios",

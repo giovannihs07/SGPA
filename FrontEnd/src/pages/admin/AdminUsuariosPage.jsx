@@ -1,0 +1,128 @@
+import { AlertCircle, RefreshCw, Users } from "lucide-react";
+import { useUsuariosAdmin } from "../../hooks/superadmin/useUsuariosAdmin";
+import { UsuariosTabla } from "../superAdmin/components/UsuariosTabla";
+import { CambiarRolesModal } from "../superAdmin/components/CambiarRolesModal";
+import { AprobarUsuarioModal } from "../superAdmin/components/AprobarUsuarioModal";
+import { AdminFiltrosBar } from "../superAdmin/components/ProductosAdminTabla";
+import { UsuariosFiltrosContextuales } from "../superAdmin/components/UsuariosFiltrosContextuales";
+import { ROLES_ASIGNABLES_ADMIN } from "./adminHelpers";
+import { PERFILES_USUARIO_FILTRO } from "../superAdmin/superAdminHelpers";
+
+const ESTADOS = [
+    { value: "TODOS",     label: "Todos los estados" },
+    { value: "ACTIVO",    label: "Activos" },
+    { value: "PENDIENTE", label: "Pendientes" },
+    { value: "INACTIVO",  label: "Inactivos" },
+    { value: "RECHAZADO", label: "Rechazados" },
+];
+
+export const AdminUsuariosPage = () => {
+    const {
+        usuarios, loading, error, refetch,
+        busqueda, setBusqueda, filtroEstado, setFiltroEstado,
+        filtroPerfil, setFiltroPerfil,
+        filtroFacultad, setFiltroFacultad,
+        filtroPrograma, setFiltroPrograma,
+        filtroDependencia, setFiltroDependencia,
+        facultades, programasFiltrados, dependencias,
+        usuarioRoles, setUsuarioRoles, rolesDisponibles,
+        usuarioAprobar, cerrarAprobar, confirmarAprobar, savingAprobacion,
+        savingRoles, handleGuardarRoles,
+        handleActivar, handleDesactivar, handleRechazar,
+    } = useUsuariosAdmin();
+
+    const rolesAsignables = ROLES_ASIGNABLES_ADMIN(rolesDisponibles);
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center py-20 text-gray-400 text-sm gap-2">
+                <RefreshCw size={16} className="animate-spin" /> Cargando usuarios…
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex flex-col items-center py-20 gap-3 text-red-500">
+                <AlertCircle size={24} />
+                <p className="text-sm">{error}</p>
+                <button onClick={refetch} className="text-xs text-[#EC7A21] hover:underline">Reintentar</button>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-4 max-w-7xl mx-auto">
+            <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                <p className="text-sm text-blue-800 dark:text-blue-300">
+                    Como administrativo puedes gestionar docentes y otros administrativos.
+                    Las cuentas de <strong>Super Admin</strong> no son editables desde este panel.
+                </p>
+            </div>
+
+            <div className="flex items-center justify-between gap-3">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {usuarios.length} usuario{usuarios.length !== 1 ? "s" : ""}
+                </p>
+            </div>
+
+            <AdminFiltrosBar
+                busqueda={busqueda}
+                setBusqueda={setBusqueda}
+                filtroEstado={filtroEstado}
+                setFiltroEstado={setFiltroEstado}
+                filtroPerfil={filtroPerfil}
+                setFiltroPerfil={setFiltroPerfil}
+                perfiles={PERFILES_USUARIO_FILTRO}
+                estados={ESTADOS}
+                placeholder="Buscar por nombre o cédula…"
+                onRefresh={refetch}
+            />
+
+            <UsuariosFiltrosContextuales
+                filtroPerfil={filtroPerfil}
+                filtroFacultad={filtroFacultad}
+                setFiltroFacultad={setFiltroFacultad}
+                facultades={facultades}
+                filtroPrograma={filtroPrograma}
+                setFiltroPrograma={setFiltroPrograma}
+                programasFiltrados={programasFiltrados}
+                filtroDependencia={filtroDependencia}
+                setFiltroDependencia={setFiltroDependencia}
+                dependencias={dependencias}
+            />
+
+            {usuarios.length === 0 ? (
+                <div className="flex flex-col items-center py-20 text-gray-400">
+                    <Users size={32} className="mb-3 opacity-30" />
+                    <p className="text-sm">Sin resultados</p>
+                </div>
+            ) : (
+                <UsuariosTabla
+                    usuarios={usuarios}
+                    onActivar={handleActivar}
+                    onDesactivar={handleDesactivar}
+                    onRechazar={handleRechazar}
+                    onCambiarRoles={setUsuarioRoles}
+                    bloquearSuperAdmin
+                />
+            )}
+
+            <CambiarRolesModal
+                usuario={usuarioRoles}
+                rolesDisponibles={rolesAsignables}
+                onClose={() => setUsuarioRoles(null)}
+                onGuardar={handleGuardarRoles}
+                saving={savingRoles}
+            />
+
+            <AprobarUsuarioModal
+                usuario={usuarioAprobar}
+                rolesDisponibles={rolesAsignables}
+                onClose={cerrarAprobar}
+                onAprobar={confirmarAprobar}
+                saving={savingAprobacion}
+            />
+        </div>
+    );
+};

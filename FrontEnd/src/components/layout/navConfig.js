@@ -45,7 +45,6 @@ export const NAV_ITEMS = {
             items: [
                 { label: "Aprobar / rechazar", icon: CheckSquare, path: "/dashboard/admin/aprobaciones" },
                 { label: "Reportes",           icon: BarChart2,   path: "/dashboard/admin/reportes" },
-                { label: "Configuración",      icon: Settings,    path: "/dashboard/admin/configuracion" },
             ],
         },
     ],

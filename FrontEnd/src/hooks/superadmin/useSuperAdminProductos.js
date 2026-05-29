@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { getProductosPublicados, eliminarProducto, descargarArchivo } from "../../services/productoServices";
 import { notifySuccess, notifyError } from "../../utils/notify";
-import { esReciente } from "../../pages/docente/components/productoHelpers";
+import { esReciente, matchRangoFecha } from "../../pages/docente/components/productoHelpers";
 import { intentarEliminarProducto, confirmTogglePublicacion } from "../../pages/docente/components/misProductos/productoSwal";
 import axiosInstance from "../../services/axiosInstance";
 
@@ -33,15 +33,13 @@ export const useSuperAdminProductos = () => {
 
     useEffect(() => { fetchProductos(); }, [fetchProductos]);
 
-    // Función para obtener el resumen de los productos
-    const resumen = useMemo(() => ({
-        total:         productos.length,
-        ultimos30Dias: productos.filter((p) => esReciente(p.fechaCreacion)).length,
-    }), [productos]);
-
+    // Función para obtener el resumen de los productos (según filtros activos)
     const [busqueda, setBusqueda]             = useState("");
     const [filtroCategoria, setFiltroCategoria] = useState("TODAS");
     const [filtroTipo, setFiltroTipo]           = useState("TODOS");
+    const [fechaDesde, setFechaDesde]           = useState("");
+    const [fechaHasta, setFechaHasta]           = useState("");
+    const [filtroCampoFecha, setFiltroCampoFecha] = useState("fechaCreacion");
     const [pagina, setPagina]                   = useState(0);
 
     // Función para obtener las categorias disponibles
@@ -65,7 +63,6 @@ export const useSuperAdminProductos = () => {
         setPagina(0);
     }, []);
 
-    // Función para filtrar los productos por la búsqueda, la categoría y el tipo
     const productosFiltrados = useMemo(() =>
         productos.filter((p) => {
             const matchBusqueda = !busqueda
@@ -73,9 +70,15 @@ export const useSuperAdminProductos = () => {
                 || p.descripcion?.toLowerCase().includes(busqueda.toLowerCase());
             const matchCategoria = filtroCategoria === "TODAS" || p.categoria === filtroCategoria;
             const matchTipo      = filtroTipo === "TODOS" || p.tipo === filtroTipo;
-            return matchBusqueda && matchCategoria && matchTipo;
+            const matchFecha = matchRangoFecha(p, { fechaDesde, fechaHasta, campo: filtroCampoFecha });
+            return matchBusqueda && matchCategoria && matchTipo && matchFecha;
         }),
-    [productos, busqueda, filtroCategoria, filtroTipo]);
+    [productos, busqueda, filtroCategoria, filtroTipo, fechaDesde, fechaHasta, filtroCampoFecha]);
+
+    const resumen = useMemo(() => ({
+        total:         productosFiltrados.length,
+        ultimos30Dias: productosFiltrados.filter((p) => esReciente(p.fechaCreacion)).length,
+    }), [productosFiltrados]);
 
     const totalPaginas = Math.max(1, Math.ceil(productosFiltrados.length / PAGE_SIZE));
 
@@ -96,6 +99,9 @@ export const useSuperAdminProductos = () => {
     const resetPagina = useCallback(() => setPagina(0), []);
     const handleBusqueda   = useCallback((v) => { setBusqueda(v); resetPagina(); }, [resetPagina]);
     const handleFiltroTipo = useCallback((v) => { setFiltroTipo(v); resetPagina(); }, [resetPagina]);
+    const handleFechaDesde = useCallback((v) => { setFechaDesde(v); resetPagina(); }, [resetPagina]);
+    const handleFechaHasta = useCallback((v) => { setFechaHasta(v); resetPagina(); }, [resetPagina]);
+    const handleFiltroCampoFecha = useCallback((v) => { setFiltroCampoFecha(v); resetPagina(); }, [resetPagina]);
 
     const handleDescargar = useCallback(async (producto) => {
         if (!producto.nombreArchivo) {
@@ -173,6 +179,9 @@ export const useSuperAdminProductos = () => {
         busqueda, setBusqueda: handleBusqueda,
         filtroCategoria, handleFiltroCategoria,
         filtroTipo, setFiltroTipo: handleFiltroTipo,
+        fechaDesde, setFechaDesde: handleFechaDesde,
+        fechaHasta, setFechaHasta: handleFechaHasta,
+        filtroCampoFecha, setFiltroCampoFecha: handleFiltroCampoFecha,
         categoriasDisponibles, tiposDisponibles,
         pagina, totalPaginas, pageSize: PAGE_SIZE, irPagina,
         abrirDetalle, cerrarDetalle, productoDetalle,

@@ -4,6 +4,8 @@ import { UsuariosTabla } from "./components/UsuariosTabla";
 import { CambiarRolesModal } from "./components/CambiarRolesModal";
 import { AprobarUsuarioModal } from "./components/AprobarUsuarioModal";
 import { AdminFiltrosBar } from "./components/ProductosAdminTabla";
+import { UsuariosFiltrosContextuales } from "./components/UsuariosFiltrosContextuales";
+import { PERFILES_USUARIO_FILTRO } from "./superAdminHelpers";
 
 const ESTADOS = [
     { value: "TODOS",     label: "Todos los estados" },
@@ -17,6 +19,11 @@ export const SuperAdminUsuariosPage = () => {
     const {
         usuarios, loading, error, refetch,
         busqueda, setBusqueda, filtroEstado, setFiltroEstado,
+        filtroPerfil, setFiltroPerfil,
+        filtroFacultad, setFiltroFacultad,
+        filtroPrograma, setFiltroPrograma,
+        filtroDependencia, setFiltroDependencia,
+        facultades, programasFiltrados, dependencias,
         usuarioRoles, setUsuarioRoles, rolesDisponibles,
         usuarioAprobar, cerrarAprobar, confirmarAprobar, savingAprobacion,
         savingRoles, handleGuardarRoles,
@@ -55,9 +62,25 @@ export const SuperAdminUsuariosPage = () => {
                 setBusqueda={setBusqueda}
                 filtroEstado={filtroEstado}
                 setFiltroEstado={setFiltroEstado}
+                filtroPerfil={filtroPerfil}
+                setFiltroPerfil={setFiltroPerfil}
+                perfiles={PERFILES_USUARIO_FILTRO}
                 estados={ESTADOS}
-                placeholder="Buscar por nombre, email o cédula…"
+                placeholder="Buscar por nombre o cédula…"
                 onRefresh={refetch}
+            />
+
+            <UsuariosFiltrosContextuales
+                filtroPerfil={filtroPerfil}
+                filtroFacultad={filtroFacultad}
+                setFiltroFacultad={setFiltroFacultad}
+                facultades={facultades}
+                filtroPrograma={filtroPrograma}
+                setFiltroPrograma={setFiltroPrograma}
+                programasFiltrados={programasFiltrados}
+                filtroDependencia={filtroDependencia}
+                setFiltroDependencia={setFiltroDependencia}
+                dependencias={dependencias}
             />
 
             {usuarios.length === 0 ? (

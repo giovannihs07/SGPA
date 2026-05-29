@@ -1,6 +1,7 @@
 import { Search, Filter } from "lucide-react";
 import { SelectFilter } from "./SelectFilter";
 import { TIPO_LABELS, CATEGORIA_LABELS } from "../productoHelpers";
+import { FiltroFechaRango } from "../../../../components/ui/FiltroFechaRango";
 import { filterBar, inputXs, inputIcon } from "../../../../components/ui/themeTokens";
 
 export const MisProductosFiltros = ({
@@ -10,7 +11,12 @@ export const MisProductosFiltros = ({
     filtroTipo, setFiltroTipo,
     categoriasDisponibles, tiposDisponibles,
     ocultarFiltroEstado = false,
+    mostrarFiltroFecha = false,
+    fechaDesde, fechaHasta,
+    setFechaDesde, setFechaHasta,
+    filtroCampoFecha, setFiltroCampoFecha,
 }) => (
+    <div className="space-y-2">
     <div className={filterBar}>
         <div className="relative flex-1 min-w-45">
             <Search size={13} className={inputIcon} aria-hidden="true" />
@@ -51,5 +57,16 @@ export const MisProductosFiltros = ({
                 ))}
             </SelectFilter>
         </div>
+    </div>
+    {mostrarFiltroFecha && (
+        <FiltroFechaRango
+            fechaDesde={fechaDesde}
+            fechaHasta={fechaHasta}
+            onDesdeChange={setFechaDesde}
+            onHastaChange={setFechaHasta}
+            filtroCampo={filtroCampoFecha}
+            onCampoChange={setFiltroCampoFecha}
+        />
+    )}
     </div>
 );

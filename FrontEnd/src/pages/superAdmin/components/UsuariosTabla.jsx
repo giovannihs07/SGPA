@@ -6,10 +6,12 @@ import {
 import { EstadoUsuarioBadge } from "./EstadoUsuarioBadge";
 import { RolesBadge } from "./RolesBadge";
 import { nombreCompleto, normalizarRoles } from "../superAdminHelpers";
+import { esUsuarioSuperAdmin } from "../../admin/adminHelpers";
 
 // Tabla de usuarios con los usuarios filtrados por el estado y la búsqueda
 export const UsuariosTabla = ({
     usuarios, onActivar, onDesactivar, onRechazar, onCambiarRoles,
+    bloquearSuperAdmin = false,
 }) => (
     <div className={tableWrapper}>
         <div className="overflow-x-auto">
@@ -22,7 +24,9 @@ export const UsuariosTabla = ({
                     </tr>
                 </thead>
                 <tbody className={tableBody}>
-                    {usuarios.map((u) => (
+                    {usuarios.map((u) => {
+                        const protegido = bloquearSuperAdmin && esUsuarioSuperAdmin(u);
+                        return (
                         <tr key={u.id} className={tableRow}>
                             <td className="px-4 py-3">
                                 <p className={tableCellPrimary}>{nombreCompleto(u)}</p>
@@ -38,6 +42,9 @@ export const UsuariosTabla = ({
                                 <RolesBadge roles={normalizarRoles(u.roles)} />
                             </td>
                             <td className="px-4 py-3">
+                                {protegido ? (
+                                    <span className="text-xs text-gray-400 italic">Protegido</span>
+                                ) : (
                                 <div className="flex items-center gap-1">
                                     {/* Botón para cambiar los roles del usuario */}
                                     <button
@@ -77,9 +84,11 @@ export const UsuariosTabla = ({
                                         </button>
                                     )}
                                 </div>
+                                )}
                             </td>
                         </tr>
-                    ))}
+                        );
+                    })}
                 </tbody>
             </table>
         </div>

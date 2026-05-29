@@ -3,7 +3,7 @@ import { Globe, GlobeLock, Trash2 } from "lucide-react";
 import {
     tableWrapper, tableHeadRow, tableHeadCell, tableBody, tableRow,
     tableCellPrimary, tableCellSecondary, tableCellMuted,
-    inputSm, selectSm, inputIcon, btnIcon,
+    inputSm, selectSm, inputIcon, btnIcon, filtroCampoIgual,
 } from "../../../components/ui/themeTokens";
 import { TIPO_LABELS, CATEGORIA_LABELS, formatFecha } from "../../docente/components/productoHelpers";
 import { EstadoBadge } from "../../docente/components/misProductos/EstadoBadge";
@@ -84,10 +84,11 @@ export const ProductosAdminTabla = ({
 
 export const AdminFiltrosBar = ({
     busqueda, setBusqueda, filtroEstado, setFiltroEstado,
+    filtroPerfil, setFiltroPerfil, perfiles,
     estados, placeholder, onRefresh,
 }) => (
-    <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
+    <div className="flex flex-col sm:flex-row gap-3 items-stretch w-full">
+        <div className={`relative ${filtroCampoIgual}`}>
             <Search size={14} className={inputIcon} aria-hidden="true" />
             <input
                 type="search"
@@ -95,14 +96,26 @@ export const AdminFiltrosBar = ({
                 onChange={(e) => setBusqueda(e.target.value)}
                 placeholder={placeholder}
                 aria-label={placeholder}
-                className={`${inputSm} pl-9`}
+                className={`${inputSm} pl-9 w-full h-full`}
             />
         </div>
+        {perfiles && setFiltroPerfil && (
+            <select
+                value={filtroPerfil}
+                onChange={(e) => setFiltroPerfil(e.target.value)}
+                aria-label="Filtrar por perfil"
+                className={`${selectSm} ${filtroCampoIgual}`}
+            >
+                {perfiles.map(({ value, label }) => (
+                    <option key={value} value={value}>{label}</option>
+                ))}
+            </select>
+        )}
         <select
             value={filtroEstado}
             onChange={(e) => setFiltroEstado(e.target.value)}
             aria-label="Filtrar por estado"
-            className={selectSm}
+            className={`${selectSm} ${filtroCampoIgual}`}
         >
             {estados.map(({ value, label }) => (
                 <option key={value} value={value}>{label}</option>
@@ -113,7 +126,7 @@ export const AdminFiltrosBar = ({
                 onClick={onRefresh}
                 title="Actualizar"
                 aria-label="Actualizar listado"
-                className={`${btnIcon} px-3 py-2 border border-gray-300 dark:border-gray-600
+                className={`${btnIcon} px-3 py-2 border border-gray-300 dark:border-gray-600 shrink-0 self-stretch
                     text-gray-600 dark:text-gray-400 hover:text-[#EC7A21] hover:border-[#ffc20e]/40`}
             >
                 <RefreshCw size={16} />

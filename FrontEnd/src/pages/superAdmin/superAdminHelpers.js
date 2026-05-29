@@ -41,6 +41,108 @@ export const normalizarRoles = (roles) => {
     return Array.isArray(roles) ? roles : [...roles];
 };
 
+export const PERFILES_USUARIO_FILTRO = [
+    { value: "TODOS",                 label: "Todos los perfiles" },
+    { value: "DOCENTE",               label: "Docente" },
+    { value: "ADMINISTRATIVO",        label: "Administrativo" },
+    { value: "DOCENTE_ADMINISTRATIVO", label: "Docente administrativo" },
+];
+
+/** Filtra por perfil compuesto (docente, administrativo o ambos) */
+export const matchFiltroPerfilUsuario = (usuario, filtroPerfil) => {
+    if (!filtroPerfil || filtroPerfil === "TODOS") return true;
+
+    const roles = normalizarRoles(usuario?.roles);
+    const esDocente = roles.includes("ROLE_DOCENTE");
+    const esAdmin = roles.includes("ROLE_ADMIN");
+
+    switch (filtroPerfil) {
+        case "DOCENTE":
+            return esDocente && !esAdmin;
+        case "ADMINISTRATIVO":
+            return esAdmin && !esDocente;
+        case "DOCENTE_ADMINISTRATIVO":
+            return esDocente && esAdmin;
+        default:
+            return true;
+    }
+};
+
+export const perfilRequiereFiltroDocente = (filtroPerfil) =>
+    filtroPerfil === "DOCENTE" || filtroPerfil === "DOCENTE_ADMINISTRATIVO";
+
+export const perfilRequiereFiltroAdministrativo = (filtroPerfil) =>
+    filtroPerfil === "ADMINISTRATIVO";
+
+export const construirMapaDocentesPorPersona = (docentes) => {
+    const map = new Map();
+    for (const d of docentes ?? []) {
+        const programas = [...(d.programas ?? [])];
+        map.set(d.id, {
+            facultadIds: new Set(programas.map((p) => p.facultadId).filter(Boolean)),
+            programaIds: new Set(programas.map((p) => p.id).filter(Boolean)),
+        });
+    }
+    return map;
+};
+
+export const construirMapaAdministrativosPorPersona = (administrativos) => {
+    const map = new Map();
+    for (const a of administrativos ?? []) {
+        map.set(a.id, { dependencia: a.dependencia ?? null });
+    }
+    return map;
+};
+
+export const enriquecerUsuariosConPerfil = (usuarios, mapaDocentes, mapaAdmin) =>
+    (usuarios ?? []).map((u) => {
+        const personaId = u.personaId ?? u.id;
+        const doc = mapaDocentes.get(personaId);
+        const adm = mapaAdmin.get(personaId);
+        return {
+            ...u,
+            facultadIds: doc ? [...doc.facultadIds] : [],
+            programaIds: doc ? [...doc.programaIds] : [],
+            dependencia: adm?.dependencia ?? null,
+        };
+    });
+
+const matchIdEnLista = (valor, ids) => {
+    if (valor === "TODAS" || valor === "TODOS") return true;
+    return (ids ?? []).some((id) => String(id) === String(valor));
+};
+
+export const matchFiltroFacultadUsuario = (usuario, filtroFacultad) =>
+    matchIdEnLista(filtroFacultad, usuario?.facultadIds);
+
+export const matchFiltroProgramaUsuario = (usuario, filtroPrograma) =>
+    matchIdEnLista(filtroPrograma, usuario?.programaIds);
+
+export const matchFiltroDependenciaUsuario = (usuario, filtroDependencia) => {
+    if (filtroDependencia === "TODAS") return true;
+    return (usuario?.dependencia ?? "") === filtroDependencia;
+};
+
+/** Búsqueda por nombre completo o cédula */
+export const matchBusquedaUsuario = (usuario, busqueda) => {
+    const q = busqueda.trim();
+    if (!q) return true;
+
+    const qLower = q.toLowerCase();
+    const nombreCompletoUsuario = [usuario?.nombre, usuario?.apellido]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+    return nombreCompletoUsuario.includes(qLower)
+        || usuario?.nombre?.toLowerCase().includes(qLower)
+        || usuario?.apellido?.toLowerCase().includes(qLower)
+        || (usuario?.cedula ?? "").includes(q);
+};
+
+export const listarDependenciasUnicas = (administrativos) =>
+    [...new Set((administrativos ?? []).map((a) => a.dependencia).filter(Boolean))].sort();
+
 // Configuración de los niveles de formación
 export const NIVEL_LABELS = {
     TECNICA_PROFESIONAL: "Técnica profesional",
