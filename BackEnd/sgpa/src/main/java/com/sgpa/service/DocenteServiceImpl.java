@@ -14,6 +14,7 @@ import com.sgpa.dto.request.TituloAcademicoRequest;
 import com.sgpa.dto.response.AdministrativoResponse;
 import com.sgpa.dto.response.DocenteAdministrativoResponse;
 import com.sgpa.dto.response.DocenteResponse;
+import com.sgpa.exception.UniversidadValidationException;
 import com.sgpa.mapper.AdministrativoMapper;
 import com.sgpa.mapper.DocenteMapper;
 import com.sgpa.model.Administrativo;
@@ -32,6 +33,7 @@ import com.sgpa.repository.ProgramaRepository;
 import com.sgpa.repository.RoleRepository;
 import com.sgpa.repository.TituloAcademicoRepository;
 import com.sgpa.repository.UserRepository;
+import com.universidad.service.UniversidadService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -49,11 +51,21 @@ public class DocenteServiceImpl implements DocenteService {
     private final DocenteMapper docenteMapper;
     private final AdministrativoMapper administrativoMapper;
     private final PasswordEncoder passwordEncoder;
+    private final UniversidadService universidadService;
 
     @Override
     @Transactional
     public DocenteResponse registrar(RegistroDocenteRequest dto) {
 
+        // 1. Validar contra BD universidad
+        boolean docenteValido = universidadService.validarDocenteActivo(dto.getCedula());
+
+        if (!docenteValido) {
+            throw new UniversidadValidationException(
+                "No se encontró un docente activo en BD de la universidad con cédula: " + dto.getCedula());
+        }
+
+        // 2. Verificar que no esté ya registrado
         if (personaRepository.existsByCedula(dto.getCedula()))
             throw new IllegalStateException(
                     "Ya existe una persona con cédula: " + dto.getCedula());
@@ -62,7 +74,7 @@ public class DocenteServiceImpl implements DocenteService {
             throw new IllegalStateException(
                     "Ya existe un usuario con email: " + dto.getEmail());
 
-        // 1. Crear y guardar Persona — captura el retorno con el id generado
+        // 3. Crear y guardar Persona — captura el retorno con el id generado
         Persona persona = new Persona();
         persona.setNombre(dto.getNombre());
         persona.setApellido(dto.getApellido());
@@ -70,7 +82,7 @@ public class DocenteServiceImpl implements DocenteService {
         persona.setTelefono(dto.getTelefono());
         persona = personaRepository.save(persona);
 
-        // 2. Crear Docente @MapsId lo deriva de persona
+        // 4. Crear Docente @MapsId lo deriva de persona
         Docente docente = new Docente();
         docente.setPersona(persona); // ← @MapsId toma el id de aquí
         docente.setCodigoDocente(dto.getCodigoDocente());
@@ -84,7 +96,7 @@ public class DocenteServiceImpl implements DocenteService {
 
         docente = docenteRepository.save(docente);
 
-        // 3. Títulos
+        // 5. Títulos
         if (dto.getTitulos() != null && !dto.getTitulos().isEmpty()) {
             Docente docenteFinal = docente;
             List<TituloAcademico> titulos = dto.getTitulos().stream()
@@ -102,7 +114,7 @@ public class DocenteServiceImpl implements DocenteService {
             tituloRepository.saveAll(titulos);
         }
 
-        // 4. Crear User con rol ROLE_DOCENTE
+        // 6. Crear User con rol ROLE_DOCENTE
         Role rolDocente = roleRepository.findByName(RoleName.ROLE_DOCENTE)
                 .orElseThrow(() -> new IllegalStateException(
                         "Rol ROLE_DOCENTE no encontrado"));
@@ -110,14 +122,14 @@ public class DocenteServiceImpl implements DocenteService {
         User user = new User();
         user.setEmail(dto.getEmail());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        user.setEstado(EstadoUsuario.PENDIENTE);
+        user.setEstado(EstadoUsuario.ACTIVO);
         user.setPersona(persona);
         user.setRoles(Set.of(rolDocente));
         userRepository.save(user);
 
-        // Al final de registrar() — pasa el user directamente para evitar query extra
-        Docente docenteGuardado = docenteRepository.findById(docente.getId())
-                .orElseThrow();
+        // 7. Al final de registrar() — pasa el user directamente para evitar query
+        // extra
+        Docente docenteGuardado = docenteRepository.findById(docente.getId()).orElseThrow();
 
         return docenteMapper.toDTO(docenteGuardado, user); // ← sobrecarga con user
     }
@@ -127,13 +139,21 @@ public class DocenteServiceImpl implements DocenteService {
             RegistroDocenteRequest docenteDto,
             RegistroAdminParaDocenteRequest adminDto) {
 
-        // Validaciones
+        // 1. Validar ambos perfiles contra BD universidad
+        boolean docenteValido = universidadService.validarDocenteActivo(docenteDto.getCedula());
+        boolean adminValido = universidadService.validarAdministrativoActivo(docenteDto.getCedula());
+
+        if (!docenteValido || !adminValido) {
+            throw new UniversidadValidationException(
+                "No se encontró un docente o administrativo activo en BD de la universidad con cédula: " + docenteDto.getCedula());
+        }
+
         if (personaRepository.existsByCedula(docenteDto.getCedula()))
             throw new IllegalStateException("Ya existe una persona con esa cédula");
         if (userRepository.existsByEmail(docenteDto.getEmail()))
             throw new IllegalStateException("Ya existe un usuario con ese email");
 
-        // 1. Crear Persona (una sola, compartida)
+        // 2. Crear Persona (una sola, compartida)
         Persona persona = new Persona();
         persona.setNombre(docenteDto.getNombre());
         persona.setApellido(docenteDto.getApellido());
@@ -141,7 +161,7 @@ public class DocenteServiceImpl implements DocenteService {
         persona.setTelefono(docenteDto.getTelefono());
         persona = personaRepository.save(persona);
 
-        // 2. Crear Docente
+        // 3. Crear Docente
         Docente docente = new Docente();
         docente.setPersona(persona);
         docente.setCodigoDocente(docenteDto.getCodigoDocente());
@@ -154,7 +174,7 @@ public class DocenteServiceImpl implements DocenteService {
             docente.setProgramas(programas);
         }
 
-        // 3. Títulos
+        // 4. Títulos
         if (docenteDto.getTitulos() != null && !docenteDto.getTitulos().isEmpty()) {
             Docente docenteFinal = docente;
             List<TituloAcademico> titulos = docenteDto.getTitulos().stream()
@@ -172,21 +192,21 @@ public class DocenteServiceImpl implements DocenteService {
             tituloRepository.saveAll(titulos);
         }
 
-        // 3. Crear Administrativo (misma Persona)
+        // 5. Crear Administrativo (misma Persona)
         Administrativo admin = new Administrativo();
         admin.setPersona(persona);
         admin.setCargo(adminDto.getCargo());
         admin.setDependencia(adminDto.getDependencia());
         administrativoRepository.save(admin);
 
-        // 4. Crear User con AMBOS roles
+        // 6. Crear User con AMBOS roles
         Role rolDocente = roleRepository.findByName(RoleName.ROLE_DOCENTE).orElseThrow();
         Role rolAdmin = roleRepository.findByName(RoleName.ROLE_ADMIN).orElseThrow();
 
         User user = new User();
         user.setEmail(docenteDto.getEmail());
         user.setPassword(passwordEncoder.encode(docenteDto.getPassword()));
-        user.setEstado(EstadoUsuario.PENDIENTE);
+        user.setEstado(EstadoUsuario.ACTIVO);
         user.setPersona(persona);
         user.setRoles(Set.of(rolDocente, rolAdmin));
         userRepository.save(user);

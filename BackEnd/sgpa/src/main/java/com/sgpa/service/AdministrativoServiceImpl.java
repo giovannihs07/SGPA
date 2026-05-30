@@ -1,6 +1,7 @@
 package com.sgpa.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -8,9 +9,13 @@ import org.springframework.stereotype.Service;
 
 import com.sgpa.dto.request.RegistroAdministrativoRequest;
 import com.sgpa.dto.response.AdministrativoResponse;
+import com.sgpa.exception.UniversidadValidationException;
 import com.sgpa.mapper.AdministrativoMapper;
 import com.sgpa.model.Administrativo;
 import com.sgpa.model.Persona;
+import com.universidad.model.UniAdministrativo;
+import com.universidad.model.UniDocente;
+import com.universidad.service.UniversidadService;
 import com.sgpa.model.users.EstadoUsuario;
 import com.sgpa.model.users.Role;
 import com.sgpa.model.users.RoleName;
@@ -33,11 +38,18 @@ public class AdministrativoServiceImpl implements AdministrativoService {
     private final RoleRepository roleRepository;
     private final AdministrativoMapper mapper;
     private final PasswordEncoder passwordEncoder;
+    private final UniversidadService universidadService;
 
     @Override
     @Transactional
-    public AdministrativoResponse registrar(
-            RegistroAdministrativoRequest dto) {
+    public AdministrativoResponse registrar(RegistroAdministrativoRequest dto) {
+
+        boolean adminValido = universidadService.validarAdministrativoActivo(dto.getCedula());
+        
+        if (!adminValido) {
+            throw new UniversidadValidationException(
+                    "No se encontró un administrativo activo en la base de datos de la universidad con cédula: " + dto.getCedula());
+        }
 
         if (personaRepository.existsByCedula(dto.getCedula()))
             throw new IllegalStateException(
@@ -70,7 +82,7 @@ public class AdministrativoServiceImpl implements AdministrativoService {
         User user = new User();
         user.setEmail(dto.getEmail());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        user.setEstado(EstadoUsuario.PENDIENTE);
+        user.setEstado(EstadoUsuario.ACTIVO);
         user.setPersona(persona);
         user.setRoles(Set.of(rolAdmin));
         userRepository.save(user);
