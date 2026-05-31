@@ -1,25 +1,31 @@
 import { useState } from "react";
-import { inputMd, btnIcon } from "./themeTokens";
+import { inputMd, inputError, btnIcon } from "./themeTokens";
 
 export const PasswordInput = ({
+    id,
     name = "password",
     value,
     onChange,
     placeholder = "••••••••",
     autoComplete = "current-password",
+    hasError = false,
+    describedBy,
 }) => {
     const [show, setShow] = useState(false);
 
     return (
         <div className="relative">
             <input
+                id={id}
                 type={show ? "text" : "password"}
                 name={name}
                 value={value}
                 onChange={onChange}
                 placeholder={placeholder}
                 autoComplete={autoComplete}
-                className={`${inputMd} pr-11`}
+                aria-invalid={hasError || undefined}
+                aria-describedby={describedBy}
+                className={`${inputMd} pr-11 ${hasError ? inputError : ""}`}
             />
             <button
                 type="button"

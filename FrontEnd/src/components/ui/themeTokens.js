@@ -60,6 +60,9 @@ export const inputMd =
     "placeholder-gray-400 dark:placeholder-gray-500 " +
     `${inputFocusLogin} transition disabled:opacity-40 disabled:cursor-not-allowed`;
 
+export const inputError =
+    "border-red-400 focus:ring-red-300/40 focus:border-red-400";
+
 export const inputSm  = `${inputBase} px-3 py-2 text-sm`;
 export const inputDense = `${inputBase} px-3 py-2.5 text-sm`;
 export const inputXs  = `${inputBase} px-3 py-2 text-xs text-gray-700 dark:text-gray-300`;

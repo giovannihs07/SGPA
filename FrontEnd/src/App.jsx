@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthProvider";
 import { ThemeProvider } from "./context/ThemeProvider";
+import { ToastProvider } from "./context/ToastProvider";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
  
@@ -46,8 +47,9 @@ export default function App() {
     return (
         <BrowserRouter>
             <ThemeProvider>
-                <AuthProvider>
-                    <Routes>
+                <ToastProvider>
+                    <AuthProvider>
+                        <Routes>
                         {/* Públicas */}
                         <Route path="/login"        element={<LoginPage />} />
                         <Route path="/register"     element={<RegisterPage />} />
@@ -100,8 +102,9 @@ export default function App() {
  
                         <Route path="/"  element={<Navigate to="/login" replace />} />
                         <Route path="*"  element={<Navigate to="/login" replace />} />
-                    </Routes>
-                </AuthProvider>
+                        </Routes>
+                    </AuthProvider>
+                </ToastProvider>
             </ThemeProvider>
         </BrowserRouter>
     );

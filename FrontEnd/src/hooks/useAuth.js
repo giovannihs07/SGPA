@@ -1,6 +1,5 @@
 import { useReducer } from "react";
 import { useNavigate } from "react-router-dom";
-import Swal from "sweetalert2";
 import { loginReducer } from "../reducers/loginReducer";
 import { loginUser } from "../services/authService";
 
@@ -55,15 +54,29 @@ export const useAuth = () => {
             sessionStorage.setItem('token', `Bearer ${token}`);
 
             navigate(dashboardPath({ isSuperAdmin, isAdmin, isDocente }));
+            return { ok: true };
 
         } catch (error) {
-            if (error.response?.status === 401) {
-                Swal.fire('Error de autenticación', 'Email o contraseña inválidos', 'error');
-            } else if (error.response?.status === 403) {
-                Swal.fire('Acceso denegado', 'No tienes permisos para acceder', 'error');
-            } else {
-                Swal.fire('Error', 'Ocurrió un error inesperado', 'error');
+            const status = error.response?.status;
+
+            if (status === 401) {
+                return {
+                    ok: false,
+                    code: "INVALID_CREDENTIALS",
+                    message: "Email o contraseña incorrectos",
+                };
             }
+            if (status === 403) {
+                return {
+                    ok: false,
+                    code: "FORBIDDEN",
+                    message: "No tienes permisos para acceder",
+                };
+            }
+            if (status >= 500 || !error.response) {
+                return { ok: false, code: "SERVER_ERROR" };
+            }
+            return { ok: false, code: "SERVER_ERROR" };
         }
     };
 

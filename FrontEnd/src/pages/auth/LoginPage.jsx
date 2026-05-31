@@ -1,33 +1,89 @@
 import { useContext, useState } from "react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
+import { useToast } from "../../hooks/useToast";
 import { LoadingButton } from "../../components/ui/LoadingButton";
 import { PasswordInput } from "../../components/ui/PasswordInput";
 import { InstitutionalPanel } from "../../components/ui/InstitutionalPanel";
-import { inputMd, labelBold } from "../../components/ui/themeTokens";
+import { FormBanner } from "../../components/ui/FormBanner";
+import { FieldError } from "../../components/ui/FieldError";
+import { inputMd, inputError, labelBold } from "../../components/ui/themeTokens";
 
 const initialForm = { email: "", password: "" };
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const INSTITUTIONAL_EMAIL_SUFFIX = "@unicartagena.edu.co";
+
+const validateForm = ({ email, password }) => {
+    const errors = {};
+    const trimmedEmail = email.trim();
+
+    if (!trimmedEmail) {
+        errors.email = "El correo electrónico es obligatorio";
+    } else if (!EMAIL_PATTERN.test(trimmedEmail)) {
+        errors.email = "Ingresa un correo electrónico válido";
+    } else if (!trimmedEmail.toLowerCase().endsWith(INSTITUTIONAL_EMAIL_SUFFIX)) {
+        errors.email = "Debes usar tu correo institucional";
+    }
+
+    if (!password) {
+        errors.password = "La contraseña es obligatoria";
+    }
+
+    return errors;
+};
+
 export const LoginPage = () => {
     const { handlerLogin } = useContext(AuthContext);
+    const { toast } = useToast();
     const [form, setForm] = useState(initialForm);
     const [loading, setLoading] = useState(false);
-    const [remember, setRemember] = useState(false);
+    const [fieldErrors, setFieldErrors] = useState({});
+    const [authError, setAuthError] = useState("");
 
     const { email, password } = form;
 
     const onInputChange = ({ target }) => {
         const { name, value } = target;
         setForm({ ...form, [name]: value });
+
+        if (fieldErrors[name]) {
+            setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
+        }
+        if (authError) setAuthError("");
     };
 
     const onSubmit = async (e) => {
         e.preventDefault();
-        if (!email || !password) return;
+
+        const errors = validateForm({ email, password });
+        if (Object.keys(errors).length) {
+            setFieldErrors(errors);
+            setAuthError("");
+            return;
+        }
+
+        setFieldErrors({});
+        setAuthError("");
         setLoading(true);
-        await handlerLogin({ email, password });
+
+        const result = await handlerLogin({ email, password });
         setLoading(false);
-        setForm(initialForm);
+
+        if (result.ok) {
+            setForm(initialForm);
+            return;
+        }
+
+        if (result.code === "INVALID_CREDENTIALS" || result.code === "FORBIDDEN") {
+            setAuthError(result.message);
+            return;
+        }
+
+        if (result.code === "SERVER_ERROR") {
+            toast.error("Ocurrió un error en el servidor. Intenta de nuevo más tarde.");
+        }
     };
 
     return (
@@ -68,56 +124,56 @@ export const LoginPage = () => {
 
                     {/* Email */}
                     <div>
-                        <label className={labelBold}>
+                        <label htmlFor="login-email" className={labelBold}>
                             Correo electrónico
                         </label>
                         <input
+                            id="login-email"
                             type="email"
                             name="email"
                             value={email}
                             onChange={onInputChange}
                             placeholder="usuario@unicartagena.edu.co"
                             autoComplete="email"
-                            className={inputMd}
+                            aria-invalid={!!fieldErrors.email || undefined}
+                            aria-describedby={fieldErrors.email ? "login-email-error" : undefined}
+                            className={`${inputMd} ${fieldErrors.email ? inputError : ""}`}
                         />
+                        <FieldError id="login-email-error" message={fieldErrors.email} />
                     </div>
 
                     {/* Contraseña */}
                     <div>
-                        <label className={labelBold}>
+                        <label htmlFor="login-password" className={labelBold}>
                             Contraseña
                         </label>
                         <PasswordInput
+                            id="login-password"
                             name="password"
                             value={password}
                             onChange={onInputChange}
+                            hasError={!!fieldErrors.password}
+                            describedBy={fieldErrors.password ? "login-password-error" : undefined}
                         />
+                        <FieldError id="login-password-error" message={fieldErrors.password} />
                     </div>
 
-                    {/* Recordarme / Olvidaste contraseña */}
-                    <div className="flex items-center justify-between">
-                        <label className="flex items-center gap-2 cursor-pointer select-none">
-                            <div
-                                onClick={() => setRemember(v => !v)}
-                                className={`w-4 h-4 rounded border-2 flex items-center justify-center transition ${remember ? 'bg-[#EFB357] border-[#EFB357]' : 'border-gray-300 bg-white'}`}
-                            >
-                                {remember && (
-                                    <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                )}
-                            </div>
-                            <span className="text-xs text-gray-500">Recordarme</span>
-                        </label>
+                    <div className="flex justify-end">
                         <Link to="/forgot-password" className="text-xs text-[#A43D29] font-semibold hover:underline">
                             Olvidaste tu contraseña?
                         </Link>
                     </div>
 
+                    {authError && (
+                        <FormBanner variant="error" onClose={() => setAuthError("")}>
+                            {authError}
+                        </FormBanner>
+                    )}
+
                     {/* Botón */}
                     <LoadingButton
                         loading={loading}
-                        disabled={!email || !password}
+                        disabled={loading}
                         className="w-full bg-[#EC7A21] hover:bg-[#CF620C] text-white text-base font-bold py-2.5 rounded-md shadow-[5px_2px_10px_3px_#0000000d] border-2 border-[#C8963E]"
                     >
                         Ingresar
