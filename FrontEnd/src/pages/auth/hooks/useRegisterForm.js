@@ -1,14 +1,14 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../../../hooks/useToast";
 import { initialForm } from "../registerConfig";
+import { validateRegisterForm, validateRegisterStep, resolveRegisterApiError } from "../registerValidation";
+import { REGISTER_TOTAL_STEPS } from "../registerConfig";
 import {
     registerDocente,
     registerAdministrativo,
     registerDocenteAdmin,
 } from "../../../services/authService";
-import { notifySuccess, notifyError } from "../../../utils/notify";
-
-// Transformadores form → DTO (json) que el backend espera, con limpieza básica de strings.
 
 const toDocenteDTO = (form) => ({
     nombre:        form.firstName.trim(),
@@ -19,7 +19,6 @@ const toDocenteDTO = (form) => ({
     password:      form.password,
     codigoDocente: form.codigoDocente.trim(),
     tipoContrato:  form.tipoContrato,
-    // El backend espera Set<Long> de IDs de programa
     programaIds:   form.programas.map(p => p.programaId),
     titulos:       form.titulos.map(t => ({
         titulo:         t.titulo.trim(),
@@ -31,13 +30,13 @@ const toDocenteDTO = (form) => ({
 });
 
 const toAdministrativoDTO = (form) => ({
-    nombre:     form.firstName.trim(),
-    apellido:   form.lastName.trim(),
-    cedula:     form.documentId.trim(),
-    telefono:   form.phone.trim(),
-    email:      form.email.trim(),
-    password:   form.password,
-    cargo:      form.cargo,
+    nombre:      form.firstName.trim(),
+    apellido:    form.lastName.trim(),
+    cedula:      form.documentId.trim(),
+    telefono:    form.phone.trim(),
+    email:       form.email.trim(),
+    password:    form.password,
+    cargo:       form.cargo,
     dependencia: form.dependencia,
 });
 
@@ -49,23 +48,31 @@ const toDocenteAdminDTO = (form) => ({
     },
 });
 
-// Hook principal para manejar el estado y lógica del formulario de registro, incluyendo validación y submit.
+const clearNestedFieldError = (errors, key) => {
+    if (!errors[key]) return errors;
+    const next = { ...errors };
+    delete next[key];
+    return next;
+};
 
 export const useRegisterForm = () => {
-    const [form, setForm]       = useState(initialForm);
+    const [form, setForm] = useState(initialForm);
     const [loading, setLoading] = useState(false);
-    const navigate              = useNavigate();
+    const [fieldErrors, setFieldErrors] = useState({});
+    const [formError, setFormError] = useState("");
+    const [step, setStep] = useState(1);
+    const navigate = useNavigate();
+    const { toast } = useToast();
 
     const isDocente        = form.userTypes.includes("docente");
     const isAdministrativo = form.userTypes.includes("administrativo");
     const isAmbos          = isDocente && isAdministrativo;
 
-    // Handler genérico
-
-    const onInputChange = ({ target: { name, value } }) =>
+    const onInputChange = ({ target: { name, value } }) => {
         setForm(prev => ({ ...prev, [name]: value }));
-
-    // Tipo de usuario (checkboxes) — al cambiar, limpiar campos específicos si el tipo se desmarca
+        setFieldErrors(prev => clearNestedFieldError(prev, name));
+        if (formError) setFormError("");
+    };
 
     const toggleUserType = (id) => {
         setForm(prev => {
@@ -85,22 +92,29 @@ export const useRegisterForm = () => {
                 dependencia:   na ? prev.dependencia    : "",
             };
         });
+        setFieldErrors(prev => clearNestedFieldError(prev, "userTypes"));
+        if (formError) setFormError("");
     };
 
-    // Programas — cada programa necesita facultadId Y programaId (ID real del backend) para ser válido. Al cambiar facultad, resetear el programa seleccionado.
-
-    const onProgramaChange = (i, field, value, extraFields = {}) =>
+    const onProgramaChange = (i, field, value, extraFields = {}) => {
         setForm(prev => {
             const next = [...prev.programas];
             next[i] = {
                 ...next[i],
                 [field]: value,
                 ...extraFields,
-                // Al cambiar facultad, resetear el programa seleccionado
                 ...(field === "facultadId" ? { programaId: "", programaNombre: "" } : {}),
             };
             return { ...prev, programas: next };
         });
+        setFieldErrors(prev => {
+            const next = { ...prev };
+            delete next[`programas.${i}.${field}`];
+            if (field === "facultadId") delete next[`programas.${i}.programaId`];
+            return next;
+        });
+        if (formError) setFormError("");
+    };
 
     const addPrograma = () =>
         setForm(prev => ({
@@ -114,14 +128,15 @@ export const useRegisterForm = () => {
             programas: prev.programas.filter((_, idx) => idx !== i),
         }));
 
-    // Títulos — validación básica: ningún campo puede estar vacío. Al cambiar cualquier campo, actualizar el estado correspondiente.
-
-    const onTituloChange = (i, field, value) =>
+    const onTituloChange = (i, field, value) => {
         setForm(prev => {
             const next = [...prev.titulos];
             next[i] = { ...next[i], [field]: value };
             return { ...prev, titulos: next };
         });
+        setFieldErrors(prev => clearNestedFieldError(prev, `titulos.${i}.${field}`));
+        if (formError) setFormError("");
+    };
 
     const addTitulo = () =>
         setForm(prev => ({
@@ -135,52 +150,38 @@ export const useRegisterForm = () => {
             titulos: prev.titulos.filter((_, idx) => idx !== i),
         }));
 
-    // Validación general del formulario — se recalcula cada vez que cambia el form o los tipos de usuario. Para ser válido:
-    // - Debe tener al menos un tipo de usuario seleccionado.
-    // - Campos básicos (nombre, apellido, cédula, teléfono, email, password) no pueden estar vacíos.
-    // - Password y confirmPassword deben coincidir.
-    // - Si es docente: código docente no puede estar vacío, debe tener al menos un programa con facultadId y programaId válidos, y cada título debe tener todos sus campos completos.
-    // - Si es administrativo: cargo y dependencia no pueden estar vacíos.
-
-    const isValid = useMemo(() => {
-        const { userTypes, firstName, lastName, documentId, phone, tipoContrato,
-                email, password, confirmPassword, codigoDocente,
-                programas, titulos, cargo, dependencia } = form;
-
-        if (userTypes.length === 0) return false;
-        if (!firstName.trim() || !lastName.trim()) return false;
-        if (!documentId.trim() || !phone.trim()) return false;
-        if (!email.trim() || !password || !confirmPassword) return false;
-        if (password !== confirmPassword) return false;
-
-        if (isDocente) {
-            if (!codigoDocente.trim()) return false;
-            if (!tipoContrato) return false;
-            // Cada programa necesita facultadId Y programaId (ID real del backend)
-            if (programas.some(p => !p.facultadId || !p.programaId)) return false;
-            if (titulos.some(t =>
-                !t.titulo.trim() || !t.nivel || !t.institucion.trim() ||
-                !t.fechaObtencion || !t.pais.trim()
-            )) return false;
+    const goNext = () => {
+        const errors = validateRegisterStep(form, step);
+        if (Object.keys(errors).length) {
+            setFieldErrors(errors);
+            setFormError("");
+            return false;
         }
-        if (isAdministrativo) {
-            if (!cargo || !dependencia) return false;
-        }
+        setFieldErrors({});
+        setFormError("");
+        setStep(prev => Math.min(prev + 1, REGISTER_TOTAL_STEPS));
         return true;
-    }, [form, isDocente, isAdministrativo]);
+    };
 
-    // Submit — al enviar, validar el formulario. Si es válido, llamar al endpoint correspondiente según el tipo de usuario, mostrar notificación de éxito y redirigir a login. Si falla, mostrar notificación de error.
+    const goBack = () => {
+        setFieldErrors({});
+        setFormError("");
+        setStep(prev => Math.max(prev - 1, 1));
+    };
 
     const onSubmit = async (e) => {
         e.preventDefault();
-        if (!isValid) return;
-        setLoading(true);
 
-        // Para depuración: mostrar el payload que se enviará al backend
-        const payload = isAmbos ? toDocenteAdminDTO(form)
-            : isDocente ? toDocenteDTO(form)
-            : toAdministrativoDTO(form);
-        console.log("Payload docente:", JSON.stringify(payload, null, 2));
+        const errors = validateRegisterForm(form);
+        if (Object.keys(errors).length) {
+            setFieldErrors(errors);
+            setFormError("");
+            return;
+        }
+
+        setFieldErrors({});
+        setFormError("");
+        setLoading(true);
 
         try {
             if (isAmbos) {
@@ -190,12 +191,15 @@ export const useRegisterForm = () => {
             } else {
                 await registerAdministrativo(toAdministrativoDTO(form));
             }
-            await notifySuccess("¡Cuenta creada!", "Ya puedes iniciar sesión.");
+            toast.success("¡Cuenta creada! Ya puedes iniciar sesión.");
             navigate("/login");
         } catch (err) {
-            console.log("Error completo:", err?.response?.data); // Para depuración
-            const msg = err?.response?.data?.message ?? "Ocurrió un error al registrar.";
-            notifyError("Error al registrar", msg);
+            const result = resolveRegisterApiError(err);
+            if (result.code === "SERVER_ERROR") {
+                toast.error("Ocurrió un error en el servidor. Intenta de nuevo más tarde.");
+            } else {
+                setFormError(result.message);
+            }
         } finally {
             setLoading(false);
         }
@@ -204,13 +208,18 @@ export const useRegisterForm = () => {
     return {
         form,
         loading,
-        isValid,
+        step,
+        fieldErrors,
+        formError,
+        setFormError,
         isDocente,
         isAdministrativo,
         onInputChange,
         toggleUserType,
         onProgramaChange, addPrograma, removePrograma,
         onTituloChange,   addTitulo,   removeTitulo,
+        goNext,
+        goBack,
         onSubmit,
     };
 };

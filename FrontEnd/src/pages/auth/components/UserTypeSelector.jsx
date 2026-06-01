@@ -1,14 +1,14 @@
 import { userTypeOptions } from "../registerConfig";
+import { FieldError } from "../../../components/ui/FieldError";
 
-// Iconos por id de tipo de usuario
 const ICONS = {
     docente: (
-        <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
+        <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" aria-hidden="true">
             <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" />
         </svg>
     ),
     administrativo: (
-        <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
+        <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" aria-hidden="true">
             <path d="M12 1C8.676 1 6 3.676 6 7s2.676 6 6 6 6-2.676 6-6-2.676-6-6-6zm0 14c-4.006 0-12 2.009-12 6v2h24v-2c0-3.991-7.994-6-12-6z" />
         </svg>
     ),
@@ -16,39 +16,28 @@ const ICONS = {
 
 const labelClass = "block text-xs font-bold text-gray-700 mb-1.5";
 
-export const UserTypeSelector = ({ userTypes, onToggle }) => (
-    <div>
-        <p className={labelClass}>
-            Tipo de usuario{" "}
-            <span className="font-light text-gray-400">(puede elegir ambos)</span>
-        </p>
-        <div className="flex gap-3">
+export const UserTypeSelector = ({ userTypes, onToggle, error }) => (
+    <div role="group" aria-labelledby="user-type-label">
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {userTypeOptions.map((type) => {
                 const checked = userTypes.includes(type.id);
                 return (
                     <button
                         key={type.id}
                         type="button"
+                        aria-pressed={checked}
                         onClick={() => onToggle(type.id)}
-                        className={`flex-1 relative p-3 rounded-md border-2 text-left transition shadow-[5px_2px_10px_3px_#0000000d] ${
+                        className={`relative p-3 rounded-md border-2 text-left transition shadow-[5px_2px_10px_3px_#0000000d] ${
                             checked ? "border-[#EFB357] bg-white" : "border-[#e0d3d3] bg-white"
-                        }`}
+                        } ${error ? "border-red-400" : ""}`}
                     >
-                        {/* Checkbox top-left */}
                         <div className={`absolute top-2.5 left-2.5 w-3.5 h-3.5 rounded border flex items-center justify-center transition ${
                             checked ? "bg-[#EFB357] border-[#EFB357]" : "border-gray-300 bg-white"
                         }`}>
                             {checked && <div className="w-1.5 h-1.5 rounded-sm bg-white" />}
                         </div>
 
-                        {/* Radio top-right */}
-                        <div className={`absolute top-2.5 right-2.5 w-3.5 h-3.5 rounded-full border flex items-center justify-center transition ${
-                            checked ? "border-[#EFB357]" : "border-gray-300"
-                        }`}>
-                            {checked && <div className="w-1.5 h-1.5 rounded-full bg-[#EFB357]" />}
-                        </div>
-
-                        {/* Icono */}
                         <div className={`mt-3 mb-1 ${checked ? "text-[#EFB357]" : "text-gray-400"}`}>
                             {ICONS[type.id]}
                         </div>
@@ -63,5 +52,6 @@ export const UserTypeSelector = ({ userTypes, onToggle }) => (
                 );
             })}
         </div>
+        <FieldError message={error} />
     </div>
 );

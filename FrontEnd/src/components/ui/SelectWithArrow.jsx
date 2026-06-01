@@ -1,4 +1,4 @@
-import { selectSm } from "./themeTokens";
+import { selectSm, inputError } from "./themeTokens";
 
 /**
  * Select estilizado con flecha decorativa.
@@ -11,6 +11,7 @@ export const SelectWithArrow = ({
     placeholder,
     disabled = false,
     useObjectOptions = false,
+    hasError = false,
 }) => (
     <div className="relative">
         <select
@@ -18,7 +19,8 @@ export const SelectWithArrow = ({
             value={value}
             onChange={onChange}
             disabled={disabled}
-            className={`${selectSm} pr-10 ${
+            aria-invalid={hasError || undefined}
+            className={`${selectSm} pr-10 ${hasError ? inputError : ""} ${
                 disabled ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-900" : ""
             }`}
         >

@@ -2,37 +2,42 @@ import { nivelOptions, tipoContratoOptions } from "../registerConfig";
 import { SelectWithArrow } from "../../../components/ui/SelectWithArrow";
 import { SectionHeader }   from "../../../components/ui/SectionHeader";
 import { RepeatCard }      from "../../../components/ui/RepeatCard";
-import { inputAuth, labelBold } from "../../../components/ui/themeTokens";
+import { FieldError }      from "../../../components/ui/FieldError";
+import { inputAuth, inputError, labelBold } from "../../../components/ui/themeTokens";
+
+const req = <span className="text-[#EC7A21]">*</span>;
 
 export const DocenteFields = ({
-    codigoDocente, tipoContrato, onInputChange,  // ← tipoContrato añadido
+    codigoDocente, tipoContrato, onInputChange,
     programas, onProgramaChange, addPrograma, removePrograma,
     titulos,   onTituloChange,   addTitulo,   removeTitulo,
     facultades, getProgramas, cargarProgramas,
     loadingFacultades, errorFacultades,
+    fieldErrors = {},
 }) => (
     <>
-        {/* Código docente y tipo de contrato */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-                <label className={labelBold}>
-                    Código docente <span className="text-[#EC7A21]">*</span>
+                <label htmlFor="codigoDocente" className={labelBold}>
+                    Código docente {req}
                 </label>
                 <input
+                    id="codigoDocente"
                     type="text"
                     name="codigoDocente"
                     value={codigoDocente}
                     onChange={onInputChange}
                     placeholder="Ej. DOC-2024-001"
                     autoComplete="off"
-                    className={inputAuth}
+                    aria-invalid={!!fieldErrors.codigoDocente || undefined}
+                    className={`${inputAuth} ${fieldErrors.codigoDocente ? inputError : ""}`}
                 />
+                <FieldError message={fieldErrors.codigoDocente} />
             </div>
 
-            {/* Tipo de contrato */}
             <div>
-                <label className={labelBold}>
-                    Tipo de contrato <span className="text-[#EC7A21]">*</span>
+                <label htmlFor="tipoContrato" className={labelBold}>
+                    Tipo de contrato {req}
                 </label>
                 <SelectWithArrow
                     name="tipoContrato"
@@ -40,30 +45,35 @@ export const DocenteFields = ({
                     onChange={onInputChange}
                     options={tipoContratoOptions}
                     placeholder="Selecciona un tipo"
+                    hasError={!!fieldErrors.tipoContrato}
                 />
+                <FieldError message={fieldErrors.tipoContrato} />
             </div>
         </div>
 
-        {/* Programas repetibles */}
         <div>
             <SectionHeader
-                title={<>Facultad y programa <span className="text-[#EC7A21]">*</span></>}
+                title={<>Facultad y programa {req}</>}
                 onAdd={addPrograma}
                 addLabel="Añadir programa"
             />
 
             {errorFacultades && (
-                <p className="text-xs text-red-500 mb-2">{errorFacultades}</p>
+                <p className="text-xs text-red-500 mb-2" role="alert">{errorFacultades}</p>
             )}
 
             <div className="space-y-2">
                 {programas.map((p, i) => {
                     const programasOpciones = getProgramas(p.facultadId);
+                    const facultadError = fieldErrors[`programas.${i}.facultadId`];
+                    const programaError = fieldErrors[`programas.${i}.programaId`];
+
                     return (
                         <RepeatCard key={i} index={i} total={programas.length} onRemove={removePrograma}>
-                            <div className="grid grid-cols-2 gap-2">
+                            <p className="text-xs font-bold text-gray-500 mb-1">Programa {i + 1}</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <div>
-                                    <label className={labelBold}>Facultad</label>
+                                    <label className={labelBold}>Facultad {req}</label>
                                     <SelectWithArrow
                                         value={p.facultadId}
                                         onChange={({ target }) => {
@@ -76,11 +86,13 @@ export const DocenteFields = ({
                                         placeholder={loadingFacultades ? "Cargando…" : "Selecciona facultad"}
                                         disabled={loadingFacultades}
                                         useObjectOptions
+                                        hasError={!!facultadError}
                                     />
+                                    <FieldError message={facultadError} />
                                 </div>
                                 <div>
                                     <label className={labelBold}>
-                                        Programa{" "}
+                                        Programa {req}{" "}
                                         {!p.facultadId && (
                                             <span className="font-light text-gray-400">(elige facultad primero)</span>
                                         )}
@@ -96,7 +108,9 @@ export const DocenteFields = ({
                                         placeholder={p.facultadId ? "Selecciona programa" : "— elige facultad —"}
                                         disabled={!p.facultadId}
                                         useObjectOptions
+                                        hasError={!!programaError}
                                     />
+                                    <FieldError message={programaError} />
                                 </div>
                             </div>
                         </RepeatCard>
@@ -105,68 +119,78 @@ export const DocenteFields = ({
             </div>
         </div>
 
-        {/* Títulos académicos repetibles */}
         <div>
             <SectionHeader
-                title={<>Títulos académicos <span className="text-[#EC7A21]">*</span></>}
+                title={<>Títulos académicos {req}</>}
                 onAdd={addTitulo}
                 addLabel="Añadir título"
             />
             <div className="space-y-2">
                 {titulos.map((t, i) => (
                     <RepeatCard key={i} index={i} total={titulos.length} onRemove={removeTitulo}>
-                        <div className="grid grid-cols-2 gap-2">
+                        <p className="text-xs font-bold text-gray-500 mb-1">Título {i + 1}</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <div>
-                                <label className={labelBold}>Título</label>
+                                <label className={labelBold}>Título {req}</label>
                                 <input
                                     type="text"
                                     value={t.titulo}
                                     onChange={({ target }) => onTituloChange(i, "titulo", target.value)}
                                     placeholder="Ej. Ingeniería de Sistemas"
-                                    className={inputAuth}
+                                    aria-invalid={!!fieldErrors[`titulos.${i}.titulo`] || undefined}
+                                    className={`${inputAuth} ${fieldErrors[`titulos.${i}.titulo`] ? inputError : ""}`}
                                 />
+                                <FieldError message={fieldErrors[`titulos.${i}.titulo`]} />
                             </div>
                             <div>
-                                <label className={labelBold}>Nivel</label>
+                                <label className={labelBold}>Nivel {req}</label>
                                 <SelectWithArrow
                                     value={t.nivel}
                                     onChange={({ target }) => onTituloChange(i, "nivel", target.value)}
                                     options={nivelOptions.map(n => ({ value: n, label: n }))}
                                     placeholder="Selecciona nivel"
                                     useObjectOptions
+                                    hasError={!!fieldErrors[`titulos.${i}.nivel`]}
                                 />
+                                <FieldError message={fieldErrors[`titulos.${i}.nivel`]} />
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <div>
-                                <label className={labelBold}>Institución</label>
+                                <label className={labelBold}>Institución {req}</label>
                                 <input
                                     type="text"
                                     value={t.institucion}
                                     onChange={({ target }) => onTituloChange(i, "institucion", target.value)}
                                     placeholder="Ej. Universidad de Cartagena"
-                                    className={inputAuth}
+                                    aria-invalid={!!fieldErrors[`titulos.${i}.institucion`] || undefined}
+                                    className={`${inputAuth} ${fieldErrors[`titulos.${i}.institucion`] ? inputError : ""}`}
                                 />
+                                <FieldError message={fieldErrors[`titulos.${i}.institucion`]} />
                             </div>
                             <div>
-                                <label className={labelBold}>País</label>
+                                <label className={labelBold}>País {req}</label>
                                 <input
                                     type="text"
                                     value={t.pais}
                                     onChange={({ target }) => onTituloChange(i, "pais", target.value)}
                                     placeholder="Ej. Colombia"
-                                    className={inputAuth}
+                                    aria-invalid={!!fieldErrors[`titulos.${i}.pais`] || undefined}
+                                    className={`${inputAuth} ${fieldErrors[`titulos.${i}.pais`] ? inputError : ""}`}
                                 />
+                                <FieldError message={fieldErrors[`titulos.${i}.pais`]} />
                             </div>
                         </div>
                         <div>
-                            <label className={labelBold}>Fecha de obtención</label>
+                            <label className={labelBold}>Fecha de obtención {req}</label>
                             <input
                                 type="date"
                                 value={t.fechaObtencion}
                                 onChange={({ target }) => onTituloChange(i, "fechaObtencion", target.value)}
-                                className={inputAuth}
+                                aria-invalid={!!fieldErrors[`titulos.${i}.fechaObtencion`] || undefined}
+                                className={`${inputAuth} ${fieldErrors[`titulos.${i}.fechaObtencion`] ? inputError : ""}`}
                             />
+                            <FieldError message={fieldErrors[`titulos.${i}.fechaObtencion`]} />
                         </div>
                     </RepeatCard>
                 ))}

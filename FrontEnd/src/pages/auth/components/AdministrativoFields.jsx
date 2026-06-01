@@ -1,14 +1,15 @@
 import { cargoOptions, dependenciaOptions } from "../registerConfig";
 import { SelectWithArrow } from "../../../components/ui/SelectWithArrow";
+import { FieldError } from "../../../components/ui/FieldError";
 import { labelBold } from "../../../components/ui/themeTokens";
 
-const labelClass = labelBold;
+const req = <span className="text-[#EC7A21]">*</span>;
 
-export const AdministrativoFields = ({ cargo, dependencia, onInputChange }) => (
-    <div className="grid grid-cols-2 gap-3">
+export const AdministrativoFields = ({ cargo, dependencia, onInputChange, fieldErrors = {} }) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-            <label className={labelClass}>
-                Cargo <span className="text-[#EC7A21]">*</span>
+            <label htmlFor="cargo" className={labelBold}>
+                Cargo {req}
             </label>
             <SelectWithArrow
                 name="cargo"
@@ -16,11 +17,13 @@ export const AdministrativoFields = ({ cargo, dependencia, onInputChange }) => (
                 onChange={onInputChange}
                 options={cargoOptions}
                 placeholder="Selecciona un cargo"
+                hasError={!!fieldErrors.cargo}
             />
+            <FieldError message={fieldErrors.cargo} />
         </div>
         <div>
-            <label className={labelClass}>
-                Dependencia <span className="text-[#EC7A21]">*</span>
+            <label htmlFor="dependencia" className={labelBold}>
+                Dependencia {req}
             </label>
             <SelectWithArrow
                 name="dependencia"
@@ -28,7 +31,9 @@ export const AdministrativoFields = ({ cargo, dependencia, onInputChange }) => (
                 onChange={onInputChange}
                 options={dependenciaOptions}
                 placeholder="Selecciona una dependencia"
+                hasError={!!fieldErrors.dependencia}
             />
+            <FieldError message={fieldErrors.dependencia} />
         </div>
     </div>
 );

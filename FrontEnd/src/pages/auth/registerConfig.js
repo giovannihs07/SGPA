@@ -28,7 +28,7 @@ export const userTypeOptions = [
     {
         id:          "administrativo",
         title:       "Administrativo",
-        description: "Gestión y supervisión del sistema",
+        description: "Gestión y supervisión de la producción académica",
     },
 ];
 
@@ -49,3 +49,11 @@ export const nivelOptions = [
 export const tipoContratoOptions = [
     "Docente de planta", "Docente ocasional", "Catedrático",
 ];
+
+export const REGISTER_WIZARD_STEPS = [
+    { id: 1, label: "Perfil" },
+    { id: 2, label: "Rol" },
+    { id: 3, label: "Acceso" },
+];
+
+export const REGISTER_TOTAL_STEPS = REGISTER_WIZARD_STEPS.length;
