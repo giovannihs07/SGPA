@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { Users, UserCheck, BookOpen, Clock } from "lucide-react";
 import { getUsuarios, getUsuariosPendientes } from "../../services/usuarioService";
 import { getProductosPublicados } from "../../services/productoServices";
+import { getTaxonomiaEstado } from "../../services/taxonomiaService";
 import { esReciente } from "../../pages/docente/components/productoHelpers";
 
 export const useSuperAdminDashboard = () => {
@@ -13,16 +14,18 @@ export const useSuperAdminDashboard = () => {
         setLoading(true);
         setError(null);
         try {
-            const [usuarios, pendientes, productos] = await Promise.all([
+            const [usuarios, pendientes, productos, taxonomia] = await Promise.all([
                 getUsuarios(),
                 getUsuariosPendientes(),
                 getProductosPublicados(),
+                getTaxonomiaEstado().catch(() => ({ existe: true })),
             ]);
             setStats({
                 totalUsuarios:       usuarios.length,
                 pendientes:          pendientes.length,
                 productosPublicados: productos.length,
                 productosRecientes:  productos.filter((p) => esReciente(p.fechaCreacion)).length,
+                taxonomiaPendiente:  !taxonomia.existe,
             });
         } catch (e) {
             setError(e.response?.data?.error ?? e.message ?? "Error al cargar estadísticas");

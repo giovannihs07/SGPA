@@ -11,7 +11,7 @@ import { RegisterPage } from "./pages/auth/RegisterPage";
  
 // Páginas de docente
 import { DashboardDocentePage }  from "./pages/docente/DashboardDocentePage";
-import { RegistrarProductoPage } from "./pages/docente/RegistrarProductoPage";
+import { RegistrarProductoPage } from "./pages/docente/registrarProductoPage";
 import { MisProductosPage }      from "./pages/docente/MisProductosPage";
 import { EditarProductoPage }    from "./pages/docente/EditarProductoPage";
 import { BuscarDocentePage }     from "./pages/docente/BuscarDocentePage";

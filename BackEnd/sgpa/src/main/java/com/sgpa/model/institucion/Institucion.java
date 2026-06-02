@@ -1,4 +1,4 @@
-package com.sgpa.model;
+package com.sgpa.model.institucion;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

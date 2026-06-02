@@ -1,53 +1,36 @@
 package com.sgpa.model.products;
 
-public enum SubcategoriaProducto {
-    // INVESTIGATIVOS
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-    NUEVO_CONOCIMIENTO(
-        CategoriaProducto.INVESTIGATIVO
-    ),
+@Entity
+@Table(name = "subcategorias_producto")
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
+public class SubcategoriaProducto {
 
-    DESARROLLO_TECNOLOGICO(
-        CategoriaProducto.INVESTIGATIVO
-    ),
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    APROPIACION_SOCIAL(
-        CategoriaProducto.INVESTIGATIVO
-    ),
+    @Column(nullable = false)
+    private String nombre;
 
-    DIVULGACION_PUBLICA_CIENCIA(
-        CategoriaProducto.INVESTIGATIVO
-    ),
+    @Column(nullable = false)
+    private Boolean activo = true;
 
-    FORMACION_RECURSO_HUMANO(
-        CategoriaProducto.INVESTIGATIVO
-    ),
-
-    // ACADÉMICOS
-
-    MATERIAL_DIDACTICO(
-        CategoriaProducto.ACADEMICO
-    ),
-
-    ACTIVIDAD_DOCENTE(
-        CategoriaProducto.ACADEMICO
-    ),
-
-    GESTION_ACADEMICA(
-        CategoriaProducto.ACADEMICO
-    ),
-
-    EXTENSION(
-        CategoriaProducto.ACADEMICO
-    );
-
-    private final CategoriaProducto categoria;
-
-    SubcategoriaProducto(CategoriaProducto categoria) {
-        this.categoria = categoria;
-    }
-
-    public CategoriaProducto getCategoria() {
-        return categoria;
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "categoria_id", nullable = false)
+    private CategoriaProducto categoria;
 }

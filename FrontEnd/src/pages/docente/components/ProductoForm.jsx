@@ -8,7 +8,10 @@ import { INPUT_BASE } from "./productoFormUtils";
 
 export const ProductoForm = ({
     loadingTipos, errorTipos,
-    subcategoriasDisponibles, tiposDisponibles, atributosRequeridos,
+    categoriasDisponibles,
+    subcategoriasDisponibles,
+    tiposDisponibles,
+    atributosDef,
     form, archivo, archivoActual, loading, isValid,
     handleChange, handleAtributoChange,
     handleArchivoChange, removeArchivo,
@@ -20,7 +23,7 @@ export const ProductoForm = ({
         <div className="flex items-center justify-center min-h-[60vh]">
             <div className="flex flex-col items-center gap-3 text-gray-400">
                 <div className="w-8 h-8 border-2 border-[#EFB357] border-t-transparent rounded-full animate-spin" />
-                <span className="text-sm">Cargando tipos de producto…</span>
+                <span className="text-sm">Cargando clasificación de productos…</span>
             </div>
         </div>
     );
@@ -31,6 +34,15 @@ export const ProductoForm = ({
                 <AlertCircle size={16} />
                 {errorTipos}
             </div>
+        </div>
+    );
+
+    if (!categoriasDisponibles?.length) return (
+        <div className="flex items-center justify-center min-h-[40vh]">
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-center max-w-md">
+                No hay tipos de producto configurados. Contacta al administrador para
+                cargar la taxonomía en Configuración → Productos.
+            </p>
         </div>
     );
 
@@ -68,12 +80,13 @@ export const ProductoForm = ({
             <ClasificacionSection
                 form={form}
                 handleChange={handleChange}
+                categoriasDisponibles={categoriasDisponibles}
                 subcategoriasDisponibles={subcategoriasDisponibles}
                 tiposDisponibles={tiposDisponibles}
             />
 
             <AtributosSection
-                atributosRequeridos={atributosRequeridos}
+                atributosDef={atributosDef}
                 atributos={form.atributos}
                 onAtributoChange={handleAtributoChange}
             />

@@ -5,9 +5,9 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 import com.sgpa.dto.response.ProgramaResponse;
-import com.sgpa.model.Facultad;
-import com.sgpa.model.Institucion;
-import com.sgpa.model.Programa;
+import com.sgpa.model.institucion.Facultad;
+import com.sgpa.model.institucion.Institucion;
+import com.sgpa.model.institucion.Programa;
 
 @Component
 public class ProgramaMapper {

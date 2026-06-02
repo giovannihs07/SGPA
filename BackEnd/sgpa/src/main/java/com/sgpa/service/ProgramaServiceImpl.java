@@ -9,11 +9,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.sgpa.dto.request.ProgramaRequest;
 import com.sgpa.dto.response.ProgramaResponse;
 import com.sgpa.mapper.ProgramaMapper;
-import com.sgpa.model.Facultad;
-import com.sgpa.model.NivelFormacion;
-import com.sgpa.model.Programa;
 import com.sgpa.model.audit.ModuloAuditoria;
 import com.sgpa.model.audit.ResultadoAuditoria;
+import com.sgpa.model.institucion.Facultad;
+import com.sgpa.model.institucion.NivelFormacion;
+import com.sgpa.model.institucion.Programa;
 import com.sgpa.repository.FacultadRepository;
 import com.sgpa.repository.ProgramaRepository;
 

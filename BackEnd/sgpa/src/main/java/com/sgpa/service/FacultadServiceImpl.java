@@ -8,10 +8,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.sgpa.dto.request.FacultadRequest;
 import com.sgpa.dto.response.FacultadResponse;
 import com.sgpa.mapper.FacultadMapper;
-import com.sgpa.model.Facultad;
-import com.sgpa.model.Institucion;
 import com.sgpa.model.audit.ModuloAuditoria;
 import com.sgpa.model.audit.ResultadoAuditoria;
+import com.sgpa.model.institucion.Facultad;
+import com.sgpa.model.institucion.Institucion;
 import com.sgpa.repository.FacultadRepository;
 import com.sgpa.repository.InstitucionRepository;
 

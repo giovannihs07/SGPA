@@ -3,11 +3,11 @@ import axiosInstance from "./axiosInstance";
 import { getApiErrorMessageAsync } from "../utils/apiError";
 
 /**
- * GET /api/productos/tipos
- * Devuelve: { SUBCATEGORIA: { TIPO: [atributos...] } }
+ * GET /api/productos/schema
+ * Categorías → subcategorías → tipos → atributos (solo activos).
  */
-export const getTiposProducto = async () => {
-    const { data } = await axiosInstance.get("/api/productos/tipos");
+export const getProductoSchema = async () => {
+    const { data } = await axiosInstance.get("/api/productos/schema");
     return data;
 };
 

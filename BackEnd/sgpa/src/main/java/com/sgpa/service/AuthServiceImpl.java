@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.sgpa.dto.response.LoginResponse;
-import com.sgpa.model.Persona;
+import com.sgpa.model.users.Persona;
 import com.sgpa.model.users.User;
 import com.sgpa.repository.UserRepository;
 

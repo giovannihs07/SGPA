@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.sgpa.model.TituloAcademico;
+import com.sgpa.model.users.TituloAcademico;
 
 @Repository
 public interface TituloAcademicoRepository extends JpaRepository<TituloAcademico, Long> {

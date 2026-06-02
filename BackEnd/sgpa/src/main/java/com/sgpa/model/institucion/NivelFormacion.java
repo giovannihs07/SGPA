@@ -1,4 +1,4 @@
-package com.sgpa.model;
+package com.sgpa.model.institucion;
 
 public enum NivelFormacion {
 

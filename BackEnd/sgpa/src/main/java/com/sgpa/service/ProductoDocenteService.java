@@ -7,24 +7,26 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.sgpa.dto.request.ProductoDocenteRequest;
+import com.sgpa.dto.response.CategoriaSchemaResponse;
 import com.sgpa.dto.response.ProductoDocenteResponse;
 import com.sgpa.dto.response.ProductoOpcionesResponse;
 
 public interface ProductoDocenteService {
 
     ProductoDocenteResponse crear(ProductoDocenteRequest dto, MultipartFile archivo);
-    ProductoDocenteResponse buscarPorId(Long id);
+    ProductoDocenteResponse actualizarMiProducto(Long id, ProductoDocenteRequest dto, MultipartFile archivo);
+    void eliminar(Long id);
     List<ProductoDocenteResponse> buscarTodos();
-    List<ProductoDocenteResponse> buscarPorTipo(String tipo);
+    ProductoDocenteResponse buscarPorId(Long id);
+    List<ProductoDocenteResponse> buscarPorTipo(Long tipoProductoId);
     List<ProductoDocenteResponse> buscarPorDocente(Long docenteId);
     List<ProductoDocenteResponse> buscarMisProductos();
     ProductoDocenteResponse buscarMiProductoPorId(Long id);
-    ProductoDocenteResponse actualizarMiProducto(Long id, ProductoDocenteRequest dto, MultipartFile archivo);
     List<ProductoDocenteResponse> buscarPublicados();
-    Page<ProductoDocenteResponse> buscarPorDocentePaginado(Long docenteId, Pageable pageable);
-    ProductoDocenteResponse actualizar(Long id, ProductoDocenteRequest dto);
     ProductoDocenteResponse publicar(Long id);
+    ProductoDocenteResponse publicarConAcceso(Long id, Boolean libreAcceso);
     ProductoDocenteResponse despublicar(Long id);
-    void eliminar(Long id);
+    Page<ProductoDocenteResponse> buscarPorDocentePaginado(Long docenteId, Pageable pageable);
     ProductoOpcionesResponse obtenerOpcionesDisponibles();
+    List<CategoriaSchemaResponse> obtenerSchema();
 }

@@ -7,8 +7,8 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 import com.sgpa.dto.response.AdministrativoResponse;
-import com.sgpa.model.Administrativo;
-import com.sgpa.model.Persona;
+import com.sgpa.model.users.Administrativo;
+import com.sgpa.model.users.Persona;
 import com.sgpa.model.users.User;
 import com.sgpa.repository.UserRepository;
 

@@ -7,7 +7,6 @@ import java.util.Set;
 import org.hibernate.annotations.CreationTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.sgpa.model.Persona;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

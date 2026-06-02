@@ -17,10 +17,10 @@ public class ProductoDocenteRequest {
     @NotBlank(message = "El nombre es obligatorio")
     private String nombre;
 
-    @NotBlank(message = "El tipo es obligatorio")
-    private String tipo;
-
     private String descripcion;
+
+    @NotNull(message = "El tipo de producto es obligatorio")
+    private Long tipoProductoId; 
 
     @NotNull(message = "Los atributos son obligatorios")
     private Map<String, Object> atributos;

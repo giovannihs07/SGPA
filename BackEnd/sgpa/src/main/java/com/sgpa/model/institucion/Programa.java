@@ -1,9 +1,9 @@
-package com.sgpa.model;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
+package com.sgpa.model.institucion;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -15,24 +15,28 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-// Facultad
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "facultades")
-public class Facultad {
+@Table(name = "programas")
+public class Programa {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
     private String nombre;
 
-    private String codigo;      // FAC-ING, FAC-MED 
+    @Column(unique = true)
+    private String codigo;  // SNIES, o código institucional asignado
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private NivelFormacion nivel; 
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "institucion_id", nullable = false)
-    @JsonIgnore
-    private Institucion institucion;
+    @JoinColumn(name = "facultad_id")
+    private Facultad facultad;
 }

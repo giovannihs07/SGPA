@@ -3,39 +3,41 @@ package com.sgpa.builder;
 import java.util.List;
 import java.util.Map;
 
-import com.sgpa.model.Docente;
 import com.sgpa.model.products.ProductoDocente;
 import com.sgpa.model.products.TipoProducto;
 
-public class ProductoDocenteBuilder {
+import com.sgpa.model.products.TipoProductoAtributo;
+import com.sgpa.model.users.Docente;
 
-    private ProductoDocente producto;
+public class ProductoDocenteBuilder implements IProductoBuilder<ProductoDocente> {
 
-    private ProductoDocenteBuilder() {
-        this.producto = new ProductoDocente();
-    }
+    private final ProductoDocente producto = new ProductoDocente();
+
+    private ProductoDocenteBuilder() {}
 
     public static ProductoDocenteBuilder nuevo() {
         return new ProductoDocenteBuilder();
     }
 
+    @Override
     public ProductoDocenteBuilder nombre(String nombre) {
         producto.setNombre(nombre);
         return this;
     }
 
+    @Override
     public ProductoDocenteBuilder descripcion(String descripcion) {
         producto.setDescripcion(descripcion);
         return this;
     }
 
-    public ProductoDocenteBuilder publicado(Boolean publicado) {
-        producto.setPublicado(publicado);
+    public ProductoDocenteBuilder tipoProducto(TipoProducto tipo) {
+        producto.setTipoProducto(tipo);
         return this;
     }
 
-    public ProductoDocenteBuilder tipo(TipoProducto tipo) {
-        producto.setTipo(tipo);
+    public ProductoDocenteBuilder libreAcceso(Boolean libreAcceso) {
+        producto.setLibreAcceso(libreAcceso != null ? libreAcceso : false);
         return this;
     }
 
@@ -44,39 +46,42 @@ public class ProductoDocenteBuilder {
         return this;
     }
 
-    public ProductoDocenteBuilder atributo(String clave, Object valor) {
-        producto.getAtributos().put(clave, valor);
-        return this;
-    }
-
+    @Override
     public ProductoDocenteBuilder atributos(Map<String, Object> atributos) {
         if (atributos != null)
             producto.getAtributos().putAll(atributos);
         return this;
     }
 
+    @Override
     public ProductoDocente build() {
         validar();
-        return this.producto;
+        return producto;
     }
 
     private void validar() {
-        if (producto.getTipo() == null)
-            throw new IllegalStateException("El tipo del producto es obligatorio");
-
         if (producto.getNombre() == null || producto.getNombre().isBlank())
-            throw new IllegalStateException("El nombre del producto es obligatorio");
+            throw new IllegalStateException(
+                "El nombre del producto es obligatorio");
 
-        List<String> requeridos = producto.getTipo().getAtributosRequeridos();
-        List<String> faltantes = requeridos.stream()
-            .filter(attr -> !producto.getAtributos().containsKey(attr)
-                || producto.getAtributos().get(attr) == null
-                || producto.getAtributos().get(attr).toString().isBlank())
+        if (producto.getTipoProducto() == null)
+            throw new IllegalStateException(
+                "El tipo del producto es obligatorio");
+
+        // Valida atributos requeridos según la BD
+        List<String> faltantes = producto.getTipoProducto()
+            .getAtributos().stream()
+            .filter(TipoProductoAtributo::getRequerido)
+            .map(TipoProductoAtributo::getNombreAtributo)
+            .filter(clave ->
+                !producto.getAtributos().containsKey(clave)
+                || producto.getAtributos().get(clave) == null
+                || producto.getAtributos().get(clave)
+                    .toString().isBlank())
             .toList();
 
         if (!faltantes.isEmpty())
             throw new IllegalStateException(
-                "Faltan atributos requeridos para "
-                + producto.getTipo() + ": " + faltantes);
+                "Faltan atributos requeridos: " + faltantes);
     }
 }

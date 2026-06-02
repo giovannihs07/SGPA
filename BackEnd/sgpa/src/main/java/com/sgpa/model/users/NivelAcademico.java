@@ -1,4 +1,4 @@
-package com.sgpa.model;
+package com.sgpa.model.users;
 
 public enum NivelAcademico {
     PREGRADO,

@@ -6,12 +6,11 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.sgpa.model.NivelFormacion;
-import com.sgpa.model.Programa;
+import com.sgpa.model.institucion.NivelFormacion;
+import com.sgpa.model.institucion.Programa;
 
 @Repository
 public interface ProgramaRepository extends JpaRepository<Programa, Long> {
-    
     List<Programa> findByFacultadId(Long facultadId);
     List<Programa> findByNivel(NivelFormacion nivel);
     List<Programa> findByFacultadInstitucionId(Long institucionId);

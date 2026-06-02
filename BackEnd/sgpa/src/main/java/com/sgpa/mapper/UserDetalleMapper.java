@@ -6,9 +6,9 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 import com.sgpa.dto.response.UserDetalleResponse;
-import com.sgpa.model.Administrativo;
-import com.sgpa.model.Docente;
-import com.sgpa.model.Persona;
+import com.sgpa.model.users.Administrativo;
+import com.sgpa.model.users.Docente;
+import com.sgpa.model.users.Persona;
 import com.sgpa.model.users.User;
 import com.sgpa.repository.AdministrativoRepository;
 import com.sgpa.repository.DocenteRepository;

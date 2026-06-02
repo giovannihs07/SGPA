@@ -1,8 +1,10 @@
-package com.sgpa.model;
+package com.sgpa.model.users;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import com.sgpa.model.institucion.Programa;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;

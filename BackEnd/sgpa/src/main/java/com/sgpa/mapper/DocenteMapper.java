@@ -9,10 +9,10 @@ import org.springframework.stereotype.Component;
 import com.sgpa.dto.response.DocenteResponse;
 import com.sgpa.dto.response.ProgramaResponse;
 import com.sgpa.dto.response.TituloAcademicoResponse;
-import com.sgpa.model.Docente;
-import com.sgpa.model.Facultad;
-import com.sgpa.model.Institucion;
-import com.sgpa.model.Persona;
+import com.sgpa.model.institucion.Facultad;
+import com.sgpa.model.institucion.Institucion;
+import com.sgpa.model.users.Docente;
+import com.sgpa.model.users.Persona;
 import com.sgpa.model.users.User;
 import com.sgpa.repository.UserRepository;
 

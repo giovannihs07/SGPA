@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.sgpa.dto.request.ProgramaRequest;
 import com.sgpa.dto.response.ProgramaResponse;
-import com.sgpa.model.NivelFormacion;
+import com.sgpa.model.institucion.NivelFormacion;
 import com.sgpa.service.ProgramaService;
 
 import jakarta.validation.Valid;

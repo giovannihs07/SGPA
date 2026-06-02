@@ -1,71 +1,99 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { getTiposProducto } from "../services/productoServices";
-import { CATEGORIA_A_SUBCATEGORIAS } from "../pages/docente/productoConfig";
+import { getProductoSchema } from "../services/productoServices";
 import { notifyError } from "../utils/notify";
-import { INITIAL_PRODUCTO_FORM, buildProductoPayload } from "../pages/docente/components/productoFormUtils";
+import {
+    INITIAL_PRODUCTO_FORM,
+    buildProductoPayload,
+    resolveFormFromProduct,
+    findCategoria,
+    findSubcategoria,
+    getAtributosDelTipo,
+} from "../pages/docente/components/productoFormUtils";
 
 /**
  * Hook compartido para formulario de producto (crear / editar).
- * @param {object} options
- * @param {object} [options.initialForm] - estado inicial del formulario
- * @param {Function} options.onSubmit - async (payload, archivo) => void
- * @param {boolean} [options.resetOnSuccess=false] - limpiar form tras guardar
  */
 export const useProductoForm = ({
     initialForm = INITIAL_PRODUCTO_FORM,
     onSubmit,
     resetOnSuccess = false,
 }) => {
-    const [tiposMap, setTiposMap]         = useState({});
-    const [loadingTipos, setLoadingTipos] = useState(true);
-    const [errorTipos, setErrorTipos]     = useState(null);
+    const [schema, setSchema]           = useState([]);
+    const [loadingSchema, setLoadingSchema] = useState(true);
+    const [errorSchema, setErrorSchema] = useState(null);
 
     useEffect(() => {
-        getTiposProducto()
-            .then(setTiposMap)
-            .catch((e) => setErrorTipos(e.response?.data?.message ?? e.message))
-            .finally(() => setLoadingTipos(false));
+        getProductoSchema()
+            .then(setSchema)
+            .catch((e) => setErrorSchema(
+                e.response?.data?.error ?? e.message ?? "No se pudo cargar la taxonomía",
+            ))
+            .finally(() => setLoadingSchema(false));
     }, []);
 
     const [form, setForm]       = useState(initialForm);
     const [archivo, setArchivo] = useState(null);
     const [loading, setLoading] = useState(false);
 
-    // Sincronizar cuando llega el producto a editar
     useEffect(() => {
-        setForm(initialForm);
-    }, [initialForm]);
+        setForm(resolveFormFromProduct(initialForm, schema));
+    }, [initialForm, schema]);
 
-    const { categoria, subcategoria, tipo, atributos } = form;
+    const { categoriaId, subcategoriaId, tipoProductoId, atributos } = form;
+
+    const categoriasDisponibles = useMemo(
+        () => schema.map((c) => ({ id: c.id, nombre: c.nombre })),
+        [schema],
+    );
 
     const subcategoriasDisponibles = useMemo(() => {
-        if (!categoria) return [];
-        return CATEGORIA_A_SUBCATEGORIAS[categoria] ?? [];
-    }, [categoria]);
+        if (!categoriaId) return [];
+        const cat = findCategoria(schema, categoriaId);
+        return (cat?.subcategorias ?? []).map((s) => ({ id: s.id, nombre: s.nombre }));
+    }, [schema, categoriaId]);
 
     const tiposDisponibles = useMemo(() => {
-        if (!subcategoria || !tiposMap[subcategoria]) return [];
-        return Object.keys(tiposMap[subcategoria]);
-    }, [subcategoria, tiposMap]);
+        if (!categoriaId || !subcategoriaId) return [];
+        const sub = findSubcategoria(schema, categoriaId, subcategoriaId);
+        return (sub?.tipos ?? []).map((t) => ({ id: t.id, nombre: t.nombre }));
+    }, [schema, categoriaId, subcategoriaId]);
 
-    const atributosRequeridos = useMemo(() => {
-        if (!subcategoria || !tipo) return [];
-        return tiposMap[subcategoria]?.[tipo] ?? [];
-    }, [subcategoria, tipo, tiposMap]);
+    const atributosDef = useMemo(
+        () => getAtributosDelTipo(schema, categoriaId, subcategoriaId, tipoProductoId),
+        [schema, categoriaId, subcategoriaId, tipoProductoId],
+    );
 
     const handleChange = useCallback(({ target: { name, value } }) => {
         setForm((prev) => {
-            if (name === "categoria")    return { ...prev, categoria: value, subcategoria: "", tipo: "", atributos: {} };
-            if (name === "subcategoria") return { ...prev, subcategoria: value, tipo: "", atributos: {} };
-            if (name === "tipo")         return { ...prev, tipo: value, atributos: {} };
+            if (name === "categoriaId") {
+                return {
+                    ...prev,
+                    categoriaId: value,
+                    subcategoriaId: "",
+                    tipoProductoId: "",
+                    atributos: {},
+                };
+            }
+            if (name === "subcategoriaId") {
+                return {
+                    ...prev,
+                    subcategoriaId: value,
+                    tipoProductoId: "",
+                    atributos: {},
+                };
+            }
+            if (name === "tipoProductoId") {
+                return { ...prev, tipoProductoId: value, atributos: {} };
+            }
             return { ...prev, [name]: value };
         });
     }, []);
 
-    const handleAtributoChange = useCallback(({ target: { name, value } }) => {
+    const handleAtributoChange = useCallback(({ target: { name, value, type, checked } }) => {
+        const parsed = type === "checkbox" ? checked : value;
         setForm((prev) => ({
             ...prev,
-            atributos: { ...prev.atributos, [name]: value },
+            atributos: { ...prev.atributos, [name]: parsed },
         }));
     }, []);
 
@@ -75,13 +103,21 @@ export const useProductoForm = ({
 
     const removeArchivo = useCallback(() => setArchivo(null), []);
 
+    const atributoTieneValor = useCallback((def, valores) => {
+        const v = valores[def.nombreAtributo];
+        if (def.tipoDato === "BOOLEAN") {
+            return v === true || v === "true";
+        }
+        return String(v ?? "").trim() !== "";
+    }, []);
+
     const isValid = useMemo(() => {
         if (!form.nombre.trim() || !form.descripcion.trim()) return false;
-        if (!categoria || !subcategoria || !tipo)            return false;
-        return atributosRequeridos.every(
-            (attr) => String(atributos[attr] ?? "").trim() !== "",
-        );
-    }, [form, categoria, subcategoria, tipo, atributosRequeridos, atributos]);
+        if (!categoriaId || !subcategoriaId || !tipoProductoId) return false;
+        return atributosDef
+            .filter((a) => a.requerido)
+            .every((a) => atributoTieneValor(a, atributos));
+    }, [form, categoriaId, subcategoriaId, tipoProductoId, atributosDef, atributos, atributoTieneValor]);
 
     const submittingRef = useRef(false);
 
@@ -93,7 +129,7 @@ export const useProductoForm = ({
         setLoading(true);
 
         try {
-            await onSubmit(buildProductoPayload(form, tipo), archivo);
+            await onSubmit(buildProductoPayload(form), archivo);
             if (resetOnSuccess) {
                 setForm(INITIAL_PRODUCTO_FORM);
                 setArchivo(null);
@@ -110,14 +146,24 @@ export const useProductoForm = ({
             setLoading(false);
             submittingRef.current = false;
         }
-    }, [form, tipo, archivo, isValid, onSubmit, resetOnSuccess]);
+    }, [form, archivo, isValid, onSubmit, resetOnSuccess]);
 
     return {
-        loadingTipos, errorTipos,
-        subcategoriasDisponibles, tiposDisponibles, atributosRequeridos,
-        form, archivo, loading, isValid,
-        handleChange, handleAtributoChange,
-        handleArchivoChange, removeArchivo,
+        loadingTipos: loadingSchema,
+        errorTipos: errorSchema,
+        schema,
+        categoriasDisponibles,
+        subcategoriasDisponibles,
+        tiposDisponibles,
+        atributosDef,
+        form,
+        archivo,
+        loading,
+        isValid,
+        handleChange,
+        handleAtributoChange,
+        handleArchivoChange,
+        removeArchivo,
         handleSubmit,
     };
 };

@@ -9,8 +9,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.sgpa.model.Persona;
 import com.sgpa.model.users.EstadoUsuario;
+import com.sgpa.model.users.Persona;
 import com.sgpa.model.users.Role;
 import com.sgpa.model.users.RoleName;
 import com.sgpa.model.users.User;

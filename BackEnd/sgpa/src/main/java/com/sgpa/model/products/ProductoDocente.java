@@ -2,7 +2,6 @@ package com.sgpa.model.products;
 
 import java.time.LocalDate;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -10,12 +9,10 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.sgpa.model.Docente;
+import com.sgpa.model.users.Docente;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -42,21 +39,24 @@ public class ProductoDocente {
 
     private String nombre;
     private String descripcion;
-
-    // Para almacenar el nombre del archivo asociado al producto, puede ser opcional
-    private String nombreArchivo;
-    private String nombreArchivoOriginal;
-
     private Boolean publicado = false;
 
-    @Enumerated(EnumType.STRING)
-    private TipoProducto tipo;
+    @Column(nullable = false)
+    private Boolean libreAcceso = false;
 
     @CreationTimestamp
     private LocalDate fechaCreacion;
 
     private LocalDate fechaPublicacion;
 
+    // Para almacenar el nombre del archivo asociado al producto, puede ser opcional
+    private String nombreArchivo;
+    private String nombreArchivoOriginal;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tipo_producto_id", nullable = false)
+    private TipoProducto tipoProducto;  
+    
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Map<String, Object> atributos = new HashMap<>();
@@ -66,13 +66,21 @@ public class ProductoDocente {
     @JsonIgnore
     private Docente docente;
     
+    // Valida los atributos requeridos de la BD
     public void validarAtributos() {
-        List<String> requeridos = tipo.getAtributosRequeridos();
+        if (tipoProducto == null) return;
 
-        for (String atributo: requeridos) {
-            if (atributos == null || !atributos.containsKey(atributo) || atributos.get(atributo) == null || atributos.get(atributo).toString().isBlank()) {
-                throw new IllegalArgumentException("Falta el atributo obligatorio: " + atributo);
-            }
-        }
+        tipoProducto.getAtributos().stream()
+            .filter(TipoProductoAtributo::getRequerido)
+            .forEach(attr -> {
+                String clave = attr.getNombreAtributo();
+                if (atributos == null
+                        || !atributos.containsKey(clave)
+                        || atributos.get(clave) == null
+                        || atributos.get(clave).toString().isBlank()) {
+                    throw new IllegalArgumentException(
+                        "Falta el atributo obligatorio: " + attr.getEtiqueta());
+                }
+            });
     }
 }

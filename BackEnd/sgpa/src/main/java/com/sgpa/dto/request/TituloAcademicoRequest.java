@@ -2,7 +2,7 @@ package com.sgpa.dto.request;
 
 import java.time.LocalDate;
 
-import com.sgpa.model.NivelAcademico;
+import com.sgpa.model.users.NivelAcademico;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

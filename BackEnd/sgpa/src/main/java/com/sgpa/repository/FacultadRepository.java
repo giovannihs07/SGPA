@@ -6,7 +6,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.sgpa.model.Facultad;
+import com.sgpa.model.institucion.Facultad;
 
 @Repository
 public interface FacultadRepository extends JpaRepository<Facultad, Long> {

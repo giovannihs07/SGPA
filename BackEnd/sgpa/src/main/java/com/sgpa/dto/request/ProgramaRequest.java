@@ -1,6 +1,6 @@
 package com.sgpa.dto.request;
 
-import com.sgpa.model.NivelFormacion;
+import com.sgpa.model.institucion.NivelFormacion;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

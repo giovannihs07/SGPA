@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 import com.sgpa.dto.response.FacultadResponse;
-import com.sgpa.model.Facultad;
+import com.sgpa.model.institucion.Facultad;
 
 @Component
 public class FacultadMapper {

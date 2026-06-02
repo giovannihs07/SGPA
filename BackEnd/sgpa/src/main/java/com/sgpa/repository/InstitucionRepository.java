@@ -6,7 +6,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.sgpa.model.Institucion;
+import com.sgpa.model.institucion.Institucion;
 
 @Repository
 public interface InstitucionRepository extends JpaRepository<Institucion, Long> {

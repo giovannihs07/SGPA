@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 import com.sgpa.dto.request.InstitucionRequest;
 import com.sgpa.dto.response.InstitucionResponse;
-import com.sgpa.model.Institucion;
+import com.sgpa.model.institucion.Institucion;
 
 @Component
 public class InstitucionMapper {

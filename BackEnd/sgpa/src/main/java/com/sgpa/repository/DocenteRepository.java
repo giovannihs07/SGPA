@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.sgpa.model.Docente;
+import com.sgpa.model.users.Docente;
 
 @Repository
 public interface DocenteRepository extends JpaRepository<Docente, Long> {
@@ -33,7 +33,7 @@ public interface DocenteRepository extends JpaRepository<Docente, Long> {
             "programas.facultad.institucion",
             "titulos"
     })
-    Optional<Docente> findById(Long id); // sobreescribe el de JpaRepository
+    Optional<Docente> findById(Long id); 
 
     @EntityGraph(attributePaths = {
         "persona",

@@ -8,9 +8,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.sgpa.dto.request.InstitucionRequest;
 import com.sgpa.dto.response.InstitucionResponse;
 import com.sgpa.mapper.InstitucionMapper;
-import com.sgpa.model.Institucion;
 import com.sgpa.model.audit.ModuloAuditoria;
 import com.sgpa.model.audit.ResultadoAuditoria;
+import com.sgpa.model.institucion.Institucion;
 import com.sgpa.repository.InstitucionRepository;
 
 import lombok.RequiredArgsConstructor;
