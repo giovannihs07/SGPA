@@ -1,4 +1,4 @@
-import { TIPO_LABELS, SUBCATEGORIA_LABELS, CATEGORIA_LABELS } from "../productoConfig";
+import { TIPO_LABELS, SUBCATEGORIA_LABELS, CATEGORIA_LABELS, ATRIBUTO_LABELS } from "../productoConfig";
 
 // Labels en español y utilidades visuales para la tabla y el modal
 export { TIPO_LABELS, SUBCATEGORIA_LABELS, CATEGORIA_LABELS };
@@ -40,6 +40,18 @@ export const formatFecha = (fecha) => {
 // Recorta texto largo para la tabla
 export const truncar = (str, max = 60) =>
     str && str.length > max ? str.slice(0, max) + "…" : (str ?? "—");
+
+/** Etiqueta legible para un atributo (taxonomía → legacy → clave formateada). */
+export const etiquetaAtributo = (clave, etiquetasTaxonomia = null) => {
+    if (!clave) return "—";
+    if (etiquetasTaxonomia?.[clave]) return etiquetasTaxonomia[clave];
+    if (ATRIBUTO_LABELS[clave]) return ATRIBUTO_LABELS[clave];
+    return clave
+        .replace(/_/g, " ")
+        .replace(/([a-záéíóúñ0-9])([A-ZÁÉÍÓÚÑ])/g, "$1 $2")
+        .replace(/([A-ZÁÉÍÓÚÑ]+)([A-ZÁÉÍÓÚÑ][a-záéíóúñ])/g, "$1 $2")
+        .trim();
+};
 
 export const getExtensionArchivo = (producto) => {
     if (producto?.extensionArchivo) return producto.extensionArchivo;

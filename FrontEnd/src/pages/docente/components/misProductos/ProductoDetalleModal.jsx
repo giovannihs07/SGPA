@@ -1,12 +1,13 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { X, Info, Paperclip, Pencil, Download } from "lucide-react";
-import { ATRIBUTO_LABELS } from "../../productoConfig";
+import { getProductoSchema } from "../../../../services/productoServices";
 import {
     TIPO_LABELS, SUBCATEGORIA_LABELS, CATEGORIA_LABELS,
-    formatFecha, getExtensionArchivo,
+    formatFecha, getExtensionArchivo, etiquetaAtributo,
     puedeEditarProducto, puedeEliminarProducto,
     MENSAJE_PRODUCTO_PUBLICADO,
 } from "../productoHelpers";
+import { buildEtiquetasAtributosMap } from "../productoFormUtils";
 import { EstadoBadge } from "./EstadoBadge";
 
 const DetallePill = ({ label, value, accent = "border-[#EC7A21]" }) => (
@@ -40,6 +41,8 @@ export const ProductoDetalleModal = ({
     onDescargar,
     permitirEditar = true,
 }) => {
+    const [etiquetasAtributos, setEtiquetasAtributos] = useState({});
+
     useEffect(() => {
         if (!producto) return;
 
@@ -52,6 +55,16 @@ export const ProductoDetalleModal = ({
             document.body.style.overflow = "";
         };
     }, [producto, onClose]);
+
+    useEffect(() => {
+        if (!producto) {
+            setEtiquetasAtributos({});
+            return;
+        }
+        getProductoSchema()
+            .then((schema) => setEtiquetasAtributos(buildEtiquetasAtributosMap(schema, producto)))
+            .catch(() => setEtiquetasAtributos({}));
+    }, [producto]);
 
     if (!producto) return null;
 
@@ -170,7 +183,7 @@ export const ProductoDetalleModal = ({
                                     <div key={k}
                                         className="border border-gray-100 dark:border-gray-700 rounded-xl px-3.5 py-3">
                                         <DetalleMeta
-                                            label={ATRIBUTO_LABELS[k] ?? k}
+                                            label={etiquetaAtributo(k, etiquetasAtributos)}
                                             value={String(v)}
                                         />
                                     </div>

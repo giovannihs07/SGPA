@@ -13,8 +13,21 @@ export const isSessionExpiredError = (error) => {
 };
 
 export const getApiErrorMessage = (error, fallback = "Ocurrió un error inesperado") => {
+    const status = error?.response?.status;
     const data = error?.response?.data;
-    if (!data) return error?.message ?? fallback;
+
+    if (status === 413) {
+        return data?.error
+            ?? data?.message
+            ?? "El archivo adjunto supera el tamaño máximo permitido.";
+    }
+
+    if (!data) {
+        if (error?.message === "Network Error") {
+            return "No se pudo conectar con el servidor. Si adjuntaste un archivo, verifica que no supere el tamaño máximo permitido (10 MB).";
+        }
+        return error?.message ?? fallback;
+    }
 
     if (data.message && !isJwtTechnicalMessage(data.message)) {
         return data.message;

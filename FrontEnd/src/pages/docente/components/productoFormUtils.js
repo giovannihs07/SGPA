@@ -73,6 +73,52 @@ export const getAtributosDelTipo = (schema, categoriaId, subcategoriaId, tipoPro
     );
 };
 
+/** Localiza el tipo de producto en el schema a partir de un producto guardado. */
+export const findTipoByProducto = (schema, producto) => {
+    if (!schema?.length || !producto) return null;
+
+    if (producto.tipoProductoId != null) {
+        if (producto.categoriaId != null && producto.subcategoriaId != null) {
+            const tipo = findTipo(
+                schema,
+                producto.categoriaId,
+                producto.subcategoriaId,
+                producto.tipoProductoId,
+            );
+            if (tipo) return tipo;
+        }
+        for (const cat of schema) {
+            for (const sub of cat.subcategorias ?? []) {
+                const tipo = sub.tipos?.find(
+                    (t) => String(t.id) === String(producto.tipoProductoId),
+                );
+                if (tipo) return tipo;
+            }
+        }
+    }
+
+    if (!producto.tipo) return null;
+
+    for (const cat of schema) {
+        if (producto.categoria && cat.nombre !== producto.categoria) continue;
+        for (const sub of cat.subcategorias ?? []) {
+            if (producto.subcategoria && sub.nombre !== producto.subcategoria) continue;
+            const tipo = sub.tipos?.find((t) => t.nombre === producto.tipo);
+            if (tipo) return tipo;
+        }
+    }
+    return null;
+};
+
+/** Mapa nombreAtributo → etiqueta definida por el superadmin. */
+export const buildEtiquetasAtributosMap = (schema, producto) => {
+    const tipo = findTipoByProducto(schema, producto);
+    if (!tipo?.atributos?.length) return {};
+    return Object.fromEntries(
+        tipo.atributos.map((a) => [a.nombreAtributo, a.etiqueta]),
+    );
+};
+
 export const INPUT_BASE =
     "w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 " +
     "bg-white dark:bg-gray-800 text-sm text-gray-800 dark:text-gray-100 " +

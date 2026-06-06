@@ -40,6 +40,53 @@ const EMPTY_TIPO = {
     atributos: [{ ...EMPTY_ATRIBUTO }],
 };
 
+const htmlListaAdvertencia = (lineas) =>
+    `<ul class="text-left text-sm text-gray-600 dark:text-gray-300 space-y-2.5 mt-3 list-disc pl-5 leading-relaxed">${
+        lineas.map((l) => `<li>${l}</li>`).join("")
+    }</ul>`;
+
+/** Confirmación antes de desactivar categoría, subcategoría o tipo. */
+const confirmarDesactivacionTaxonomia = (nivel, item) => {
+    const nombre = item.nombre ?? "—";
+    const count = Number(item.productosAsociados ?? 0);
+
+    const configs = {
+        categoria: {
+            title: `¿Desactivar la categoría "${nombre}"?`,
+            visibilidad: "Los productos de esta categoría ya no serán visibles.",
+            registro: "Los docentes no podrán registrar nuevos productos de esta categoría.",
+            reactivar: "Puedes reactivarla más adelante.",
+        },
+        subcategoria: {
+            title: `¿Desactivar la subcategoría "${nombre}"?`,
+            visibilidad: "Los productos de esta subcategoría ya no serán visibles.",
+            registro: "Los docentes no podrán registrar nuevos productos de esta subcategoría.",
+            reactivar: "Puedes reactivarla más adelante.",
+        },
+        tipo: {
+            title: `¿Desactivar el tipo de producto "${nombre}"?`,
+            visibilidad: "Los productos de este tipo ya no serán visibles.",
+            registro: "Los docentes no podrán registrar nuevos productos de este tipo.",
+            reactivar: "Puedes reactivarlo más adelante.",
+        },
+    };
+
+    const cfg = configs[nivel];
+    const lineas = [cfg.visibilidad];
+
+    if (count > 0) {
+        lineas.push(
+            `Hay <strong>${count}</strong> producto(s) registrado(s) que dejarán de ser visibles.`,
+        );
+    }
+
+    lineas.push(cfg.registro, cfg.reactivar);
+
+    return notifyConfirm(cfg.title, null, {
+        html: htmlListaAdvertencia(lineas),
+    });
+};
+
 export const useConfiguracionProductos = () => {
     const [estado, setEstado] = useState(null);
     const [modoManual, setModoManual] = useState(false);
@@ -63,6 +110,8 @@ export const useConfiguracionProductos = () => {
 
     const [formTipo, setFormTipo] = useState(EMPTY_TIPO);
     const [editTipoId, setEditTipoId] = useState(null);
+    const [tipoDetalle, setTipoDetalle] = useState(null);
+    const [loadingDetalleTipo, setLoadingDetalleTipo] = useState(false);
     const [subTab, setSubTab] = useState("categorias");
 
     const taxonomiaConfigurada = Boolean(estado?.existe);
@@ -205,6 +254,10 @@ export const useConfiguracionProductos = () => {
     };
 
     const toggleCategoria = async (cat) => {
+        if (cat.activo) {
+            const ok = await confirmarDesactivacionTaxonomia("categoria", cat);
+            if (!ok) return;
+        }
         try {
             if (cat.activo) await desactivarCategoria(cat.id);
             else await activarCategoria(cat.id);
@@ -261,6 +314,10 @@ export const useConfiguracionProductos = () => {
     };
 
     const toggleSubcategoria = async (sub) => {
+        if (sub.activo) {
+            const ok = await confirmarDesactivacionTaxonomia("subcategoria", sub);
+            if (!ok) return;
+        }
         try {
             if (sub.activo) await desactivarSubcategoria(sub.id);
             else await activarSubcategoria(sub.id);
@@ -275,22 +332,57 @@ export const useConfiguracionProductos = () => {
 
     // ── Tipo de producto ────────────────────────────────────────
 
-    const iniciarEditarTipo = async (tipo) => {
+    const cargarTipoEnFormulario = (full) => {
+        setEditTipoId(full.id);
+        setFormTipo({
+            nombre: full.nombre,
+            subcategoriaId: full.subcategoriaId,
+            atributos: (full.atributos ?? []).map((a, i) => ({
+                nombreAtributo: a.nombreAtributo,
+                etiqueta: a.etiqueta,
+                tipoDato: a.tipoDato ?? "TEXT",
+                requerido: a.requerido ?? true,
+                orden: a.orden ?? i + 1,
+                opciones: a.opciones ?? "",
+            })),
+        });
+    };
+
+    const scrollAlFormularioTipo = () => {
+        requestAnimationFrame(() => {
+            document.getElementById("form-tipo-producto")
+                ?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+    };
+
+    const verDetalleTipo = async (tipo) => {
+        setLoadingDetalleTipo(true);
         try {
             const full = await getTipoProducto(tipo.id);
-            setEditTipoId(full.id);
-            setFormTipo({
-                nombre: full.nombre,
-                subcategoriaId: full.subcategoriaId,
-                atributos: (full.atributos ?? []).map((a, i) => ({
-                    nombreAtributo: a.nombreAtributo,
-                    etiqueta: a.etiqueta,
-                    tipoDato: a.tipoDato ?? "TEXT",
-                    requerido: a.requerido ?? true,
-                    orden: a.orden ?? i + 1,
-                    opciones: a.opciones ?? "",
-                })),
-            });
+            setTipoDetalle(full);
+        } catch (e) {
+            notifyError("Error", e.response?.data?.error ?? "No se pudo cargar el tipo");
+        } finally {
+            setLoadingDetalleTipo(false);
+        }
+    };
+
+    const cerrarDetalleTipo = () => setTipoDetalle(null);
+
+    const editarDesdeDetalle = () => {
+        if (!tipoDetalle) return;
+        cargarTipoEnFormulario(tipoDetalle);
+        cerrarDetalleTipo();
+        scrollAlFormularioTipo();
+    };
+
+    const iniciarEditarTipo = async (tipo) => {
+        try {
+            const full = tipoDetalle?.id === tipo.id
+                ? tipoDetalle
+                : await getTipoProducto(tipo.id);
+            cargarTipoEnFormulario(full);
+            scrollAlFormularioTipo();
         } catch (e) {
             notifyError("Error", e.response?.data?.error ?? "No se pudo cargar el tipo");
         }
@@ -351,6 +443,7 @@ export const useConfiguracionProductos = () => {
             if (editTipoId) {
                 const updated = await actualizarTipoProducto(editTipoId, payload);
                 setTipos((prev) => prev.map((t) => (t.id === editTipoId ? updated : t)));
+                if (tipoDetalle?.id === editTipoId) setTipoDetalle(updated);
                 notifySuccess("Tipo actualizado", "Los datos fueron guardados.");
             } else {
                 const created = await crearTipoProducto(payload);
@@ -367,12 +460,19 @@ export const useConfiguracionProductos = () => {
     };
 
     const toggleTipo = async (tipo) => {
+        if (tipo.activo) {
+            const ok = await confirmarDesactivacionTaxonomia("tipo", tipo);
+            if (!ok) return;
+        }
         try {
             if (tipo.activo) await desactivarTipoProducto(tipo.id);
             else await activarTipoProducto(tipo.id);
             setTipos((prev) =>
                 prev.map((t) => (t.id === tipo.id ? { ...t, activo: !t.activo } : t)),
             );
+            if (tipoDetalle?.id === tipo.id) {
+                setTipoDetalle((prev) => prev ? { ...prev, activo: !tipo.activo } : prev);
+            }
             notifySuccess(tipo.activo ? "Tipo desactivado" : "Tipo activado", tipo.nombre);
         } catch (err) {
             notifyError("Error", err.response?.data?.error ?? "No se pudo cambiar el estado");
@@ -443,6 +543,7 @@ export const useConfiguracionProductos = () => {
         try {
             await eliminarTipoProducto(tipo.id);
             setTipos((prev) => prev.filter((t) => t.id !== tipo.id));
+            if (tipoDetalle?.id === tipo.id) cerrarDetalleTipo();
             await fetchEstado();
             notifySuccess("Tipo eliminado", `"${tipo.nombre}" fue eliminado.`);
         } catch (err) {
@@ -464,6 +565,7 @@ export const useConfiguracionProductos = () => {
         guardarCategoria, iniciarEditarCat, cancelarCat, toggleCategoria,
         guardarSubcategoria, iniciarEditarSub, cancelarSub, toggleSubcategoria,
         guardarTipo, iniciarEditarTipo, cancelarTipo, toggleTipo,
+        tipoDetalle, loadingDetalleTipo, verDetalleTipo, cerrarDetalleTipo, editarDesdeDetalle,
         eliminarCategoria: eliminarCategoriaHandler,
         eliminarSubcategoria: eliminarSubcategoriaHandler,
         eliminarTipo: eliminarTipoHandler,

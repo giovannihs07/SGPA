@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { Upload, X, FileText } from "lucide-react";
 import { SectionCard } from "../../../components/ui/SectionCard";
+import { ACCEPT_ARCHIVO, ETIQUETA_FORMATOS_ARCHIVO } from "../../../config/productoArchivo";
 
 // Componente principal para la sección de archivo adjunto (opcional)
 export const ArchivoSection = ({ archivo, archivoActual, onArchivoChange, onRemove }) => {
@@ -65,13 +66,13 @@ export const ArchivoSection = ({ archivo, archivoActual, onArchivoChange, onRemo
                 >
                     <Upload size={22} />
                     <span className="text-sm">Haz clic para adjuntar un archivo</span>
-                    <span className="text-xs opacity-70">PDF, DOC, DOCX, XLSX — máx. 20 MB</span>
+                    <span className="text-xs opacity-70">{ETIQUETA_FORMATOS_ARCHIVO}</span>
                 </button>
             )}
             <input
                 ref={fileInputRef}
                 type="file"
-                accept=".pdf,.doc,.docx,.xlsx,.ppt,.pptx"
+                accept={ACCEPT_ARCHIVO}
                 onChange={onArchivoChange}
                 className="hidden"
             />

@@ -6,17 +6,19 @@ import java.util.Set;
 
 /**
  * Datos iniciales de la taxonomía de productos académicos.
- * Migrados desde los enums Java y productoConfig.js del frontend.
+ * Taxonomía predeterminada de los productos académicos.
  */
 final class ProductoTaxonomiaSeedData {
 
     private ProductoTaxonomiaSeedData() {}
 
+    // Categorías de productos académicos (Investigativo y Académico).
     static final Map<String, String> CATEGORIA_LABELS = Map.of(
         "INVESTIGATIVO", "Investigativo",
         "ACADEMICO",     "Académico"
     );
 
+    // Subcategorías de productos académicos.
     static final Map<String, String> SUBCATEGORIA_LABELS = Map.ofEntries(
         Map.entry("NUEVO_CONOCIMIENTO",          "Generación de nuevo conocimiento"),
         Map.entry("DESARROLLO_TECNOLOGICO",      "Desarrollo tecnológico e innovación"),
@@ -29,6 +31,7 @@ final class ProductoTaxonomiaSeedData {
         Map.entry("EXTENSION",                   "Extensión")
     );
 
+    // Relación entre subcategorías y categorías de productos Investigativos y Académicos.
     static final Map<String, String> SUBCATEGORIA_A_CATEGORIA = Map.ofEntries(
         Map.entry("NUEVO_CONOCIMIENTO",          "INVESTIGATIVO"),
         Map.entry("DESARROLLO_TECNOLOGICO",      "INVESTIGATIVO"),
@@ -41,6 +44,7 @@ final class ProductoTaxonomiaSeedData {
         Map.entry("EXTENSION",                   "ACADEMICO")
     );
 
+    // Atributos de los tipos de productos.
     static final Map<String, String> ATRIBUTO_LABELS = Map.ofEntries(
         Map.entry("doi",                      "DOI"),
         Map.entry("revista",                  "Revista"),
@@ -199,6 +203,7 @@ final class ProductoTaxonomiaSeedData {
         Map.entry("nombreDiplomado",          "Nombre del diplomado")
     );
 
+    // Atributos que son fechas.
     static final Set<String> ATRIBUTOS_FECHA = Set.of(
         "fechaSolicitud", "fechaRegistro", "fechaPresentacion", "fechaCreacion",
         "fechaInicio", "fechaFin", "fechaCertificacion", "fechaValidacion",
@@ -207,6 +212,7 @@ final class ProductoTaxonomiaSeedData {
         "fechaLanzamiento"
     );
 
+    // Atributos que son números.
     static final Set<String> ATRIBUTOS_NUMERO = Set.of(
         "volumen", "paginaInicio", "paginaFin", "numeroEspecimenes",
         "numeroParticipantes", "numeroSlides", "numeroPregunta",
@@ -216,11 +222,11 @@ final class ProductoTaxonomiaSeedData {
         "anioDiseno", "anio", "anioGraduacion"
     );
 
+    // Opciones de clasificación para el atributo "clasificacion".
     static final String CLASIFICACION_OPCIONES = "A1,A2,B,C,D";
 
     /**
      * Formato: subcategoriaKey|nombre del tipo|atributo1,atributo2,...
-     * Datos tomados del enum TipoProducto original.
      */
     static final List<String> TIPOS = List.of(
         "NUEVO_CONOCIMIENTO|Artículo de investigación|doi,revista,volumen,paginacion,clasificacion",

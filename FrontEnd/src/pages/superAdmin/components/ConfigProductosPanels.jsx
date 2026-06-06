@@ -1,4 +1,4 @@
-import { Database, Pencil, Plus, Trash2, Layers, ToggleLeft, ToggleRight } from "lucide-react";
+import { Database, Eye, Pencil, Plus, Trash2, Layers, ToggleLeft, ToggleRight } from "lucide-react";
 import {
     tableWrapper, tableHeadRow, tableHeadCell, tableBody, tableRow,
     tableCellPrimary, tableCellMuted,
@@ -319,8 +319,8 @@ export const SubcategoriasProductoPanel = ({
 export const TiposProductoPanel = ({
     categorias, categoriaSel, setCategoriaSel,
     subcategorias, subcategoriaSel, setSubcategoriaSel,
-    tipos, formTipo, setFormTipo, editTipoId, saving,
-    onSubmit, onEdit, onCancel, onToggle, onDelete,
+    tipos, formTipo, setFormTipo, editTipoId, saving, loadingDetalle,
+    onSubmit, onEdit, onVerDetalle, onCancel, onToggle, onDelete,
     onAgregarAtributo, onQuitarAtributo, onActualizarAtributo,
 }) => (
     <div className="space-y-4">
@@ -344,7 +344,7 @@ export const TiposProductoPanel = ({
 
         {subcategoriaSel && (
             <>
-                <form onSubmit={onSubmit} className="bg-white dark:bg-gray-800 rounded-xl border
+                <form id="form-tipo-producto" onSubmit={onSubmit} className="bg-white dark:bg-gray-800 rounded-xl border
                     border-gray-100 dark:border-gray-700 p-5 space-y-4">
                     <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
                         <Plus size={16} className="text-[#EC7A21]" />
@@ -367,7 +367,7 @@ export const TiposProductoPanel = ({
 
                         {formTipo.atributos.map((attr, index) => (
                             <div key={index}
-                                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 p-3
+                                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 p-3
                                     rounded-lg border border-gray-100 dark:border-gray-700">
                                 <div>
                                     <label className={label}>Clave interna</label>
@@ -388,6 +388,20 @@ export const TiposProductoPanel = ({
                                             <option key={t} value={t}>{t}</option>
                                         ))}
                                     </select>
+                                </div>
+                                <div className="flex flex-col justify-end pb-1">
+                                    <label className={`${label} flex items-center gap-2 cursor-pointer`}>
+                                        <input
+                                            type="checkbox"
+                                            checked={attr.requerido !== false}
+                                            onChange={(e) => onActualizarAtributo(index, "requerido", e.target.checked)}
+                                            className="rounded border-gray-300 text-[#EC7A21] focus:ring-[#EFB357]"
+                                        />
+                                        Requerido
+                                    </label>
+                                    <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
+                                        {attr.requerido !== false ? "Obligatorio en el formulario docente" : "Opcional"}
+                                    </span>
                                 </div>
                                 <div className="flex items-end gap-2">
                                     {attr.tipoDato === "SELECT" && (
@@ -437,12 +451,26 @@ export const TiposProductoPanel = ({
                                     <tr key={tipo.id} className={tableRow}>
                                         <td className={`px-4 py-3 ${tableCellPrimary}`}>{tipo.nombre}</td>
                                         <td className={`px-4 py-3 ${tableCellMuted}`}>
-                                            {tipo.atributos?.length ?? "—"}
+                                            {tipo.atributos?.length
+                                                ? `${tipo.atributos.filter((a) => a.requerido !== false).length}/${tipo.atributos.length} oblig.`
+                                                : "—"}
                                         </td>
                                         <td className="px-4 py-3"><EstadoBadge activo={tipo.activo} /></td>
                                         <td className="px-4 py-3">
                                             <div className="flex gap-1">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => onVerDetalle(tipo)}
+                                                    disabled={loadingDetalle}
+                                                    title="Ver detalles"
+                                                    className="w-7 h-7 flex items-center justify-center rounded-lg
+                                                        text-gray-400 hover:text-[#EC7A21]
+                                                        disabled:opacity-40 disabled:cursor-not-allowed"
+                                                >
+                                                    <Eye size={14} />
+                                                </button>
                                                 <button type="button" onClick={() => onEdit(tipo)}
+                                                    title="Editar"
                                                     className="w-7 h-7 flex items-center justify-center rounded-lg
                                                         text-gray-400 hover:text-[#EC7A21]">
                                                     <Pencil size={14} />

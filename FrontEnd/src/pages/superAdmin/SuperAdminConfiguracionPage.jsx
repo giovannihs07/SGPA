@@ -14,6 +14,7 @@ import {
     SubcategoriasProductoPanel,
     TiposProductoPanel,
 } from "./components/ConfigProductosPanels";
+import { TipoProductoDetalleModal } from "./components/TipoProductoDetalleModal";
 
 const TABS = [
     { id: "institucion", label: "Institución",  icon: Building2 },
@@ -246,8 +247,10 @@ export const SuperAdminConfiguracionPage = () => {
                                     setFormTipo={productos.setFormTipo}
                                     editTipoId={productos.editTipoId}
                                     saving={productos.saving}
+                                    loadingDetalle={productos.loadingDetalleTipo}
                                     onSubmit={productos.guardarTipo}
                                     onEdit={productos.iniciarEditarTipo}
+                                    onVerDetalle={productos.verDetalleTipo}
                                     onCancel={productos.cancelarTipo}
                                     onToggle={productos.toggleTipo}
                                     onDelete={productos.eliminarTipo}
@@ -260,6 +263,11 @@ export const SuperAdminConfiguracionPage = () => {
                     )}
                 </div>
             )}
+            <TipoProductoDetalleModal
+                tipo={productos.tipoDetalle}
+                onClose={productos.cerrarDetalleTipo}
+                onEditar={productos.editarDesdeDetalle}
+            />
         </div>
     );
 };

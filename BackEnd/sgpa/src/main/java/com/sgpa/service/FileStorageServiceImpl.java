@@ -119,7 +119,9 @@ public class FileStorageServiceImpl implements FileStorageService {
             throw new IllegalStateException("El archivo está vacío");
 
         String extension = obtenerExtension(archivo.getOriginalFilename()).toLowerCase();
-        List<String> extensionesPermitidas = List.of("pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "zip", "rar",
+        List<String> extensionesPermitidas = List.of(
+                "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx",
+                "zip", "rar", "7z",
                 "jpg", "jpeg", "png", "gif", "java", "py", "txt");
 
         if (!extensionesPermitidas.contains(extension))

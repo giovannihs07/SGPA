@@ -1,6 +1,13 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { getProductoSchema } from "../services/productoServices";
 import { notifyError } from "../utils/notify";
+import { getApiErrorMessage } from "../utils/apiError";
+import {
+    MAX_ARCHIVO_BYTES,
+    mensajeArchivoExcedeLimite,
+    esExtensionPermitida,
+    mensajeExtensionNoPermitida,
+} from "../config/productoArchivo";
 import {
     INITIAL_PRODUCTO_FORM,
     buildProductoPayload,
@@ -98,7 +105,24 @@ export const useProductoForm = ({
     }, []);
 
     const handleArchivoChange = useCallback((e) => {
-        setArchivo(e.target.files?.[0] ?? null);
+        const file = e.target.files?.[0] ?? null;
+        if (!file) {
+            setArchivo(null);
+            return;
+        }
+        if (!esExtensionPermitida(file.name)) {
+            notifyError("Tipo de archivo no permitido", mensajeExtensionNoPermitida(file.name));
+            e.target.value = "";
+            setArchivo(null);
+            return;
+        }
+        if (file.size > MAX_ARCHIVO_BYTES) {
+            notifyError("Archivo demasiado grande", mensajeArchivoExcedeLimite(file.size));
+            e.target.value = "";
+            setArchivo(null);
+            return;
+        }
+        setArchivo(file);
     }, []);
 
     const removeArchivo = useCallback(() => setArchivo(null), []);
@@ -125,6 +149,11 @@ export const useProductoForm = ({
         e.preventDefault();
         if (!isValid || submittingRef.current) return;
 
+        if (archivo && archivo.size > MAX_ARCHIVO_BYTES) {
+            notifyError("Archivo demasiado grande", mensajeArchivoExcedeLimite(archivo.size));
+            return;
+        }
+
         submittingRef.current = true;
         setLoading(true);
 
@@ -137,10 +166,7 @@ export const useProductoForm = ({
         } catch (err) {
             notifyError(
                 "Error al guardar",
-                err.response?.data?.error
-                    ?? err.response?.data?.message
-                    ?? err.message
-                    ?? "No se pudo guardar el producto",
+                getApiErrorMessage(err, "No se pudo guardar el producto"),
             );
         } finally {
             setLoading(false);

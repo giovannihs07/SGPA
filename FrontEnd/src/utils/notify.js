@@ -60,17 +60,21 @@ export const notifyError = (title, text) => {
 /**
  * Diálogo de confirmación. Devuelve true si el usuario confirmó.
  *
+ * @param {string} title
+ * @param {string} [text] — texto plano (omitir si usas `options.html`)
+ * @param {{ html?: string, confirmButtonText?: string }} [options]
+ *
  * @example
  * const ok = await notifyConfirm("¿Eliminar producto?", "Esta acción no se puede deshacer.");
  * if (ok) deleteProduct();
  */
-export const notifyConfirm = (title, text) =>
+export const notifyConfirm = (title, text, options = {}) =>
     Swal.fire({
         ...BASE,
         icon:              "warning",
         title,
-        text,
+        ...(options.html ? { html: options.html } : { text: text ?? "" }),
         showCancelButton:  true,
-        confirmButtonText: "Sí, continuar",
+        confirmButtonText: options.confirmButtonText ?? "Sí, continuar",
         cancelButtonText:  "Cancelar",
     }).then((result) => result.isConfirmed);
