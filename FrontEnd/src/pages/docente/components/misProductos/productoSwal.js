@@ -3,6 +3,7 @@ import { SWAL_BASE, notifyInfo } from "../../../../utils/notify";
 import {
     puedeEditarProducto, puedeEliminarProducto,
     MENSAJE_EDICION_BLOQUEADA, MENSAJE_ELIMINACION_BLOQUEADA,
+    obtenerArchivosProducto,
 } from "../productoHelpers";
 
 /** Bloquea navegación a edición si el producto está publicado */
@@ -35,8 +36,9 @@ export const confirmTogglePublicacion = (producto) => {
 
 /** Confirmación de eliminación con SweetAlert2 */
 export const confirmEliminarProducto = (producto) => {
-    const avisoArchivo = producto.nombreArchivo
-        ? `<p class="text-xs text-amber-600 mt-2">También se eliminará el archivo adjunto.</p>`
+    const nArchivos = obtenerArchivosProducto(producto).length;
+    const avisoArchivo = nArchivos > 0
+        ? `<p class="text-xs text-amber-600 mt-2">También se eliminarán ${nArchivos === 1 ? "el archivo adjunto" : `los ${nArchivos} archivos adjuntos`}.</p>`
         : "";
 
     return Swal.fire({

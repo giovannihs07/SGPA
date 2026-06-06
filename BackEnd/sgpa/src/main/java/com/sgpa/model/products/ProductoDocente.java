@@ -1,7 +1,9 @@
 package com.sgpa.model.products;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -11,6 +13,7 @@ import org.hibernate.type.SqlTypes;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sgpa.model.users.Docente;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -19,6 +22,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -49,9 +54,13 @@ public class ProductoDocente {
 
     private LocalDate fechaPublicacion;
 
-    // Para almacenar el nombre del archivo asociado al producto, puede ser opcional
+    /** Campos legacy — reflejan el archivo Principal para compatibilidad. */
     private String nombreArchivo;
     private String nombreArchivoOriginal;
+
+    @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("orden ASC")
+    private List<ProductoArchivo> archivos = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tipo_producto_id", nullable = false)

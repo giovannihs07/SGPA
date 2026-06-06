@@ -1,7 +1,6 @@
 package com.sgpa.service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -11,8 +10,6 @@ import com.sgpa.dto.request.RegistroAdministrativoRequest;
 import com.sgpa.dto.response.AdministrativoResponse;
 import com.sgpa.exception.UniversidadValidationException;
 import com.sgpa.mapper.AdministrativoMapper;
-import com.universidad.model.UniAdministrativo;
-import com.universidad.model.UniDocente;
 import com.universidad.service.UniversidadService;
 import com.sgpa.model.users.Administrativo;
 import com.sgpa.model.users.EstadoUsuario;

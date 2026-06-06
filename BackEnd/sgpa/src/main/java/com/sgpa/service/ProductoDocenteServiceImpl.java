@@ -16,21 +16,26 @@ import org.springframework.web.multipart.MultipartFile;
 import com.sgpa.builder.ProductoDocenteBuilder;
 import com.sgpa.dto.request.ProductoDocenteRequest;
 import com.sgpa.dto.response.CategoriaSchemaResponse;
+import com.sgpa.dto.response.ProductoArchivoResponse;
 import com.sgpa.dto.response.ProductoDocenteResponse;
 import com.sgpa.dto.response.ProductoOpcionesResponse;
 import com.sgpa.dto.response.SubcategoriaSchemaResponse;
 import com.sgpa.dto.response.TipoProductoAtributoResponse;
 import com.sgpa.dto.response.TipoProductoSchemaResponse;
 import com.sgpa.exception.AccesoDenegadoException;
+import com.sgpa.exception.ArchivoNotFoundException;
 import com.sgpa.exception.ProductoDocenteNotFoundException;
 import com.sgpa.exception.ProductoNoEditableException;
 import com.sgpa.exception.ProductoNoEliminableException;
+import com.sgpa.mapper.ProductoArchivoMapper;
 import com.sgpa.mapper.ProductoDocenteMapper;
 import com.sgpa.mapper.TipoProductoMapper;
 import com.sgpa.model.audit.ModuloAuditoria;
 import com.sgpa.model.audit.ResultadoAuditoria;
 import com.sgpa.model.products.CategoriaProducto;
+import com.sgpa.model.products.ProductoArchivo;
 import com.sgpa.model.products.ProductoDocente;
+import com.sgpa.model.products.RolArchivoProducto;
 import com.sgpa.model.products.SubcategoriaProducto;
 import com.sgpa.model.products.TipoProducto;
 import com.sgpa.model.users.Docente;
@@ -50,15 +55,16 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
     private final DocenteRepository docenteRepository;
     private final ProductoDocenteMapper mapper;
     private final TipoProductoMapper tipoProductoMapper;
-    private final FileStorageService fileStorageService;
     private final AuditService auditService;
     private final TipoProductoRepository tipoProductoRepository;
     private final CategoriaProductoRepository categoriaRepository;
     private final SubcategoriaProductoRepository subcategoriaRepository;
+    private final ProductoArchivoHelper archivoHelper;
+    private final ProductoArchivoMapper archivoMapper;
 
     @Override
     @Transactional
-    public ProductoDocenteResponse crear(ProductoDocenteRequest dto, MultipartFile archivo) {
+    public ProductoDocenteResponse crear(ProductoDocenteRequest dto, List<MultipartFile> archivos) {
 
         Docente docente = obtenerDocenteAutenticado();
 
@@ -81,11 +87,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
                 .docente(docente)
                 .build();
 
-        if (archivo != null && !archivo.isEmpty()) {
-            String[] nombres = fileStorageService.guardarArchivo(archivo, tipo.getNombre());
-            producto.setNombreArchivo(nombres[0]);
-            producto.setNombreArchivoOriginal(nombres[1]);
-        }
+        archivoHelper.aplicarEnCreacion(producto, tipo, archivos, dto.getArchivosMeta());
 
         ProductoDocente guardado = repository.save(producto);
 
@@ -101,7 +103,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
     @Override
     @Transactional
     public ProductoDocenteResponse actualizarMiProducto(Long id, ProductoDocenteRequest dto,
-            MultipartFile archivo) {
+            List<MultipartFile> archivos) {
 
         ProductoDocente producto = buscarEntidadPropia(id);
         verificarProductoEditable(producto);
@@ -121,14 +123,8 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
         producto.setAtributos(dto.getAtributos());
         producto.validarAtributos();
 
-        if (archivo != null && !archivo.isEmpty()) {
-            if (producto.getNombreArchivo() != null) {
-                fileStorageService.eliminarArchivo(producto.getNombreArchivo());
-            }
-            String[] nombres = fileStorageService.guardarArchivo(archivo, tipo.getNombre());
-            producto.setNombreArchivo(nombres[0]);
-            producto.setNombreArchivoOriginal(nombres[1]);
-        }
+        archivoHelper.aplicarEnActualizacion(
+                producto, tipo, dto.getArchivosEliminarIds(), archivos, dto.getArchivosMeta());
 
         ProductoDocente guardado = repository.save(producto);
 
@@ -147,8 +143,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
         verificarProductoEliminable(producto);
         String nombre = producto.getNombre();
 
-        if (producto.getNombreArchivo() != null)
-            fileStorageService.eliminarArchivo(producto.getNombreArchivo());
+        archivoHelper.eliminarTodos(producto);
 
         repository.delete(producto);
 
@@ -287,6 +282,22 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
 
     @Override
     @Transactional(readOnly = true)
+    public ProductoArchivoResponse buscarArchivoPorId(Long productoId, Long archivoId) {
+        ProductoDocente producto = buscarEntidad(productoId);
+        ProductoArchivo archivo = buscarArchivoEnProducto(producto, archivoId);
+        return archivoMapper.toDTO(archivo);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProductoArchivoResponse buscarMiArchivoPorId(Long productoId, Long archivoId) {
+        ProductoDocente producto = buscarEntidadPropia(productoId);
+        ProductoArchivo archivo = buscarArchivoEnProducto(producto, archivoId);
+        return archivoMapper.toDTO(archivo);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<CategoriaSchemaResponse> obtenerSchema() {
         return categoriaRepository.findByActivoTrue().stream()
                 .map(this::mapCategoriaToSchema)
@@ -354,8 +365,30 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
     // --- Helpers privados ---
 
     private ProductoDocente buscarEntidad(Long id) {
-        return repository.findById(id)
+        return repository.findByIdWithArchivos(id)
                 .orElseThrow(() -> new ProductoDocenteNotFoundException(id));
+    }
+
+    private ProductoArchivo buscarArchivoEnProducto(ProductoDocente producto, Long archivoId) {
+        return producto.getArchivos().stream()
+                .filter(a -> a.getId().equals(archivoId))
+                .findFirst()
+                .orElseThrow(() -> new ArchivoNotFoundException(
+                        "Archivo " + archivoId + " del producto " + producto.getId()));
+    }
+
+    public ProductoArchivo obtenerArchivoEntidad(Long productoId, Long archivoId) {
+        ProductoDocente producto = buscarEntidad(productoId);
+        return buscarArchivoEnProducto(producto, archivoId);
+    }
+
+    public ProductoArchivo obtenerArchivoPrincipal(Long productoId) {
+        ProductoDocente producto = buscarEntidad(productoId);
+        return producto.getArchivos().stream()
+                .filter(a -> a.getRol() == RolArchivoProducto.PRINCIPAL)
+                .findFirst()
+                .orElseThrow(() -> new ArchivoNotFoundException(
+                        "Principal del producto " + productoId));
     }
 
     private ProductoDocente buscarEntidadPropia(Long id) {

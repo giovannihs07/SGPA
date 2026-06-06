@@ -8,13 +8,16 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.sgpa.dto.request.ProductoDocenteRequest;
 import com.sgpa.dto.response.CategoriaSchemaResponse;
+import com.sgpa.dto.response.ProductoArchivoResponse;
 import com.sgpa.dto.response.ProductoDocenteResponse;
 import com.sgpa.dto.response.ProductoOpcionesResponse;
 
 public interface ProductoDocenteService {
 
-    ProductoDocenteResponse crear(ProductoDocenteRequest dto, MultipartFile archivo);
-    ProductoDocenteResponse actualizarMiProducto(Long id, ProductoDocenteRequest dto, MultipartFile archivo);
+    ProductoDocenteResponse crear(ProductoDocenteRequest dto, List<MultipartFile> archivos);
+    ProductoDocenteResponse actualizarMiProducto(Long id, ProductoDocenteRequest dto, List<MultipartFile> archivos);
+    ProductoArchivoResponse buscarArchivoPorId(Long productoId, Long archivoId);
+    ProductoArchivoResponse buscarMiArchivoPorId(Long productoId, Long archivoId);
     void eliminar(Long id);
     List<ProductoDocenteResponse> buscarTodos();
     ProductoDocenteResponse buscarPorId(Long id);

@@ -1,6 +1,7 @@
 package com.sgpa.dto.response;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -34,6 +35,7 @@ public class ProductoDocenteResponse {
     private String nombreArchivo;
     private String nombreArchivoOriginal;
     private String extensionArchivo;
+    private List<ProductoArchivoResponse> archivos;
     private Map<String, Object> atributos;
 
     // Datos del docente

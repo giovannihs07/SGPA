@@ -84,6 +84,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/programas/{id}").permitAll()
                 // Descargas de archivos permitidas públicamente
                 .requestMatchers(HttpMethod.GET, "/api/productos/{id}/archivo").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/productos/{id}/archivos/{archivoId}").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/productos").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/productos").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/productos/schema").permitAll()
