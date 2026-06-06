@@ -4,8 +4,8 @@ import { notifySuccess } from "../utils/notify";
 import { useProductoForm } from "./useProductoForm";
 
 export const useRegistrarProducto = () => {
-    const onSubmit = useCallback(async (payload, archivo) => {
-        await crearProducto(payload, archivo);
+    const onSubmit = useCallback(async (payload, archivos) => {
+        await crearProducto(payload, archivos);
         await notifySuccess(
             "¡Producto registrado!",
             "Quedó en estado Sin publicar, pendiente de revisión.",

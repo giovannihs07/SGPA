@@ -4,7 +4,12 @@ import {
     tableCellPrimary, tableCellSecondary, tableCellMuted, tableCellSubtext,
     btnIcon,
 } from "../../../../components/ui/themeTokens";
-import { TIPO_LABELS, CATEGORIA_LABELS, formatFecha, truncar, puedeEditarProducto, puedeEliminarProducto, MENSAJE_EDICION_BLOQUEADA, MENSAJE_ELIMINACION_BLOQUEADA } from "../productoHelpers";
+import {
+    TIPO_LABELS, CATEGORIA_LABELS, formatFecha, truncar,
+    puedeEditarProducto, puedeEliminarProducto,
+    MENSAJE_EDICION_BLOQUEADA, MENSAJE_ELIMINACION_BLOQUEADA,
+    productoTieneArchivos,
+} from "../productoHelpers";
 import { EstadoBadge } from "./EstadoBadge";
 import { ArchivoBadge } from "./ArchivoBadge";
 import { ProductosPaginacion } from "./ProductosPaginacion";
@@ -60,10 +65,10 @@ const AccionesFila = ({
             }
         </button>
 
-        {producto.nombreArchivo && (
+        {productoTieneArchivos(producto) && (
             <button
                 onClick={() => onDescargar(producto)}
-                title="Descargar archivo"
+                title="Descargar archivo principal"
                 className={`${btnIcon} w-7 h-7 text-gray-500 dark:text-gray-400 hover:bg-orange-50 hover:text-[#EC7A21] dark:hover:bg-orange-900/20`}
             >
                 <Download size={14} />
@@ -126,7 +131,7 @@ export const ProductosTabla = ({
                                 <tr key={p.id} className={`${tableRow} group`}>
                                     <td className="px-4 py-3 max-w-55">
                                         <div className="flex items-start gap-2">
-                                            {p.nombreArchivo && (
+                                            {productoTieneArchivos(p) && (
                                                 <FileText size={13} className="text-[#EC7A21] shrink-0 mt-0.5" />
                                             )}
                                             <div>

@@ -1,17 +1,17 @@
 package com.sgpa.dto.request;
 
+import java.util.List;
 import java.util.Map;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class ProductoDocenteRequest {
 
     @NotBlank(message = "El nombre es obligatorio")
@@ -24,5 +24,10 @@ public class ProductoDocenteRequest {
 
     @NotNull(message = "Los atributos son obligatorios")
     private Map<String, Object> atributos;
-    
+
+    /** Metadatos de archivos nuevos (mismo orden que la parte multipart "archivos"). */
+    private List<ProductoArchivoMetaRequest> archivosMeta;
+
+    /** IDs de archivos existentes a eliminar (solo en actualización). */
+    private List<Long> archivosEliminarIds;
 }

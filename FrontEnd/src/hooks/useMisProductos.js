@@ -3,7 +3,9 @@ import {
     getMisProductos,
     eliminarProducto,
     descargarArchivo,
+    descargarArchivoProducto,
 } from "../services/productoServices";
+import { obtenerArchivosProducto } from "../pages/docente/components/productoHelpers";
 import { notifySuccess, notifyError } from "../utils/notify";
 import { esReciente } from "../pages/docente/components/productoHelpers";
 import {
@@ -109,13 +111,19 @@ export const useMisProductos = () => {
     const handleFiltroEstado = useCallback((v) => { setFiltroEstado(v); resetPagina(); }, [resetPagina]);
     const handleFiltroTipo = useCallback((v) => { setFiltroTipo(v); resetPagina(); }, [resetPagina]);
 
-    const handleDescargar = useCallback(async (producto) => {
-        if (!producto.nombreArchivo) {
-            notifyError("Sin archivo", "Este producto no tiene un archivo adjunto.");
+    const handleDescargar = useCallback(async (producto, archivo = null) => {
+        const lista = obtenerArchivosProducto(producto);
+        const target = archivo ?? lista.find((a) => a.rol === "PRINCIPAL") ?? lista[0];
+        if (!target) {
+            notifyError("Sin archivo", "Este producto no tiene archivos adjuntos.");
             return;
         }
         try {
-            await descargarArchivo(producto.id, producto.nombreArchivoOriginal);
+            if (target.id) {
+                await descargarArchivoProducto(producto.id, target.id, target.nombreOriginal);
+            } else {
+                await descargarArchivo(producto.id, target.nombreOriginal);
+            }
         } catch (e) {
             notifyError("Error", e.message ?? "No se pudo descargar el archivo");
         }

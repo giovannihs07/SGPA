@@ -44,12 +44,24 @@ export const resolveFormFromProduct = (producto, schema = []) => {
 };
 
 /** Payload JSON que espera el backend */
-export const buildProductoPayload = (form) => ({
-    nombre:         form.nombre.trim(),
-    descripcion:    form.descripcion.trim(),
-    tipoProductoId: Number(form.tipoProductoId),
-    atributos:      form.atributos,
-});
+export const buildProductoPayload = (form, { archivosNuevos = [], archivosEliminarIds = [] } = {}) => {
+    const payload = {
+        nombre:         form.nombre.trim(),
+        descripcion:    form.descripcion.trim(),
+        tipoProductoId: Number(form.tipoProductoId),
+        atributos:      form.atributos,
+    };
+    if (archivosNuevos.length) {
+        payload.archivosMeta = archivosNuevos.map((a, i) => ({
+            rol:   a.rol,
+            orden: a.orden ?? i + 1,
+        }));
+    }
+    if (archivosEliminarIds.length) {
+        payload.archivosEliminarIds = archivosEliminarIds;
+    }
+    return payload;
+};
 
 export const findCategoria = (schema, categoriaId) =>
     schema.find((c) => String(c.id) === String(categoriaId));

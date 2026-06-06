@@ -55,10 +55,27 @@ export const etiquetaAtributo = (clave, etiquetasTaxonomia = null) => {
 
 export const getExtensionArchivo = (producto) => {
     if (producto?.extensionArchivo) return producto.extensionArchivo;
-    const nombre = producto?.nombreArchivoOriginal;
+    const nombre = producto?.nombreArchivoOriginal ?? producto?.nombreOriginal;
     if (!nombre || !nombre.includes(".")) return null;
     return nombre.slice(nombre.lastIndexOf(".") + 1).toUpperCase();
 };
+
+/** Lista unificada de archivos (nueva entidad o legacy). */
+export const obtenerArchivosProducto = (producto) => {
+    if (producto?.archivos?.length) return producto.archivos;
+    if (producto?.nombreArchivo) {
+        return [{
+            id: null,
+            nombreOriginal: producto.nombreArchivoOriginal,
+            rol: "PRINCIPAL",
+            extensionArchivo: getExtensionArchivo(producto),
+        }];
+    }
+    return [];
+};
+
+export const productoTieneArchivos = (producto) =>
+    obtenerArchivosProducto(producto).length > 0;
 
 export const esReciente = (fecha, dias = 30) => {
     if (!fecha) return false;

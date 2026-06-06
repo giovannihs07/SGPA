@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
+import com.sgpa.dto.response.ProductoArchivoResponse;
 import com.sgpa.dto.response.ProductoDocenteResponse;
 import com.sgpa.model.institucion.Programa;
 import com.sgpa.model.products.CategoriaProducto;
@@ -17,6 +18,12 @@ import com.sgpa.model.users.Persona;
 
 @Component
 public class ProductoDocenteMapper {
+
+    private final ProductoArchivoMapper archivoMapper;
+
+    public ProductoDocenteMapper(ProductoArchivoMapper archivoMapper) {
+        this.archivoMapper = archivoMapper;
+    }
 
     public ProductoDocenteResponse toDTO(ProductoDocente producto) {
         if (producto == null) return null;
@@ -61,6 +68,8 @@ public class ProductoDocenteMapper {
         dto.setLibreAcceso(producto.getLibreAcceso());
         dto.setFechaCreacion(producto.getFechaCreacion());
         dto.setFechaPublicacion(producto.getFechaPublicacion());
+        List<ProductoArchivoResponse> archivosDto = archivoMapper.toDTOList(producto.getArchivos());
+        dto.setArchivos(archivosDto);
         dto.setNombreArchivo(producto.getNombreArchivo());
         dto.setNombreArchivoOriginal(producto.getNombreArchivoOriginal());
         dto.setExtensionArchivo(extraerExtension(producto.getNombreArchivoOriginal()));

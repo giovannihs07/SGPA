@@ -3,7 +3,7 @@ import { SectionCard } from "../../../components/ui/SectionCard";
 import { Label } from "../../../components/ui/Label";
 import { ClasificacionSection } from "./ClasificacionSection";
 import { AtributosSection } from "./AtributosSection";
-import { ArchivoSection } from "./ArchivoSection";
+import { ArchivosSection } from "./ArchivosSection";
 import { INPUT_BASE } from "./productoFormUtils";
 
 export const ProductoForm = ({
@@ -12,9 +12,10 @@ export const ProductoForm = ({
     subcategoriasDisponibles,
     tiposDisponibles,
     atributosDef,
-    form, archivo, archivoActual, loading, isValid,
+    form, archivosNuevos, archivosGuardados, archivosEliminarIds,
+    loading, isValid,
     handleChange, handleAtributoChange,
-    handleArchivoChange, removeArchivo,
+    handleAgregarArchivo, quitarArchivoNuevo, cambiarRolArchivoNuevo, quitarArchivoGuardado,
     handleSubmit,
     submitLabel = "Guardar producto",
     loadingLabel = "Guardando…",
@@ -91,11 +92,14 @@ export const ProductoForm = ({
                 onAtributoChange={handleAtributoChange}
             />
 
-            <ArchivoSection
-                archivo={archivo}
-                archivoActual={archivoActual}
-                onArchivoChange={handleArchivoChange}
-                onRemove={removeArchivo}
+            <ArchivosSection
+                archivosNuevos={archivosNuevos}
+                archivosGuardados={archivosGuardados}
+                archivosEliminarIds={archivosEliminarIds}
+                onAgregar={handleAgregarArchivo}
+                onQuitarNuevo={quitarArchivoNuevo}
+                onCambiarRolNuevo={cambiarRolArchivoNuevo}
+                onQuitarGuardado={quitarArchivoGuardado}
             />
 
             <button

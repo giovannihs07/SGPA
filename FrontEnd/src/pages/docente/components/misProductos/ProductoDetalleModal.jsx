@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { X, Info, Paperclip, Pencil, Download } from "lucide-react";
 import { getProductoSchema } from "../../../../services/productoServices";
+import { etiquetaRolArchivo } from "../../../../config/productoArchivo";
 import {
     TIPO_LABELS, SUBCATEGORIA_LABELS, CATEGORIA_LABELS,
-    formatFecha, getExtensionArchivo, etiquetaAtributo,
+    formatFecha, etiquetaAtributo, obtenerArchivosProducto,
     puedeEditarProducto, puedeEliminarProducto,
     MENSAJE_PRODUCTO_PUBLICADO,
 } from "../productoHelpers";
@@ -71,6 +72,7 @@ export const ProductoDetalleModal = ({
     const editable   = permitirEditar && puedeEditarProducto(producto);
     const eliminable = puedeEliminarProducto(producto);
     const atributos  = Object.entries(producto.atributos ?? {});
+    const archivos   = obtenerArchivosProducto(producto);
     const togglingEste = toggling === producto.id;
 
     return (
@@ -192,36 +194,51 @@ export const ProductoDetalleModal = ({
                         </div>
                     )}
 
-                    {producto.nombreArchivo && (
-                        <div className="flex flex-wrap items-center gap-3 p-4 rounded-xl
-                            bg-linear-to-br from-orange-50 to-amber-50
-                            dark:from-orange-900/20 dark:to-amber-900/10
-                            border border-orange-200 dark:border-orange-800">
-                            <div className="w-9 h-9 rounded-xl bg-[#EC7A21] flex items-center justify-center shrink-0">
-                                <Paperclip size={16} className="text-white" />
-                            </div>
-                            <div className="flex-1 min-w-[140px]">
-                                <p className="text-[10px] font-bold uppercase text-gray-400 mb-0.5">
-                                    Archivo adjunto
-                                </p>
-                                <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
-                                    {producto.nombreArchivoOriginal}
-                                </p>
-                            </div>
-                            {getExtensionArchivo(producto) && (
-                                <span className="text-[10px] font-extrabold px-2 py-1 rounded-md
-                                    bg-white dark:bg-gray-800 text-[#EC7A21] border border-orange-200">
-                                    {getExtensionArchivo(producto)}
-                                </span>
-                            )}
-                            <button
-                                type="button"
-                                onClick={() => onDescargar(producto)}
-                                className="inline-flex items-center gap-1.5 text-xs font-bold text-white
-                                    bg-[#EC7A21] hover:bg-[#d96a15] px-3.5 py-2 rounded-lg transition"
-                            >
-                                <Download size={14} /> Descargar
-                            </button>
+                    {archivos.length > 0 && (
+                        <div className="space-y-2">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                                Archivos adjuntos ({archivos.length})
+                            </p>
+                            {archivos.map((archivo) => {
+                                const ext = archivo.extensionArchivo
+                                    ?? (archivo.nombreOriginal?.includes(".")
+                                        ? archivo.nombreOriginal.split(".").pop().toUpperCase()
+                                        : null);
+                                return (
+                                    <div key={archivo.id ?? archivo.nombreOriginal}
+                                        className="flex flex-wrap items-center gap-3 p-4 rounded-xl
+                                            bg-linear-to-br from-orange-50 to-amber-50
+                                            dark:from-orange-900/20 dark:to-amber-900/10
+                                            border border-orange-200 dark:border-orange-800">
+                                        <div className="w-9 h-9 rounded-xl bg-[#EC7A21] flex items-center
+                                            justify-center shrink-0">
+                                            <Paperclip size={16} className="text-white" />
+                                        </div>
+                                        <div className="flex-1 min-w-[140px]">
+                                            <p className="text-[10px] font-bold uppercase text-gray-400 mb-0.5">
+                                                {etiquetaRolArchivo(archivo.rol)}
+                                            </p>
+                                            <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
+                                                {archivo.nombreOriginal}
+                                            </p>
+                                        </div>
+                                        {ext && (
+                                            <span className="text-[10px] font-extrabold px-2 py-1 rounded-md
+                                                bg-white dark:bg-gray-800 text-[#EC7A21] border border-orange-200">
+                                                {ext}
+                                            </span>
+                                        )}
+                                        <button
+                                            type="button"
+                                            onClick={() => onDescargar(producto, archivo)}
+                                            className="inline-flex items-center gap-1.5 text-xs font-bold text-white
+                                                bg-[#EC7A21] hover:bg-[#d96a15] px-3.5 py-2 rounded-lg transition"
+                                        >
+                                            <Download size={14} /> Descargar
+                                        </button>
+                                    </div>
+                                );
+                            })}
                         </div>
                     )}
 

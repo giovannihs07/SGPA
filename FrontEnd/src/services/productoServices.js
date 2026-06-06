@@ -11,29 +11,27 @@ export const getProductoSchema = async () => {
     return data;
 };
 
+const appendArchivos = (formData, archivos = []) => {
+    if (!archivos?.length) return;
+    archivos.forEach((file) => {
+        if (file) formData.append("archivos", file);
+    });
+};
+
 /**
  * POST /api/productos  (multipart/form-data)
- *   - parte "datos"   → Blob JSON  (@RequestPart Spring)
- *   - parte "archivo" → File opcional
- *
+ *   - parte "datos"    → Blob JSON
+ *   - parte "archivos" → File[] (metadatos en datos.archivosMeta)
  */
-export const crearProducto = async (datos, archivo = null) => {
+export const crearProducto = async (datos, archivos = []) => {
     const formData = new FormData();
-
     formData.append(
         "datos",
-        new Blob([JSON.stringify(datos)], { type: "application/json" })
+        new Blob([JSON.stringify(datos)], { type: "application/json" }),
     );
+    appendArchivos(formData, archivos);
 
-    if (archivo) {
-        formData.append("archivo", archivo);
-    }
-
-    const { data } = await axiosInstance.post(
-        "/api/productos",
-        formData
-    );
-
+    const { data } = await axiosInstance.post("/api/productos", formData);
     return data;
 };
 
@@ -100,15 +98,15 @@ export const getMiProductoPorId = async (id) => {
 };
 
 /**
- * PUT /api/productos/mis/:id  (multipart: datos + archivo opcional)
+ * PUT /api/productos/mis/:id  (multipart: datos + archivos nuevos opcionales)
  */
-export const actualizarMiProducto = async (id, datos, archivo = null) => {
+export const actualizarMiProducto = async (id, datos, archivos = []) => {
     const formData = new FormData();
     formData.append(
         "datos",
         new Blob([JSON.stringify(datos)], { type: "application/json" }),
     );
-    if (archivo) formData.append("archivo", archivo);
+    appendArchivos(formData, archivos);
 
     const { data } = await axiosInstance.put(`/api/productos/mis/${id}`, formData);
     return data;
@@ -129,27 +127,30 @@ export const eliminarProducto = async (id) => {
     await axiosInstance.delete(`/api/productos/${id}`);
 };
 
-/**
- * GET /api/productos/:id/archivo  (descarga)
- * Devuelve un blob para que el componente genere un link de descarga.
- */
-export const descargarArchivo = async (id, nombreOriginal) => {
+const descargarBlob = (blob, nombreDescarga) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = nombreDescarga;
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+};
+
+const fetchArchivoBlob = async (url, options = {}) => {
     let response;
     try {
-        response = await axiosInstance.get(`/api/productos/${id}/archivo`, {
+        response = await axiosInstance.get(url, {
             responseType: "blob",
-            skipAuth: true,
+            ...options,
         });
     } catch (error) {
-        const message = await getApiErrorMessageAsync(
-            error,
-            "No se pudo descargar el archivo",
-        );
+        const message = await getApiErrorMessageAsync(error, "No se pudo descargar el archivo");
         throw new Error(message);
     }
-
     const blob = response.data;
-
     if (blob.type?.includes("application/json")) {
         const message = await getApiErrorMessageAsync(
             { response: { data: blob } },
@@ -157,14 +158,26 @@ export const descargarArchivo = async (id, nombreOriginal) => {
         );
         throw new Error(message);
     }
+    return blob;
+};
 
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = nombreOriginal || `producto-${id}`;
-    a.style.display = "none";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+/** Descarga archivo principal (compatibilidad / público). */
+export const descargarArchivo = async (productoId, nombreOriginal) => {
+    const blob = await fetchArchivoBlob(`/api/productos/${productoId}/archivo`, { skipAuth: true });
+    descargarBlob(blob, nombreOriginal || `producto-${productoId}`);
+};
+
+/** Descarga un archivo específico del producto (docente autenticado). */
+export const descargarArchivoProducto = async (productoId, archivoId, nombreOriginal) => {
+    const blob = await fetchArchivoBlob(`/api/productos/mis/${productoId}/archivos/${archivoId}`);
+    descargarBlob(blob, nombreOriginal || `archivo-${archivoId}`);
+};
+
+/** Descarga por id de archivo (ruta pública con restricciones de acceso). */
+export const descargarArchivoPublico = async (productoId, archivoId, nombreOriginal) => {
+    const blob = await fetchArchivoBlob(
+        `/api/productos/${productoId}/archivos/${archivoId}`,
+        { skipAuth: true },
+    );
+    descargarBlob(blob, nombreOriginal || `archivo-${archivoId}`);
 };

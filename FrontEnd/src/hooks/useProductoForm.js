@@ -4,9 +4,14 @@ import { notifyError } from "../utils/notify";
 import { getApiErrorMessage } from "../utils/apiError";
 import {
     MAX_ARCHIVO_BYTES,
+    MAX_ARCHIVOS,
+    ROL_PRINCIPAL,
     mensajeArchivoExcedeLimite,
     esExtensionPermitida,
     mensajeExtensionNoPermitida,
+    crearEntradaArchivoNuevo,
+    tieneArchivoPrincipal,
+    totalArchivosActivos,
 } from "../config/productoArchivo";
 import {
     INITIAL_PRODUCTO_FORM,
@@ -17,11 +22,13 @@ import {
     getAtributosDelTipo,
 } from "../pages/docente/components/productoFormUtils";
 
-/**
- * Hook compartido para formulario de producto (crear / editar).
- */
+/** Referencia estable para evitar re-renders infinitos con el valor por defecto []. */
+export const ARCHIVOS_GUARDADOS_VACIOS = [];
+
 export const useProductoForm = ({
     initialForm = INITIAL_PRODUCTO_FORM,
+    archivosGuardadosIniciales = ARCHIVOS_GUARDADOS_VACIOS,
+    esEdicion = false,
     onSubmit,
     resetOnSuccess = false,
 }) => {
@@ -38,13 +45,22 @@ export const useProductoForm = ({
             .finally(() => setLoadingSchema(false));
     }, []);
 
-    const [form, setForm]       = useState(initialForm);
-    const [archivo, setArchivo] = useState(null);
+    const [form, setForm] = useState(initialForm);
+    const [archivosNuevos, setArchivosNuevos] = useState([]);
+    const [archivosGuardados, setArchivosGuardados] = useState(archivosGuardadosIniciales);
+    const [archivosEliminarIds, setArchivosEliminarIds] = useState([]);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         setForm(resolveFormFromProduct(initialForm, schema));
     }, [initialForm, schema]);
+
+    useEffect(() => {
+        if (!esEdicion) return;
+        setArchivosGuardados(archivosGuardadosIniciales);
+        setArchivosNuevos([]);
+        setArchivosEliminarIds([]);
+    }, [esEdicion, archivosGuardadosIniciales]);
 
     const { categoriaId, subcategoriaId, tipoProductoId, atributos } = form;
 
@@ -68,6 +84,11 @@ export const useProductoForm = ({
     const atributosDef = useMemo(
         () => getAtributosDelTipo(schema, categoriaId, subcategoriaId, tipoProductoId),
         [schema, categoriaId, subcategoriaId, tipoProductoId],
+    );
+
+    const archivosValidos = useMemo(
+        () => tieneArchivoPrincipal(archivosGuardados, archivosNuevos, archivosEliminarIds),
+        [archivosGuardados, archivosNuevos, archivosEliminarIds],
     );
 
     const handleChange = useCallback(({ target: { name, value } }) => {
@@ -104,28 +125,57 @@ export const useProductoForm = ({
         }));
     }, []);
 
-    const handleArchivoChange = useCallback((e) => {
-        const file = e.target.files?.[0] ?? null;
-        if (!file) {
-            setArchivo(null);
-            return;
-        }
+    const handleAgregarArchivo = useCallback((e) => {
+        const file = e.target.files?.[0];
+        e.target.value = "";
+        if (!file) return;
+
         if (!esExtensionPermitida(file.name)) {
             notifyError("Tipo de archivo no permitido", mensajeExtensionNoPermitida(file.name));
-            e.target.value = "";
-            setArchivo(null);
             return;
         }
         if (file.size > MAX_ARCHIVO_BYTES) {
             notifyError("Archivo demasiado grande", mensajeArchivoExcedeLimite(file.size));
-            e.target.value = "";
-            setArchivo(null);
             return;
         }
-        setArchivo(file);
+        if (totalArchivosActivos(archivosGuardados, archivosNuevos, archivosEliminarIds) >= MAX_ARCHIVOS) {
+            notifyError("Límite alcanzado", `Máximo ${MAX_ARCHIVOS} archivos por producto.`);
+            return;
+        }
+
+        const hayPrincipal = tieneArchivoPrincipal(
+            archivosGuardados, archivosNuevos, archivosEliminarIds,
+        );
+        const rol = hayPrincipal ? "ANEXO" : ROL_PRINCIPAL;
+        const orden = totalArchivosActivos(archivosGuardados, archivosNuevos, archivosEliminarIds) + 1;
+
+        setArchivosNuevos((prev) => [...prev, crearEntradaArchivoNuevo(file, rol, orden)]);
+    }, [archivosGuardados, archivosNuevos, archivosEliminarIds]);
+
+    const quitarArchivoNuevo = useCallback((localId) => {
+        setArchivosNuevos((prev) => prev.filter((a) => a.localId !== localId));
     }, []);
 
-    const removeArchivo = useCallback(() => setArchivo(null), []);
+    const cambiarRolArchivoNuevo = useCallback((localId, rol) => {
+        if (rol === ROL_PRINCIPAL) {
+            const yaHayPrincipal = tieneArchivoPrincipal(
+                archivosGuardados,
+                archivosNuevos.filter((a) => a.localId !== localId),
+                archivosEliminarIds,
+            );
+            if (yaHayPrincipal) {
+                notifyError("Rol no permitido", "Ya existe un archivo Principal.");
+                return;
+            }
+        }
+        setArchivosNuevos((prev) =>
+            prev.map((a) => (a.localId === localId ? { ...a, rol } : a)),
+        );
+    }, [archivosGuardados, archivosNuevos, archivosEliminarIds]);
+
+    const quitarArchivoGuardado = useCallback((id) => {
+        setArchivosEliminarIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+    }, []);
 
     const atributoTieneValor = useCallback((def, valores) => {
         const v = valores[def.nombreAtributo];
@@ -138,10 +188,12 @@ export const useProductoForm = ({
     const isValid = useMemo(() => {
         if (!form.nombre.trim() || !form.descripcion.trim()) return false;
         if (!categoriaId || !subcategoriaId || !tipoProductoId) return false;
-        return atributosDef
+        if (!archivosValidos) return false;
+        const atributosOk = atributosDef
             .filter((a) => a.requerido)
             .every((a) => atributoTieneValor(a, atributos));
-    }, [form, categoriaId, subcategoriaId, tipoProductoId, atributosDef, atributos, atributoTieneValor]);
+        return atributosOk;
+    }, [form, categoriaId, subcategoriaId, tipoProductoId, atributosDef, atributos, atributoTieneValor, archivosValidos]);
 
     const submittingRef = useRef(false);
 
@@ -149,19 +201,30 @@ export const useProductoForm = ({
         e.preventDefault();
         if (!isValid || submittingRef.current) return;
 
-        if (archivo && archivo.size > MAX_ARCHIVO_BYTES) {
-            notifyError("Archivo demasiado grande", mensajeArchivoExcedeLimite(archivo.size));
+        if (!archivosValidos) {
+            notifyError("Archivo obligatorio", "Debes adjuntar un archivo con rol Principal.");
             return;
+        }
+
+        for (const a of archivosNuevos) {
+            if (a.file.size > MAX_ARCHIVO_BYTES) {
+                notifyError("Archivo demasiado grande", mensajeArchivoExcedeLimite(a.file.size));
+                return;
+            }
         }
 
         submittingRef.current = true;
         setLoading(true);
 
         try {
-            await onSubmit(buildProductoPayload(form), archivo);
+            const payload = buildProductoPayload(form, { archivosNuevos, archivosEliminarIds });
+            const files = archivosNuevos.map((a) => a.file);
+            await onSubmit(payload, files);
             if (resetOnSuccess) {
                 setForm(INITIAL_PRODUCTO_FORM);
-                setArchivo(null);
+                setArchivosNuevos([]);
+                setArchivosGuardados([]);
+                setArchivosEliminarIds([]);
             }
         } catch (err) {
             notifyError(
@@ -172,7 +235,7 @@ export const useProductoForm = ({
             setLoading(false);
             submittingRef.current = false;
         }
-    }, [form, archivo, isValid, onSubmit, resetOnSuccess]);
+    }, [form, archivosNuevos, archivosEliminarIds, isValid, archivosValidos, onSubmit, resetOnSuccess]);
 
     return {
         loadingTipos: loadingSchema,
@@ -183,13 +246,18 @@ export const useProductoForm = ({
         tiposDisponibles,
         atributosDef,
         form,
-        archivo,
+        archivosNuevos,
+        archivosGuardados,
+        archivosEliminarIds,
+        esEdicion,
         loading,
         isValid,
         handleChange,
         handleAtributoChange,
-        handleArchivoChange,
-        removeArchivo,
+        handleAgregarArchivo,
+        quitarArchivoNuevo,
+        cambiarRolArchivoNuevo,
+        quitarArchivoGuardado,
         handleSubmit,
     };
 };

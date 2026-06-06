@@ -1,6 +1,7 @@
 package com.sgpa.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,6 +16,9 @@ import com.sgpa.model.users.Docente;
 
 @Repository
 public interface ProductoDocenteRepository extends JpaRepository<ProductoDocente, Long> {
+
+    @Query("SELECT DISTINCT p FROM ProductoDocente p LEFT JOIN FETCH p.archivos WHERE p.id = :id")
+    Optional<ProductoDocente> findByIdWithArchivos(@Param("id") Long id);
 
     List<ProductoDocente> findByDocente(Docente docente);
 
