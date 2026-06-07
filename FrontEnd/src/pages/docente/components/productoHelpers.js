@@ -68,6 +68,8 @@ export const obtenerArchivosProducto = (producto) => {
             id: null,
             nombreOriginal: producto.nombreArchivoOriginal,
             rol: "PRINCIPAL",
+            accesoPublico: true,
+            descargable: true,
             extensionArchivo: getExtensionArchivo(producto),
         }];
     }
@@ -76,6 +78,15 @@ export const obtenerArchivosProducto = (producto) => {
 
 export const productoTieneArchivos = (producto) =>
     obtenerArchivosProducto(producto).length > 0;
+
+export const puedeDescargarArchivo = (archivo) => archivo?.descargable !== false;
+
+export const etiquetaAccesoArchivo = (archivo) =>
+    archivo?.accesoPublico ? "Público" : "Restringido";
+
+/** Vista admin: archivos restringidos visibles pero sin descarga. */
+export const esVistaAdminArchivos = (archivos = []) =>
+    archivos.some((a) => !a.accesoPublico && a.descargable === false);
 
 export const esReciente = (fecha, dias = 30) => {
     if (!fecha) return false;

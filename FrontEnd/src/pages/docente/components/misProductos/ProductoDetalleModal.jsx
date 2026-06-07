@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { X, Info, Paperclip, Pencil, Download } from "lucide-react";
+import { X, Info, Paperclip, Pencil, Download, Lock } from "lucide-react";
 import { getProductoSchema } from "../../../../services/productoServices";
 import { etiquetaRolArchivo } from "../../../../config/productoArchivo";
 import {
     TIPO_LABELS, SUBCATEGORIA_LABELS, CATEGORIA_LABELS,
     formatFecha, etiquetaAtributo, obtenerArchivosProducto,
     puedeEditarProducto, puedeEliminarProducto,
+    puedeDescargarArchivo, etiquetaAccesoArchivo, esVistaAdminArchivos,
     MENSAJE_PRODUCTO_PUBLICADO,
 } from "../productoHelpers";
 import { buildEtiquetasAtributosMap } from "../productoFormUtils";
@@ -22,6 +23,59 @@ const DetallePill = ({ label, value, accent = "border-[#EC7A21]" }) => (
         </p>
     </div>
 );
+
+const FilaArchivoDetalle = ({ archivo, producto, onDescargar }) => {
+    const ext = archivo.extensionArchivo
+        ?? (archivo.nombreOriginal?.includes(".")
+            ? archivo.nombreOriginal.split(".").pop().toUpperCase()
+            : null);
+    const restringido = !archivo.accesoPublico;
+    const descargable = puedeDescargarArchivo(archivo);
+
+    return (
+        <div
+            className={`flex flex-wrap items-center gap-3 p-4 rounded-xl border
+                ${restringido
+                    ? "bg-gray-50 dark:bg-gray-900/30 border-gray-200 dark:border-gray-600"
+                    : "bg-linear-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/10 border-orange-200 dark:border-orange-800"
+                }`}
+        >
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0
+                ${restringido ? "bg-gray-400" : "bg-[#EC7A21]"}`}>
+                {restringido ? <Lock size={16} className="text-white" /> : <Paperclip size={16} className="text-white" />}
+            </div>
+            <div className="flex-1 min-w-[140px]">
+                <p className="text-[10px] font-bold uppercase text-gray-400 mb-0.5">
+                    {etiquetaRolArchivo(archivo.rol)} · {etiquetaAccesoArchivo(archivo)}
+                </p>
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
+                    {archivo.nombreOriginal}
+                </p>
+                {!descargable && (
+                    <p className="text-[11px] text-gray-400 mt-0.5 italic">
+                        Solo el docente dueño puede descargarlo
+                    </p>
+                )}
+            </div>
+            {ext && (
+                <span className="text-[10px] font-extrabold px-2 py-1 rounded-md
+                    bg-white dark:bg-gray-800 text-[#EC7A21] border border-orange-200">
+                    {ext}
+                </span>
+            )}
+            {descargable && (
+                <button
+                    type="button"
+                    onClick={() => onDescargar(producto, archivo)}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-white
+                        bg-[#EC7A21] hover:bg-[#d96a15] px-3.5 py-2 rounded-lg transition"
+                >
+                    <Download size={14} /> Descargar
+                </button>
+            )}
+        </div>
+    );
+};
 
 const DetalleMeta = ({ label, value }) => (
     <div>
@@ -73,6 +127,9 @@ export const ProductoDetalleModal = ({
     const eliminable = puedeEliminarProducto(producto);
     const atributos  = Object.entries(producto.atributos ?? {});
     const archivos   = obtenerArchivosProducto(producto);
+    const vistaAdmin = esVistaAdminArchivos(archivos);
+    const archivosPublicos = archivos.filter((a) => a.accesoPublico);
+    const archivosRestringidos = archivos.filter((a) => !a.accesoPublico);
     const togglingEste = toggling === producto.id;
 
     return (
@@ -195,50 +252,55 @@ export const ProductoDetalleModal = ({
                     )}
 
                     {archivos.length > 0 && (
-                        <div className="space-y-2">
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                                Archivos adjuntos ({archivos.length})
-                            </p>
-                            {archivos.map((archivo) => {
-                                const ext = archivo.extensionArchivo
-                                    ?? (archivo.nombreOriginal?.includes(".")
-                                        ? archivo.nombreOriginal.split(".").pop().toUpperCase()
-                                        : null);
-                                return (
-                                    <div key={archivo.id ?? archivo.nombreOriginal}
-                                        className="flex flex-wrap items-center gap-3 p-4 rounded-xl
-                                            bg-linear-to-br from-orange-50 to-amber-50
-                                            dark:from-orange-900/20 dark:to-amber-900/10
-                                            border border-orange-200 dark:border-orange-800">
-                                        <div className="w-9 h-9 rounded-xl bg-[#EC7A21] flex items-center
-                                            justify-center shrink-0">
-                                            <Paperclip size={16} className="text-white" />
-                                        </div>
-                                        <div className="flex-1 min-w-[140px]">
-                                            <p className="text-[10px] font-bold uppercase text-gray-400 mb-0.5">
-                                                {etiquetaRolArchivo(archivo.rol)}
+                        <div className="space-y-3">
+                            {vistaAdmin ? (
+                                <>
+                                    {archivosPublicos.length > 0 && (
+                                        <div className="space-y-2">
+                                            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                                                Archivos públicos ({archivosPublicos.length})
                                             </p>
-                                            <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
-                                                {archivo.nombreOriginal}
-                                            </p>
+                                            {archivosPublicos.map((archivo) => (
+                                                <FilaArchivoDetalle
+                                                    key={archivo.id ?? archivo.nombreOriginal}
+                                                    archivo={archivo}
+                                                    producto={producto}
+                                                    onDescargar={onDescargar}
+                                                />
+                                            ))}
                                         </div>
-                                        {ext && (
-                                            <span className="text-[10px] font-extrabold px-2 py-1 rounded-md
-                                                bg-white dark:bg-gray-800 text-[#EC7A21] border border-orange-200">
-                                                {ext}
-                                            </span>
-                                        )}
-                                        <button
-                                            type="button"
-                                            onClick={() => onDescargar(producto, archivo)}
-                                            className="inline-flex items-center gap-1.5 text-xs font-bold text-white
-                                                bg-[#EC7A21] hover:bg-[#d96a15] px-3.5 py-2 rounded-lg transition"
-                                        >
-                                            <Download size={14} /> Descargar
-                                        </button>
-                                    </div>
-                                );
-                            })}
+                                    )}
+                                    {archivosRestringidos.length > 0 && (
+                                        <div className="space-y-2">
+                                            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                                                Archivos restringidos ({archivosRestringidos.length})
+                                            </p>
+                                            {archivosRestringidos.map((archivo) => (
+                                                <FilaArchivoDetalle
+                                                    key={archivo.id ?? archivo.nombreOriginal}
+                                                    archivo={archivo}
+                                                    producto={producto}
+                                                    onDescargar={onDescargar}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                <>
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                                        Archivos adjuntos ({archivos.length})
+                                    </p>
+                                    {archivos.map((archivo) => (
+                                        <FilaArchivoDetalle
+                                            key={archivo.id ?? archivo.nombreOriginal}
+                                            archivo={archivo}
+                                            producto={producto}
+                                            onDescargar={onDescargar}
+                                        />
+                                    ))}
+                                </>
+                            )}
                         </div>
                     )}
 

@@ -20,6 +20,8 @@ public class ProductoArchivoMapper {
                 .orden(archivo.getOrden())
                 .extensionArchivo(extraerExtension(archivo.getNombreOriginal()))
                 .fechaSubida(archivo.getFechaSubida())
+                .accesoPublico(archivo.getAccesoPublico())
+                .descargable(null)
                 .build();
     }
 

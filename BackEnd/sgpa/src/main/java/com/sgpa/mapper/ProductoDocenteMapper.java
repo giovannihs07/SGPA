@@ -65,7 +65,6 @@ public class ProductoDocenteMapper {
         dto.setSubcategoria(subcategoria != null ? subcategoria.getNombre() : null);
         dto.setCategoria(categoria != null ? categoria.getNombre() : null);
         dto.setPublicado(producto.getPublicado());
-        dto.setLibreAcceso(producto.getLibreAcceso());
         dto.setFechaCreacion(producto.getFechaCreacion());
         dto.setFechaPublicacion(producto.getFechaPublicacion());
         List<ProductoArchivoResponse> archivosDto = archivoMapper.toDTOList(producto.getArchivos());

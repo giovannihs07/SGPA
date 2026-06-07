@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -24,15 +25,15 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.sgpa.dto.request.ProductoArchivoMetaRequest;
 import com.sgpa.dto.request.ProductoDocenteRequest;
+import com.sgpa.dto.request.PublicarProductoRequest;
 import com.sgpa.dto.response.CategoriaSchemaResponse;
-import com.sgpa.dto.response.ProductoArchivoResponse;
 import com.sgpa.dto.response.ProductoDocenteResponse;
 import com.sgpa.dto.response.ProductoOpcionesResponse;
+import com.sgpa.exception.AccesoDenegadoException;
 import com.sgpa.model.products.ProductoArchivo;
 import com.sgpa.model.products.RolArchivoProducto;
 import com.sgpa.service.FileStorageService;
 import com.sgpa.service.ProductoDocenteService;
-import com.sgpa.service.ProductoDocenteServiceImpl;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +44,6 @@ import lombok.RequiredArgsConstructor;
 public class ProductoDocenteController {
 
     private final ProductoDocenteService service;
-    private final ProductoDocenteServiceImpl serviceImpl;
     private final FileStorageService fileStorageService;
 
     // Crear un producto docente
@@ -87,10 +87,9 @@ public class ProductoDocenteController {
     public ResponseEntity<Resource> descargarMiArchivo(
             @PathVariable Long id,
             @PathVariable Long archivoId) {
-        ProductoArchivoResponse meta = service.buscarMiArchivoPorId(id, archivoId);
-        ProductoArchivo archivo = serviceImpl.obtenerArchivoEntidad(id, archivoId);
+        ProductoArchivo archivo = service.validarDescargaPropietario(id, archivoId);
         Resource resource = fileStorageService.cargarArchivo(archivo.getNombreInterno());
-        return respuestaDescarga(resource, meta.getNombreOriginal());
+        return respuestaDescarga(resource, archivo.getNombreOriginal());
     }
 
     // Buscar un producto docente por su ID
@@ -129,14 +128,12 @@ public class ProductoDocenteController {
         return ResponseEntity.ok(service.buscarTodos());
     }
 
-    // Publicar un producto docente
+    // Publicar un producto docente con visibilidad por archivo
     @PatchMapping("/{id}/publicar")
     public ResponseEntity<ProductoDocenteResponse> publicar(
             @PathVariable Long id,
-            @RequestParam(required = false, defaultValue = "false")
-            Boolean libreAcceso) {
-        return ResponseEntity.ok(
-            service.publicarConAcceso(id, libreAcceso));
+            @RequestBody(required = false) @Valid PublicarProductoRequest request) {
+        return ResponseEntity.ok(service.publicar(id, request));
     }
 
     // Despublicar un producto docente
@@ -157,19 +154,13 @@ public class ProductoDocenteController {
     @GetMapping("/{id}/archivo")
     public ResponseEntity<Resource> descargarArchivoPrincipal(
             @PathVariable Long id) {
-        ProductoDocenteResponse dto = service.buscarPorId(id);
-
-        if (dto.getArchivos() == null || dto.getArchivos().isEmpty())
-            return ResponseEntity.notFound().build();
-
-        if (!Boolean.TRUE.equals(dto.getPublicado())
-                || !Boolean.TRUE.equals(dto.getLibreAcceso())) {
+        try {
+            ProductoArchivo principal = service.validarDescargaPublicaPrincipal(id);
+            Resource resource = fileStorageService.cargarArchivo(principal.getNombreInterno());
+            return respuestaDescarga(resource, principal.getNombreOriginal());
+        } catch (AccesoDenegadoException ex) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-
-        ProductoArchivo principal = serviceImpl.obtenerArchivoPrincipal(id);
-        Resource resource = fileStorageService.cargarArchivo(principal.getNombreInterno());
-        return respuestaDescarga(resource, principal.getNombreOriginal());
     }
 
     // Descargar un archivo del producto docente
@@ -177,17 +168,13 @@ public class ProductoDocenteController {
     public ResponseEntity<Resource> descargarArchivo(
             @PathVariable Long id,
             @PathVariable Long archivoId) {
-        ProductoDocenteResponse dto = service.buscarPorId(id);
-        ProductoArchivoResponse meta = service.buscarArchivoPorId(id, archivoId);
-
-        if (!Boolean.TRUE.equals(dto.getPublicado())
-                || !Boolean.TRUE.equals(dto.getLibreAcceso())) {
+        try {
+            ProductoArchivo archivo = service.validarDescargaPublica(id, archivoId);
+            Resource resource = fileStorageService.cargarArchivo(archivo.getNombreInterno());
+            return respuestaDescarga(resource, archivo.getNombreOriginal());
+        } catch (AccesoDenegadoException ex) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-
-        ProductoArchivo archivo = serviceImpl.obtenerArchivoEntidad(id, archivoId);
-        Resource resource = fileStorageService.cargarArchivo(archivo.getNombreInterno());
-        return respuestaDescarga(resource, meta.getNombreOriginal());
     }
 
     // Obtener el schema de los productos docentes

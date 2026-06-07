@@ -129,6 +129,7 @@ public class ProductoArchivoHelper {
         entidad.setNombreOriginal(nombres[1]);
         entidad.setRol(meta.getRol());
         entidad.setOrden(meta.getOrden() != null ? meta.getOrden() : ordenPorDefecto);
+        entidad.setAccesoPublico(false);
         producto.getArchivos().add(entidad);
     }
 

@@ -161,6 +161,22 @@ const fetchArchivoBlob = async (url, options = {}) => {
     return blob;
 };
 
+/**
+ * PATCH /api/productos/{id}/publicar
+ * @param {Array<{archivoId: number, accesoPublico: boolean}>} archivosVisibilidad
+ */
+export const publicarProducto = async (id, archivosVisibilidad) => {
+    const { data } = await axiosInstance.patch(`/api/productos/${id}/publicar`, {
+        archivosVisibilidad,
+    });
+    return data;
+};
+
+export const despublicarProducto = async (id) => {
+    const { data } = await axiosInstance.patch(`/api/productos/${id}/despublicar`);
+    return data;
+};
+
 /** Descarga archivo principal (compatibilidad / público). */
 export const descargarArchivo = async (productoId, nombreOriginal) => {
     const blob = await fetchArchivoBlob(`/api/productos/${productoId}/archivo`, { skipAuth: true });

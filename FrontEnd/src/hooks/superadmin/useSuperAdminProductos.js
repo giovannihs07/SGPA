@@ -2,18 +2,18 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import {
     getProductosPublicados, eliminarProducto,
     descargarArchivo, descargarArchivoPublico,
+    publicarProducto, despublicarProducto,
 } from "../../services/productoServices";
 import { obtenerArchivosProducto } from "../../pages/docente/components/productoHelpers";
 import { notifySuccess, notifyError } from "../../utils/notify";
 import { esReciente, matchRangoFecha } from "../../pages/docente/components/productoHelpers";
-import { intentarEliminarProducto, confirmTogglePublicacion } from "../../pages/docente/components/misProductos/productoSwal";
-import axiosInstance from "../../services/axiosInstance";
+import {
+    intentarEliminarProducto,
+    confirmPublicarProducto,
+    confirmDespublicarProducto,
+} from "../../pages/docente/components/misProductos/productoSwal";
 
-const PAGE_SIZE = 10; // Tamaño de la página
-
-// Funciones para publicar y despublicar el producto
-const publicarProducto    = (id) => axiosInstance.patch(`/api/productos/${id}/publicar`);
-const despublicarProducto = (id) => axiosInstance.patch(`/api/productos/${id}/despublicar`);
+const PAGE_SIZE = 10;
 
 export const useSuperAdminProductos = () => {
     const [productos, setProductos] = useState([]);
@@ -109,9 +109,13 @@ export const useSuperAdminProductos = () => {
 
     const handleDescargar = useCallback(async (producto, archivo = null) => {
         const lista = obtenerArchivosProducto(producto);
-        const target = archivo ?? lista.find((a) => a.rol === "PRINCIPAL") ?? lista[0];
+        const target = archivo ?? lista.find((a) => a.accesoPublico) ?? lista[0];
         if (!target) {
-            notifyError("Sin archivo", "Este producto no tiene archivos adjuntos.");
+            notifyError("Sin archivo", "Este producto no tiene archivos públicos descargables.");
+            return;
+        }
+        if (target.descargable === false) {
+            notifyError("Acceso restringido", "Solo el docente dueño puede descargar este archivo.");
             return;
         }
         try {
@@ -126,13 +130,20 @@ export const useSuperAdminProductos = () => {
     }, []);
 
     const togglePublicacion = useCallback(async (producto) => {
-        const ok = await confirmTogglePublicacion(producto);
-        if (!ok) return;
+        let visibilidad = null;
+        if (producto.publicado) {
+            const ok = await confirmDespublicarProducto(producto);
+            if (!ok) return;
+        } else {
+            visibilidad = await confirmPublicarProducto(producto);
+            if (!visibilidad) return;
+        }
 
         setToggling(producto.id);
         try {
-            const fn = producto.publicado ? despublicarProducto : publicarProducto;
-            const { data } = await fn(producto.id);
+            const data = producto.publicado
+                ? await despublicarProducto(producto.id)
+                : await publicarProducto(producto.id, visibilidad);
             if (producto.publicado) {
                 setProductos((prev) => prev.filter((p) => p.id !== producto.id));
                 setProductoDetalle((prev) => (prev?.id === producto.id ? null : prev));
