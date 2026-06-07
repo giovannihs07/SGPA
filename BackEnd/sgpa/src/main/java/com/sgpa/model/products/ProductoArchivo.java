@@ -49,6 +49,9 @@ public class ProductoArchivo {
 
     private Integer orden;
 
+    @Column(name = "acceso_publico", nullable = false)
+    private Boolean accesoPublico = false;
+
     @CreationTimestamp
     @Column(name = "fecha_subida")
     private LocalDateTime fechaSubida;

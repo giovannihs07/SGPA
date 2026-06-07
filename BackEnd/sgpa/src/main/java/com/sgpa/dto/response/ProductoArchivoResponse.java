@@ -21,4 +21,6 @@ public class ProductoArchivoResponse {
     private Integer orden;
     private String extensionArchivo;
     private LocalDateTime fechaSubida;
+    private Boolean accesoPublico;
+    private Boolean descargable;
 }

@@ -121,14 +121,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<Map<String, String>> handleMaxUploadSize(MaxUploadSizeExceededException ex) {
-        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+        return ResponseEntity.status(HttpStatus.CONTENT_TOO_LARGE)
             .body(Map.of("error", MENSAJE_ARCHIVO_DEMASIADO_GRANDE));
     }
 
     @ExceptionHandler(MultipartException.class)
     public ResponseEntity<Map<String, String>> handleMultipart(MultipartException ex) {
         if (esErrorTamanoArchivo(ex)) {
-            return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+            return ResponseEntity.status(HttpStatus.CONTENT_TOO_LARGE)
                 .body(Map.of("error", MENSAJE_ARCHIVO_DEMASIADO_GRANDE));
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)

@@ -46,9 +46,6 @@ public class ProductoDocente {
     private String descripcion;
     private Boolean publicado = false;
 
-    @Column(nullable = false)
-    private Boolean libreAcceso = false;
-
     @CreationTimestamp
     private LocalDate fechaCreacion;
 

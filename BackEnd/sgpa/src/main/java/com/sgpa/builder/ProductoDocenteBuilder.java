@@ -36,11 +36,6 @@ public class ProductoDocenteBuilder implements IProductoBuilder<ProductoDocente>
         return this;
     }
 
-    public ProductoDocenteBuilder libreAcceso(Boolean libreAcceso) {
-        producto.setLibreAcceso(libreAcceso != null ? libreAcceso : false);
-        return this;
-    }
-
     public ProductoDocenteBuilder docente(Docente docente) {
         producto.setDocente(docente);
         return this;

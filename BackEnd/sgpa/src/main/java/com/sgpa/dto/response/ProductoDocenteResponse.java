@@ -29,7 +29,7 @@ public class ProductoDocenteResponse {
     private String categoria;
 
     private Boolean publicado;
-    private Boolean libreAcceso;
+    private Integer totalArchivosRestringidos;
     private LocalDate fechaCreacion;
     private LocalDate fechaPublicacion;
     private String nombreArchivo;

@@ -7,6 +7,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.sgpa.dto.request.ProductoDocenteRequest;
+import com.sgpa.dto.request.PublicarProductoRequest;
+import com.sgpa.model.products.ProductoArchivo;
 import com.sgpa.dto.response.CategoriaSchemaResponse;
 import com.sgpa.dto.response.ProductoArchivoResponse;
 import com.sgpa.dto.response.ProductoDocenteResponse;
@@ -26,8 +28,10 @@ public interface ProductoDocenteService {
     List<ProductoDocenteResponse> buscarMisProductos();
     ProductoDocenteResponse buscarMiProductoPorId(Long id);
     List<ProductoDocenteResponse> buscarPublicados();
-    ProductoDocenteResponse publicar(Long id);
-    ProductoDocenteResponse publicarConAcceso(Long id, Boolean libreAcceso);
+    ProductoDocenteResponse publicar(Long id, PublicarProductoRequest request);
+    ProductoArchivo validarDescargaPropietario(Long productoId, Long archivoId);
+    ProductoArchivo validarDescargaPublica(Long productoId, Long archivoId);
+    ProductoArchivo validarDescargaPublicaPrincipal(Long productoId);
     ProductoDocenteResponse despublicar(Long id);
     Page<ProductoDocenteResponse> buscarPorDocentePaginado(Long docenteId, Pageable pageable);
     ProductoOpcionesResponse obtenerOpcionesDisponibles();

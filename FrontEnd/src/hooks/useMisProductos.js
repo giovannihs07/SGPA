@@ -4,20 +4,19 @@ import {
     eliminarProducto,
     descargarArchivo,
     descargarArchivoProducto,
+    publicarProducto,
+    despublicarProducto,
 } from "../services/productoServices";
 import { obtenerArchivosProducto } from "../pages/docente/components/productoHelpers";
 import { notifySuccess, notifyError } from "../utils/notify";
 import { esReciente } from "../pages/docente/components/productoHelpers";
 import {
     intentarEliminarProducto,
-    confirmTogglePublicacion,
+    confirmPublicarProducto,
+    confirmDespublicarProducto,
 } from "../pages/docente/components/misProductos/productoSwal";
-import axiosInstance from "../services/axiosInstance";
 
 const PAGE_SIZE = 10;
-
-const publicarProducto    = (id) => axiosInstance.patch(`/api/productos/${id}/publicar`);
-const despublicarProducto = (id) => axiosInstance.patch(`/api/productos/${id}/despublicar`);
 
 export const useMisProductos = () => {
 
@@ -130,21 +129,36 @@ export const useMisProductos = () => {
     }, []);
 
     const togglePublicacion = useCallback(async (producto) => {
-        const ok = await confirmTogglePublicacion(producto);
-        if (!ok) return;
+        let visibilidad = null;
+        if (producto.publicado) {
+            const ok = await confirmDespublicarProducto(producto);
+            if (!ok) return;
+        } else {
+            visibilidad = await confirmPublicarProducto(producto);
+            if (!visibilidad) return;
+        }
 
         setToggling(producto.id);
         try {
-            const fn = producto.publicado ? despublicarProducto : publicarProducto;
-            const { data } = await fn(producto.id);
+            const data = producto.publicado
+                ? await despublicarProducto(producto.id)
+                : await publicarProducto(producto.id, visibilidad);
             setProductos((prev) => prev.map((p) => p.id === producto.id ? data : p));
             setProductoDetalle((prev) => (prev?.id === data.id ? data : prev));
             notifySuccess(
                 producto.publicado ? "Producto despublicado" : "Producto publicado",
-                `"${producto.nombre}" fue actualizado.`,
+                producto.publicado
+                    ? `"${producto.nombre}" fue actualizado.`
+                    : `"${producto.nombre}" ya está en el catálogo.`,
             );
         } catch (e) {
-            notifyError("Error", e.response?.data?.message ?? "No se pudo actualizar el estado");
+            notifyError(
+                "Error",
+                e.response?.data?.error
+                    ?? e.response?.data?.message
+                    ?? e.message
+                    ?? "No se pudo actualizar el estado",
+            );
         } finally {
             setToggling(null);
         }

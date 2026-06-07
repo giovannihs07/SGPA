@@ -14,7 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.sgpa.builder.ProductoDocenteBuilder;
+import com.sgpa.dto.request.ArchivoVisibilidadRequest;
 import com.sgpa.dto.request.ProductoDocenteRequest;
+import com.sgpa.dto.request.PublicarProductoRequest;
 import com.sgpa.dto.response.CategoriaSchemaResponse;
 import com.sgpa.dto.response.ProductoArchivoResponse;
 import com.sgpa.dto.response.ProductoDocenteResponse;
@@ -61,6 +63,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
     private final SubcategoriaProductoRepository subcategoriaRepository;
     private final ProductoArchivoHelper archivoHelper;
     private final ProductoArchivoMapper archivoMapper;
+    private final ProductoAccesoService accesoService;
 
     @Override
     @Transactional
@@ -97,7 +100,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
                 Map.of("tipoProductoId", dto.getTipoProductoId()),
                 ResultadoAuditoria.EXITOSO);
 
-        return mapper.toDTO(guardado);
+        return toDtoConAcceso(guardado, ProductoAccesoService.VisorProducto.PROPIETARIO);
     }
 
     @Override
@@ -133,7 +136,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
                 "ProductoDocente", guardado.getId(), guardado.getNombre(),
                 null, ResultadoAuditoria.EXITOSO);
 
-        return mapper.toDTO(guardado);
+        return toDtoConAcceso(guardado, ProductoAccesoService.VisorProducto.PROPIETARIO);
     }
 
     @Override
@@ -155,75 +158,81 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
 
     @Override
     public List<ProductoDocenteResponse> buscarTodos() {
-        return mapper.toDTOList(repository.findAll());
+        return repository.findAll().stream()
+                .map(p -> toDtoConAcceso(p, accesoService.resolverVisor(p)))
+                .toList();
     }
 
     @Override
     public ProductoDocenteResponse buscarPorId(Long id) {
-        return mapper.toDTO(buscarEntidad(id));
+        ProductoDocente producto = buscarEntidad(id);
+        return toDtoConAcceso(producto, accesoService.resolverVisor(producto));
     }
 
     @Override
     public List<ProductoDocenteResponse> buscarPorTipo(Long tipoProductoId) {
-        return mapper.toDTOList(repository.findByTipoProductoId(tipoProductoId));
+        return repository.findByTipoProductoId(tipoProductoId).stream()
+                .map(p -> toDtoConAcceso(p, accesoService.resolverVisor(p)))
+                .toList();
     }
 
     @Override
     public List<ProductoDocenteResponse> buscarPorDocente(Long docenteId) {
-        return mapper.toDTOList(repository.findByDocenteId(docenteId));
+        return repository.findByDocenteId(docenteId).stream()
+                .map(p -> toDtoConAcceso(p, accesoService.resolverVisor(p)))
+                .toList();
     }
 
     @Override
     public List<ProductoDocenteResponse> buscarMisProductos() {
         Docente docente = obtenerDocenteAutenticado();
-        return mapper.toDTOList(repository.findByDocenteId(docente.getId()));
+        return repository.findByDocenteId(docente.getId()).stream()
+                .map(p -> toDtoConAcceso(p, ProductoAccesoService.VisorProducto.PROPIETARIO))
+                .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
     public ProductoDocenteResponse buscarMiProductoPorId(Long id) {
-        return mapper.toDTO(buscarEntidadPropia(id));
+        return toDtoConAcceso(buscarEntidadPropia(id), ProductoAccesoService.VisorProducto.PROPIETARIO);
     }
 
     @Override
     public List<ProductoDocenteResponse> buscarPublicados() {
-        return mapper.toDTOList(repository.findByPublicado(true));
+        return repository.findByPublicado(true).stream()
+                .map(p -> toDtoConAcceso(p, accesoService.resolverVisor(p)))
+                .toList();
     }
 
     @Override
     @Transactional
-    public ProductoDocenteResponse publicar(Long id) {
+    public ProductoDocenteResponse publicar(Long id, PublicarProductoRequest request) {
         ProductoDocente producto = buscarEntidad(id);
+
+        if (producto.getArchivos() == null || producto.getArchivos().isEmpty()) {
+            throw new IllegalStateException(
+                    "El producto debe tener al menos un archivo antes de publicarse.");
+        }
+
+        aplicarVisibilidadArchivos(producto, request);
         producto.setPublicado(true);
-        producto.setLibreAcceso(false); // por defecto al publicar
         producto.setFechaPublicacion(LocalDate.now());
         ProductoDocente guardado = repository.save(producto);
+
+        Map<String, Object> detalleVisibilidad = guardado.getArchivos().stream()
+                .collect(Collectors.toMap(
+                        a -> String.valueOf(a.getId()),
+                        a -> Map.of(
+                                "nombre", a.getNombreOriginal(),
+                                "accesoPublico", a.getAccesoPublico())));
 
         auditService.registrar(ModuloAuditoria.PRODUCTOS, "PUBLICAR_PRODUCTO",
                 "Publicó el producto \"" + guardado.getNombre() + "\"",
                 "ProductoDocente", guardado.getId(), guardado.getNombre(),
-                null, ResultadoAuditoria.EXITOSO);
-
-        return mapper.toDTO(guardado);
-    }
-
-    @Override
-    @Transactional
-    public ProductoDocenteResponse publicarConAcceso(Long id, Boolean libreAcceso) {
-        ProductoDocente producto = buscarEntidad(id);
-        producto.setPublicado(true);
-        producto.setLibreAcceso(
-                libreAcceso != null ? libreAcceso : false);
-        producto.setFechaPublicacion(LocalDate.now());
-        ProductoDocente guardado = repository.save(producto);
-
-        auditService.registrar(ModuloAuditoria.PRODUCTOS, "PUBLICAR_PRODUCTO",
-                "Publicó el producto \"" + guardado.getNombre() + "\"",
-                "ProductoDocente", guardado.getId(), guardado.getNombre(),
-                Map.of("libreAcceso", libreAcceso != null ? libreAcceso : false),
+                Map.of("archivosVisibilidad", detalleVisibilidad),
                 ResultadoAuditoria.EXITOSO);
 
-        return mapper.toDTO(guardado);
+        return toDtoConAcceso(guardado, accesoService.resolverVisor(guardado));
     }
 
     @Override
@@ -239,12 +248,56 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
                 "ProductoDocente", guardado.getId(), guardado.getNombre(),
                 null, ResultadoAuditoria.EXITOSO);
 
-        return mapper.toDTO(guardado);
+        return toDtoConAcceso(guardado, accesoService.resolverVisor(guardado));
     }
 
     @Override
     public Page<ProductoDocenteResponse> buscarPorDocentePaginado(Long docenteId, Pageable pageable) {
-        return repository.findByDocenteId(docenteId, pageable).map(mapper::toDTO);
+        return repository.findByDocenteId(docenteId, pageable)
+                .map(p -> toDtoConAcceso(p, accesoService.resolverVisor(p)));
+    }
+
+    @Override
+    @Transactional
+    public ProductoArchivo validarDescargaPropietario(Long productoId, Long archivoId) {
+        ProductoDocente producto = buscarEntidadPropia(productoId);
+        ProductoArchivo archivo = buscarArchivoEnProducto(producto, archivoId);
+
+        if (!Boolean.TRUE.equals(archivo.getAccesoPublico())) {
+            auditService.registrar(ModuloAuditoria.PRODUCTOS, "DESCARGA_ARCHIVO_RESTRINGIDO",
+                    "Descargó archivo restringido \"" + archivo.getNombreOriginal() + "\"",
+                    "ProductoArchivo", archivo.getId(), archivo.getNombreOriginal(),
+                    Map.of("productoId", productoId, "productoNombre", producto.getNombre()),
+                    ResultadoAuditoria.EXITOSO);
+        }
+
+        return archivo;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProductoArchivo validarDescargaPublica(Long productoId, Long archivoId) {
+        ProductoDocente producto = buscarEntidad(productoId);
+        ProductoArchivo archivo = buscarArchivoEnProducto(producto, archivoId);
+        if (!accesoService.puedeDescargarPublicamente(archivo, producto)) {
+            throw new AccesoDenegadoException("No tienes permiso para descargar este archivo");
+        }
+        return archivo;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProductoArchivo validarDescargaPublicaPrincipal(Long productoId) {
+        ProductoDocente producto = buscarEntidad(productoId);
+        ProductoArchivo principal = producto.getArchivos().stream()
+                .filter(a -> a.getRol() == RolArchivoProducto.PRINCIPAL)
+                .findFirst()
+                .orElseThrow(() -> new ArchivoNotFoundException(
+                        "Principal del producto " + productoId));
+        if (!accesoService.puedeDescargarPublicamente(principal, producto)) {
+            throw new AccesoDenegadoException("No tienes permiso para descargar este archivo");
+        }
+        return principal;
     }
 
     @Override
@@ -364,6 +417,43 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
 
     // --- Helpers privados ---
 
+    private ProductoDocenteResponse toDtoConAcceso(
+            ProductoDocente entidad,
+            ProductoAccesoService.VisorProducto visor) {
+        ProductoDocenteResponse dto = mapper.toDTO(entidad);
+        return accesoService.aplicarFiltroAcceso(dto, entidad, visor);
+    }
+
+    private void aplicarVisibilidadArchivos(
+            ProductoDocente producto,
+            PublicarProductoRequest request) {
+
+        List<ArchivoVisibilidadRequest> visibilidad = request != null
+                ? request.getArchivosVisibilidad()
+                : null;
+
+        if (visibilidad == null || visibilidad.isEmpty()) {
+            for (ProductoArchivo archivo : producto.getArchivos()) {
+                archivo.setAccesoPublico(archivo.getRol() == RolArchivoProducto.PRINCIPAL);
+            }
+            return;
+        }
+
+        if (visibilidad.size() != producto.getArchivos().size()) {
+            throw new IllegalArgumentException(
+                    "Debe indicar la visibilidad de todos los archivos del producto.");
+        }
+
+        for (ArchivoVisibilidadRequest item : visibilidad) {
+            ProductoArchivo archivo = producto.getArchivos().stream()
+                    .filter(a -> a.getId().equals(item.getArchivoId()))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Archivo no pertenece al producto: " + item.getArchivoId()));
+            archivo.setAccesoPublico(Boolean.TRUE.equals(item.getAccesoPublico()));
+        }
+    }
+
     private ProductoDocente buscarEntidad(Long id) {
         return repository.findByIdWithArchivos(id)
                 .orElseThrow(() -> new ProductoDocenteNotFoundException(id));
@@ -375,20 +465,6 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
                 .findFirst()
                 .orElseThrow(() -> new ArchivoNotFoundException(
                         "Archivo " + archivoId + " del producto " + producto.getId()));
-    }
-
-    public ProductoArchivo obtenerArchivoEntidad(Long productoId, Long archivoId) {
-        ProductoDocente producto = buscarEntidad(productoId);
-        return buscarArchivoEnProducto(producto, archivoId);
-    }
-
-    public ProductoArchivo obtenerArchivoPrincipal(Long productoId) {
-        ProductoDocente producto = buscarEntidad(productoId);
-        return producto.getArchivos().stream()
-                .filter(a -> a.getRol() == RolArchivoProducto.PRINCIPAL)
-                .findFirst()
-                .orElseThrow(() -> new ArchivoNotFoundException(
-                        "Principal del producto " + productoId));
     }
 
     private ProductoDocente buscarEntidadPropia(Long id) {
