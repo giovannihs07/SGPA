@@ -14,7 +14,6 @@ import { DashboardDocentePage }  from "./pages/docente/DashboardDocentePage";
 import { RegistrarProductoPage } from "./pages/docente/registrarProductoPage";
 import { MisProductosPage }      from "./pages/docente/MisProductosPage";
 import { EditarProductoPage }    from "./pages/docente/EditarProductoPage";
-import { BuscarDocentePage }     from "./pages/docente/BuscarDocentePage";
 import { ReportesDocentePage }   from "./pages/docente/ReportesDocentePage";
  
 // Páginas de super admin
@@ -60,7 +59,6 @@ export default function App() {
                                 <Route path="/dashboard/docente/registrar"  element={<RegistrarProductoPage />} />
                                 <Route path="/dashboard/docente/productos"          element={<MisProductosPage />} />
                                 <Route path="/dashboard/docente/productos/:id/editar" element={<EditarProductoPage />} />
-                                <Route path="/dashboard/docente/buscar"     element={<BuscarDocentePage />} />
                                 <Route path="/dashboard/docente/reportes"   element={<ReportesDocentePage />} />
                             </Route>
                         </Route>

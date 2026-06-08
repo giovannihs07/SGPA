@@ -11,7 +11,6 @@ const PAGE_TITLES = {
     "/dashboard/docente":              "Dashboard",
     "/dashboard/docente/registrar":    "Registrar producto",
     "/dashboard/docente/productos":    "Mis productos",
-    "/dashboard/docente/buscar":       "Buscar",
     "/dashboard/docente/reportes":     "Reportes",
 
     "/dashboard/admin":                "Dashboard",

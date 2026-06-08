@@ -24,8 +24,7 @@ export const NAV_ITEMS = {
         {
             section: "Consultas",
             items: [
-                { label: "Buscar",    icon: Search,    path: "/dashboard/docente/buscar" },
-                { label: "Reportes", icon: BarChart2,  path: "/dashboard/docente/reportes" },
+                { label: "Reportes", icon: BarChart2, path: "/dashboard/docente/reportes" },
             ],
         },
     ],
