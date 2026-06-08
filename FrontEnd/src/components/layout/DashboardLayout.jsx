@@ -17,13 +17,11 @@ const PAGE_TITLES = {
     "/dashboard/admin":                "Dashboard",
     "/dashboard/admin/usuarios":       "Usuarios",
     "/dashboard/admin/productos":      "Todos los productos",
-    "/dashboard/admin/aprobaciones":   "Aprobar / rechazar",
     "/dashboard/admin/reportes":       "Reportes",
 
     "/dashboard/superadmin":                "Dashboard",
     "/dashboard/superadmin/usuarios":       "Usuarios",
     "/dashboard/superadmin/productos":    "Todos los productos",
-    "/dashboard/superadmin/aprobaciones":   "Aprobar / rechazar",
     "/dashboard/superadmin/reportes":       "Reportes",
     "/dashboard/superadmin/auditoria":      "Logs de auditoría",
     "/dashboard/superadmin/configuracion":  "Configuración",

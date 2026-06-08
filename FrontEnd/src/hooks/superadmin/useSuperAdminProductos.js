@@ -43,7 +43,7 @@ export const useSuperAdminProductos = () => {
     const [filtroTipo, setFiltroTipo]           = useState("TODOS");
     const [fechaDesde, setFechaDesde]           = useState("");
     const [fechaHasta, setFechaHasta]           = useState("");
-    const [filtroCampoFecha, setFiltroCampoFecha] = useState("fechaCreacion");
+    const [filtroCampoFecha, setFiltroCampoFecha] = useState("fechaRegistroSgpa");
     const [pagina, setPagina]                   = useState(0);
 
     // Función para obtener las categorias disponibles
@@ -81,7 +81,7 @@ export const useSuperAdminProductos = () => {
 
     const resumen = useMemo(() => ({
         total:         productosFiltrados.length,
-        ultimos30Dias: productosFiltrados.filter((p) => esReciente(p.fechaCreacion)).length,
+        ultimos30Dias: productosFiltrados.filter((p) => esReciente(p.fechaRegistroSgpa)).length,
     }), [productosFiltrados]);
 
     const totalPaginas = Math.max(1, Math.ceil(productosFiltrados.length / PAGE_SIZE));

@@ -223,19 +223,30 @@ export const ProductoDetalleModal = ({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        <div className="border border-gray-100 dark:border-gray-700 rounded-xl px-3.5 py-3">
-                            <DetalleMeta label="Fecha de creación" value={formatFecha(producto.fechaCreacion)} />
-                        </div>
-                        <div className="border border-gray-100 dark:border-gray-700 rounded-xl px-3.5 py-3">
-                            <DetalleMeta label="Fecha de publicación" value={formatFecha(producto.fechaPublicacion)} />
+                    <div>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2.5">
+                            Información en SGPA
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <div className="border border-gray-100 dark:border-gray-700 rounded-xl px-3.5 py-3">
+                                <DetalleMeta
+                                    label="Registrado en SGPA"
+                                    value={formatFecha(producto.fechaRegistroSgpa)}
+                                />
+                            </div>
+                            <div className="border border-gray-100 dark:border-gray-700 rounded-xl px-3.5 py-3">
+                                <DetalleMeta
+                                    label="Publicado en SGPA"
+                                    value={formatFecha(producto.fechaPublicacionSgpa)}
+                                />
+                            </div>
                         </div>
                     </div>
 
                     {atributos.length > 0 && (
                         <div>
                             <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2.5">
-                                Atributos adicionales
+                                Datos académicos del producto
                             </p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                                 {atributos.map(([k, v]) => (

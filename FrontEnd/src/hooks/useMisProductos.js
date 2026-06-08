@@ -45,7 +45,7 @@ export const useMisProductos = () => {
         total:         productos.length,
         publicados:    productos.filter((p) => p.publicado).length,
         sinPublicar:   productos.filter((p) => !p.publicado).length,
-        ultimos30Dias: productos.filter((p) => esReciente(p.fechaCreacion)).length,
+        ultimos30Dias: productos.filter((p) => esReciente(p.fechaRegistroSgpa)).length,
     }), [productos]);
 
     const [busqueda, setBusqueda]               = useState("");
@@ -149,7 +149,7 @@ export const useMisProductos = () => {
                 producto.publicado ? "Producto despublicado" : "Producto publicado",
                 producto.publicado
                     ? `"${producto.nombre}" fue actualizado.`
-                    : `"${producto.nombre}" ya está en el catálogo.`,
+                    : `"${producto.nombre}" ya está publicado en SGPA.`,
             );
         } catch (e) {
             notifyError(

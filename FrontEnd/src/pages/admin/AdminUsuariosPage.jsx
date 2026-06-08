@@ -2,18 +2,15 @@ import { AlertCircle, RefreshCw, Users } from "lucide-react";
 import { useUsuariosAdmin } from "../../hooks/superadmin/useUsuariosAdmin";
 import { UsuariosTabla } from "../superAdmin/components/UsuariosTabla";
 import { CambiarRolesModal } from "../superAdmin/components/CambiarRolesModal";
-import { AprobarUsuarioModal } from "../superAdmin/components/AprobarUsuarioModal";
 import { AdminFiltrosBar } from "../superAdmin/components/ProductosAdminTabla";
 import { UsuariosFiltrosContextuales } from "../superAdmin/components/UsuariosFiltrosContextuales";
 import { ROLES_ASIGNABLES_ADMIN } from "./adminHelpers";
 import { PERFILES_USUARIO_FILTRO } from "../superAdmin/superAdminHelpers";
 
 const ESTADOS = [
-    { value: "TODOS",     label: "Todos los estados" },
-    { value: "ACTIVO",    label: "Activos" },
-    { value: "PENDIENTE", label: "Pendientes" },
-    { value: "INACTIVO",  label: "Inactivos" },
-    { value: "RECHAZADO", label: "Rechazados" },
+    { value: "TODOS",    label: "Todos los estados" },
+    { value: "ACTIVO",   label: "Activos" },
+    { value: "INACTIVO", label: "Inactivos" },
 ];
 
 export const AdminUsuariosPage = () => {
@@ -26,9 +23,8 @@ export const AdminUsuariosPage = () => {
         filtroDependencia, setFiltroDependencia,
         facultades, programasFiltrados, dependencias,
         usuarioRoles, setUsuarioRoles, rolesDisponibles,
-        usuarioAprobar, cerrarAprobar, confirmarAprobar, savingAprobacion,
         savingRoles, handleGuardarRoles,
-        handleActivar, handleDesactivar, handleRechazar,
+        handleActivar, handleDesactivar,
     } = useUsuariosAdmin();
 
     const rolesAsignables = ROLES_ASIGNABLES_ADMIN(rolesDisponibles);
@@ -102,7 +98,6 @@ export const AdminUsuariosPage = () => {
                     usuarios={usuarios}
                     onActivar={handleActivar}
                     onDesactivar={handleDesactivar}
-                    onRechazar={handleRechazar}
                     onCambiarRoles={setUsuarioRoles}
                     bloquearSuperAdmin
                 />
@@ -114,14 +109,6 @@ export const AdminUsuariosPage = () => {
                 onClose={() => setUsuarioRoles(null)}
                 onGuardar={handleGuardarRoles}
                 saving={savingRoles}
-            />
-
-            <AprobarUsuarioModal
-                usuario={usuarioAprobar}
-                rolesDisponibles={rolesAsignables}
-                onClose={cerrarAprobar}
-                onAprobar={confirmarAprobar}
-                saving={savingAprobacion}
             />
         </div>
     );

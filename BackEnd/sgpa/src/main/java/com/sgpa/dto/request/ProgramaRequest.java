@@ -17,6 +17,7 @@ public class ProgramaRequest {
     @NotBlank(message = "El nombre es obligatorio")
     private String nombre;
 
+    @NotBlank(message = "El código es obligatorio")
     private String codigo;
 
     @NotNull(message = "El nivel es obligatorio")

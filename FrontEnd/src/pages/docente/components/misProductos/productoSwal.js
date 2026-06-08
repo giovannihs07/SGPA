@@ -21,7 +21,7 @@ export const confirmDespublicarProducto = (producto) => Swal.fire({
     icon: "warning",
     title: "¿Despublicar producto?",
     html: `<p class="text-sm text-gray-600 dark:text-gray-300">
-        El producto <strong>"${producto.nombre}"</strong> dejará de ser visible en el catálogo público.
+        El producto <strong>"${producto.nombre}"</strong> dejará de estar publicado en SGPA.
     </p>`,
     showCancelButton: true,
     confirmButtonText: "Sí, despublicar",
@@ -68,7 +68,7 @@ export const confirmPublicarProducto = async (producto) => {
         width: 520,
         html: `
             <p class="text-sm text-gray-600 dark:text-gray-300 mb-3 text-left">
-                <strong>"${producto.nombre}"</strong> será visible en el catálogo.
+                <strong>"${producto.nombre}"</strong> será publicado en SGPA.
                 Elige qué archivos serán <strong>públicos</strong> (descargables por cualquiera)
                 y cuáles <strong>restringidos</strong> (solo tú podrás descargarlos).
             </p>

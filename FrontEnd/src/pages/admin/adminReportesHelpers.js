@@ -1,4 +1,9 @@
-import { esReciente, matchRangoFecha } from "../docente/components/productoHelpers";
+import {
+    esReciente,
+    matchRangoFecha,
+    CAMPO_FECHA_REGISTRO_SGPA,
+    CAMPO_FECHA_PUBLICACION_SGPA,
+} from "../docente/components/productoHelpers";
 
 export const nombreDocente = (p) =>
     [p?.docenteNombre, p?.docenteApellido].filter(Boolean).join(" ") || "Sin docente";
@@ -64,7 +69,7 @@ export const agruparPorDocente = (productos) => {
         entry.total += 1;
         if (p.publicado) entry.publicados += 1;
         else entry.sinPublicar += 1;
-        if (esReciente(p.fechaCreacion)) entry.recientes += 1;
+        if (esReciente(p.fechaRegistroSgpa)) entry.recientes += 1;
     }
 
     return [...map.values()].sort((a, b) => b.total - a.total);
@@ -76,7 +81,7 @@ export const calcularResumenProduccion = (productos) => {
         total: productos.length,
         publicados: productos.filter((p) => p.publicado).length,
         sinPublicar: productos.filter((p) => !p.publicado).length,
-        recientes: productos.filter((p) => esReciente(p.fechaCreacion)).length,
+        recientes: productos.filter((p) => esReciente(p.fechaRegistroSgpa)).length,
         docentesActivos: docentes.size,
     };
 };
@@ -119,7 +124,7 @@ export const filtrarProductosReporte = (productos, filtros) => {
         const matchFecha = matchRangoFecha(p, {
             fechaDesde,
             fechaHasta,
-            campo: filtroCampoFecha ?? "fechaCreacion",
+            campo: filtroCampoFecha ?? CAMPO_FECHA_REGISTRO_SGPA,
         });
 
         const q = busqueda.trim().toLowerCase();
@@ -147,7 +152,7 @@ export const etiquetasFiltrosActivos = (filtros, { facultades, programas, labels
         facultad: filtros.filtroFacultad === "TODAS" ? "Todas" : (facultad?.nombre ?? filtros.filtroFacultad),
         programa: filtros.filtroPrograma === "TODOS" ? "Todos" : (programa?.nombre ?? filtros.filtroPrograma),
         fecha: filtros.fechaDesde || filtros.fechaHasta
-            ? `${filtros.fechaDesde || "…"} — ${filtros.fechaHasta || "…"} (${filtros.filtroCampoFecha === "fechaPublicacion" ? "publicación" : "creación"})`
+            ? `${filtros.fechaDesde || "…"} — ${filtros.fechaHasta || "…"} (${filtros.filtroCampoFecha === CAMPO_FECHA_PUBLICACION_SGPA ? "publicado en SGPA" : "registrado en SGPA"})`
             : "Todas",
         busqueda: filtros.busqueda?.trim() || "—",
     };

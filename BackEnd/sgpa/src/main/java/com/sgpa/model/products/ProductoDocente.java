@@ -46,10 +46,14 @@ public class ProductoDocente {
     private String descripcion;
     private Boolean publicado = false;
 
+    /** Fecha en que el docente registró el producto en SGPA. */
     @CreationTimestamp
-    private LocalDate fechaCreacion;
+    @Column(name = "fecha_registro_sgpa")
+    private LocalDate fechaRegistroSgpa;
 
-    private LocalDate fechaPublicacion;
+    /** Fecha en que el producto fue publicado en SGPA. */
+    @Column(name = "fecha_publicacion_sgpa")
+    private LocalDate fechaPublicacionSgpa;
 
     /** Campos legacy — reflejan el archivo Principal para compatibilidad. */
     private String nombreArchivo;

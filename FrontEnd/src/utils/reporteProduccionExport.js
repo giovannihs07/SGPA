@@ -28,8 +28,8 @@ const filasProductos = (productos) =>
         Subcategoría: SUBCATEGORIA_LABELS[p.subcategoria] ?? p.subcategoria ?? "—",
         Tipo: TIPO_LABELS[p.tipo] ?? p.tipo ?? "—",
         Estado: estadoLabel(p.publicado),
-        "Fecha creación": formatFecha(p.fechaCreacion),
-        "Fecha publicación": formatFecha(p.fechaPublicacion),
+        "Registrado en SGPA": formatFecha(p.fechaRegistroSgpa),
+        "Publicado en SGPA": formatFecha(p.fechaPublicacionSgpa),
     }));
 
 const filasRanking = (ranking) =>
@@ -122,7 +122,7 @@ export const exportarReportePdf = ({
 
     autoTable(doc, {
         startY: doc.lastAutoTable.finalY + 8,
-        head: [["Producto", "Docente", "Facultad", "Programa", "Categoría", "Subcategoría", "Tipo", "Estado", "Fecha"]],
+        head: [["Producto", "Docente", "Facultad", "Programa", "Categoría", "Subcategoría", "Tipo", "Estado", "Registro SGPA", "Publicado en SGPA"]],
         body: productos.map((p) => [
             p.nombre ?? "—",
             nombreDocente(p),
@@ -132,7 +132,8 @@ export const exportarReportePdf = ({
             SUBCATEGORIA_LABELS[p.subcategoria] ?? p.subcategoria ?? "—",
             TIPO_LABELS[p.tipo] ?? p.tipo ?? "—",
             estadoLabel(p.publicado),
-            formatFecha(p.fechaCreacion),
+            formatFecha(p.fechaRegistroSgpa),
+            formatFecha(p.fechaPublicacionSgpa),
         ]),
         theme: "striped",
         headStyles: { fillColor: [236, 122, 33] },

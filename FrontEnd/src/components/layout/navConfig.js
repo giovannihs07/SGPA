@@ -5,7 +5,6 @@ import {
     Search,
     BarChart2,
     Users,
-    CheckSquare,
     Settings,
     Library,
     ScrollText,
@@ -43,8 +42,7 @@ export const NAV_ITEMS = {
         {
             section: "Gestión",
             items: [
-                { label: "Aprobar / rechazar", icon: CheckSquare, path: "/dashboard/admin/aprobaciones" },
-                { label: "Reportes",           icon: BarChart2,   path: "/dashboard/admin/reportes" },
+                { label: "Reportes", icon: BarChart2, path: "/dashboard/admin/reportes" },
             ],
         },
     ],
@@ -61,10 +59,9 @@ export const NAV_ITEMS = {
         {
             section: "Gestión",
             items: [
-                { label: "Aprobar / rechazar", icon: CheckSquare, path: "/dashboard/superadmin/aprobaciones" },
-                { label: "Reportes",           icon: BarChart2,   path: "/dashboard/superadmin/reportes" },
-                { label: "Logs de auditoría",  icon: ScrollText,  path: "/dashboard/superadmin/auditoria" },
-                { label: "Configuración",      icon: Settings,    path: "/dashboard/superadmin/configuracion" },
+                { label: "Reportes",          icon: BarChart2,  path: "/dashboard/superadmin/reportes" },
+                { label: "Logs de auditoría", icon: ScrollText, path: "/dashboard/superadmin/auditoria" },
+                { label: "Configuración",     icon: Settings,   path: "/dashboard/superadmin/configuracion" },
             ],
         },
     ],

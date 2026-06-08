@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Users, UserCheck, BookOpen, Clock } from "lucide-react";
-import { getUsuarios, getUsuariosPendientes } from "../../services/usuarioService";
+import { getUsuarios } from "../../services/usuarioService";
 import { getProductosPublicados } from "../../services/productoServices";
 import { getTaxonomiaEstado } from "../../services/taxonomiaService";
 import { esReciente } from "../../pages/docente/components/productoHelpers";
@@ -14,17 +14,16 @@ export const useSuperAdminDashboard = () => {
         setLoading(true);
         setError(null);
         try {
-            const [usuarios, pendientes, productos, taxonomia] = await Promise.all([
+            const [usuarios, productos, taxonomia] = await Promise.all([
                 getUsuarios(),
-                getUsuariosPendientes(),
                 getProductosPublicados(),
                 getTaxonomiaEstado().catch(() => ({ existe: true })),
             ]);
             setStats({
                 totalUsuarios:       usuarios.length,
-                pendientes:          pendientes.length,
+                usuariosActivos:     usuarios.filter((u) => u.estado === "ACTIVO").length,
                 productosPublicados: productos.length,
-                productosRecientes:  productos.filter((p) => esReciente(p.fechaCreacion)).length,
+                productosRecientes:  productos.filter((p) => esReciente(p.fechaRegistroSgpa)).length,
                 taxonomiaPendiente:  !taxonomia.existe,
             });
         } catch (e) {
@@ -38,7 +37,7 @@ export const useSuperAdminDashboard = () => {
 
     const kpis = useMemo(() => stats ? [
         { label: "Usuarios registrados", value: stats.totalUsuarios,    icon: Users,    accent: "bg-[#ffc20e]/15 text-[#EC7A21]" },
-        { label: "Pendientes de aprobación", value: stats.pendientes,   icon: UserCheck, accent: "bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400" },
+        { label: "Usuarios activos",     value: stats.usuariosActivos,  icon: UserCheck, accent: "bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400" },
         { label: "Productos publicados", value: stats.productosPublicados, icon: BookOpen, accent: "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400" },
         { label: "Publicados (30 días)", value: stats.productosRecientes, icon: Clock, accent: "bg-orange-50 text-[#EC7A21] dark:bg-orange-900/20" },
     ] : [], [stats]);

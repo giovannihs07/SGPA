@@ -63,7 +63,7 @@ export const ProduccionRecientesTabla = ({ productos, loading }) => {
                                     <EstadoBadge publicado={p.publicado} />
                                 </td>
                                 <td className={`px-4 py-3 ${tableCellMuted} whitespace-nowrap`}>
-                                    {formatFecha(p.fechaCreacion)}
+                                    {formatFecha(p.fechaRegistroSgpa)}
                                 </td>
                             </tr>
                         ))}

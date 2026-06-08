@@ -101,8 +101,14 @@ export const puedeEditarProducto = (producto) => !producto?.publicado;
 /** Solo productos sin publicar pueden eliminarse */
 export const puedeEliminarProducto = (producto) => !producto?.publicado;
 
+/** Campos de fecha del sistema (columnas en productos_docentes). */
+export const CAMPO_FECHA_REGISTRO_SGPA = "fechaRegistroSgpa";
+export const CAMPO_FECHA_PUBLICACION_SGPA = "fechaPublicacionSgpa";
+
 /** Compara YYYY-MM-DD contra rango [fechaDesde, fechaHasta] inclusive */
-export const matchRangoFecha = (producto, { fechaDesde, fechaHasta, campo = "fechaCreacion" }) => {
+export const matchRangoFecha = (producto, {
+    fechaDesde, fechaHasta, campo = CAMPO_FECHA_REGISTRO_SGPA,
+}) => {
     if (!fechaDesde && !fechaHasta) return true;
 
     const raw = producto?.[campo];

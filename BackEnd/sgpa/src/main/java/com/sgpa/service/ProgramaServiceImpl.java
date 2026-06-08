@@ -40,8 +40,7 @@ public class ProgramaServiceImpl implements ProgramaService {
             throw new IllegalStateException(
                 "Ya existe un programa con ese nombre en esta facultad");
 
-        if (dto.getCodigo() != null
-                && programaRepository.existsByCodigo(dto.getCodigo()))
+        if (programaRepository.existsByCodigo(dto.getCodigo()))
             throw new IllegalStateException(
                 "Ya existe un programa con código: " + dto.getCodigo());
 
@@ -98,8 +97,7 @@ public class ProgramaServiceImpl implements ProgramaService {
             throw new IllegalStateException(
                 "Ya existe un programa con ese nombre en esta facultad");
 
-        if (dto.getCodigo() != null
-                && !dto.getCodigo().equals(programa.getCodigo())
+        if (!dto.getCodigo().equals(programa.getCodigo())
                 && programaRepository.existsByCodigo(dto.getCodigo()))
             throw new IllegalStateException(
                 "Ya existe un programa con código: " + dto.getCodigo());

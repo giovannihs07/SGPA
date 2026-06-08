@@ -120,8 +120,8 @@ export const FacultadesPanel = ({
                                 onChange={(e) => setFormFac({ ...formFac, nombre: e.target.value })} />
                         </div>
                         <div>
-                            <label className={label}>Código</label>
-                            <input className={inputSm} value={formFac.codigo ?? ""}
+                            <label className={label}>Código *</label>
+                            <input required className={inputSm} value={formFac.codigo ?? ""}
                                 onChange={(e) => setFormFac({ ...formFac, codigo: e.target.value })} />
                         </div>
                     </div>
@@ -207,8 +207,8 @@ export const ProgramasPanel = ({
                                 onChange={(e) => setFormProg({ ...formProg, nombre: e.target.value })} />
                         </div>
                         <div>
-                            <label className={label}>Código</label>
-                            <input className={inputSm} value={formProg.codigo ?? ""}
+                            <label className={label}>Código *</label>
+                            <input required className={inputSm} value={formProg.codigo ?? ""}
                                 onChange={(e) => setFormProg({ ...formProg, codigo: e.target.value })} />
                         </div>
                         <div>

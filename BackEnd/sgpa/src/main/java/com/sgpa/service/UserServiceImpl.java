@@ -10,10 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.sgpa.dto.request.ActualizarEmailRequest;
-import com.sgpa.dto.response.UserDetalleResponse;
 import com.sgpa.dto.response.UserResumenResponse;
-import com.sgpa.exception.UsuarioNoPendienteException;
-import com.sgpa.mapper.UserDetalleMapper;
 import com.sgpa.mapper.UserMapper;
 import com.sgpa.model.audit.ModuloAuditoria;
 import com.sgpa.model.audit.ResultadoAuditoria;
@@ -34,7 +31,6 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper mapper;
-    private final UserDetalleMapper userDetalleMapper;
     private final AuditService auditService;
 
     @Override
@@ -65,21 +61,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void aprobar(Long userId, Set<String> roles) {
-        User user = buscarEntidad(userId);
-        verificarPendiente(user, "aprobar");
-        asignarRoles(user, roles);
-        user.setEstado(EstadoUsuario.ACTIVO);
-        userRepository.save(user);
-        auditService.registrar(ModuloAuditoria.USUARIOS, "APROBAR_USUARIO",
-                "Aprobó el registro de " + user.getEmail(),
-                "User", userId, user.getEmail(),
-                Map.of("roles", roles),
-                ResultadoAuditoria.CRITICO);
-    }
-
-    @Override
-    @Transactional
     public void desactivar(Long userId) {
         User user = buscarEntidad(userId);
         user.setEstado(EstadoUsuario.INACTIVO);
@@ -88,23 +69,6 @@ public class UserServiceImpl implements UserService {
                 "Desactivó la cuenta de " + user.getEmail(),
                 "User", userId, user.getEmail(), null,
                 ResultadoAuditoria.CRITICO);
-    }
-
-    @Override
-    @Transactional
-    public void rechazar(Long userId) {
-        User user = buscarEntidad(userId);
-        verificarPendiente(user, "rechazar");
-        user.setEstado(EstadoUsuario.RECHAZADO);
-        userRepository.save(user);
-        auditService.registrar(ModuloAuditoria.USUARIOS, "RECHAZAR_USUARIO",
-                "Rechazó el registro de " + user.getEmail(),
-                "User", userId, user.getEmail(), null,
-                ResultadoAuditoria.CRITICO);
-    }
-
-    public List<UserDetalleResponse> listarPorEstado(EstadoUsuario estado) {
-        return userDetalleMapper.toDTOList(userRepository.findByEstado(estado));
     }
 
     @Override
@@ -121,12 +85,6 @@ public class UserServiceImpl implements UserService {
                 "User", userId, user.getEmail(),
                 Map.of("rolesAnteriores", rolesAnteriores, "rolesNuevos", nuevosRoles),
                 ResultadoAuditoria.CRITICO);
-    }
-
-    private void verificarPendiente(User user, String accion) {
-        if (user.getEstado() != EstadoUsuario.PENDIENTE) {
-            throw new UsuarioNoPendienteException(accion);
-        }
     }
 
     private void asignarRoles(User user, Set<String> nuevosRoles) {

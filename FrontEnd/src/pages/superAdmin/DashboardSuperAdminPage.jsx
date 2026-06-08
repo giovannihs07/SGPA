@@ -1,6 +1,6 @@
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Users, UserCheck, BookOpen, Settings, ScrollText } from "lucide-react";
+import { Users, BookOpen, Settings, ScrollText } from "lucide-react";
 import { useSuperAdminDashboard } from "../../hooks/superadmin/useSuperAdminDashboard";
 import { SuperAdminKpiGrid } from "./components/SuperAdminKpiGrid";
 import { QuickLinkCard } from "./components/QuickLinkCard";
@@ -73,13 +73,6 @@ export const DashboardSuperAdminPage = () => {
                     Accesos rápidos
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <QuickLinkCard
-                        to="/dashboard/superadmin/aprobaciones"
-                        icon={UserCheck}
-                        title="Aprobar registros"
-                        description="Revisa y aprueba solicitudes de docentes y administrativos pendientes."
-                        badge={stats?.pendientes}
-                    />
                     <QuickLinkCard
                         to="/dashboard/superadmin/usuarios"
                         icon={Users}
