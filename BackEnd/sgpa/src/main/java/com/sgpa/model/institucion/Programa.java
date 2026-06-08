@@ -29,7 +29,7 @@ public class Programa {
     @Column(nullable = false)
     private String nombre;
 
-    @Column(unique = true)
+    @Column(nullable = false, unique = true)
     private String codigo;  // SNIES, o código institucional asignado
     
     @Enumerated(EnumType.STRING)

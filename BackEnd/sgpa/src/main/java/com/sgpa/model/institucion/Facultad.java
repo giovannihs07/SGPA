@@ -29,7 +29,8 @@ public class Facultad {
     @Column(nullable = false)
     private String nombre;
 
-    private String codigo;      // FAC-ING, FAC-MED 
+    @Column(nullable = false)
+    private String codigo;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "institucion_id", nullable = false)

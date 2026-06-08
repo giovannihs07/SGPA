@@ -27,7 +27,7 @@ export const useAdminReportesProduccion = () => {
     const [filtroPrograma, setFiltroPrograma] = useState("TODOS");
     const [fechaDesde, setFechaDesde] = useState("");
     const [fechaHasta, setFechaHasta] = useState("");
-    const [filtroCampoFecha, setFiltroCampoFecha] = useState("fechaCreacion");
+    const [filtroCampoFecha, setFiltroCampoFecha] = useState("fechaRegistroSgpa");
     const [busqueda, setBusqueda] = useState("");
 
     const fetchData = useCallback(async () => {
@@ -115,7 +115,7 @@ export const useAdminReportesProduccion = () => {
 
     const productosRecientes = useMemo(
         () => [...productosFiltrados]
-            .sort((a, b) => new Date(b.fechaCreacion ?? 0) - new Date(a.fechaCreacion ?? 0))
+            .sort((a, b) => new Date(b.fechaRegistroSgpa ?? 0) - new Date(a.fechaRegistroSgpa ?? 0))
             .slice(0, 10),
         [productosFiltrados],
     );

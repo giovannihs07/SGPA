@@ -1,5 +1,9 @@
 import { Calendar } from "lucide-react";
 import { SelectFilter } from "../../pages/docente/components/misProductos/SelectFilter";
+import {
+    CAMPO_FECHA_REGISTRO_SGPA,
+    CAMPO_FECHA_PUBLICACION_SGPA,
+} from "../../pages/docente/components/productoHelpers";
 import { inputXs } from "./themeTokens";
 
 export const FiltroFechaRango = ({
@@ -15,8 +19,8 @@ export const FiltroFechaRango = ({
         <Calendar size={13} className="text-gray-500 dark:text-gray-400 shrink-0" aria-hidden="true" />
         {mostrarSelectorCampo && onCampoChange && (
             <SelectFilter value={filtroCampo} onChange={onCampoChange} aria-label="Filtrar por tipo de fecha">
-                <option value="fechaCreacion">Fecha creación</option>
-                <option value="fechaPublicacion">Fecha publicación</option>
+                <option value={CAMPO_FECHA_REGISTRO_SGPA}>Registrado en SGPA</option>
+                <option value={CAMPO_FECHA_PUBLICACION_SGPA}>Publicado en SGPA</option>
             </SelectFilter>
         )}
         <input

@@ -156,7 +156,7 @@ export const ATRIBUTO_LABELS = {
     lugarPresentacion:        "Lugar de presentación",
     fechaPresentacion:        "Fecha de presentación",
     lugarExposicion:          "Lugar de exposición",
-    fechaCreacion:            "Fecha de creación",
+    fechaCreacionProducto:    "Fecha de creación del producto",
     tecnica:                  "Técnica",
     descripcionProceso:       "Descripción del proceso",
     fechaInicio:              "Fecha de inicio",
@@ -247,7 +247,7 @@ export const ATRIBUTO_LABELS = {
     objetoConsultoria:        "Objeto de la consultoría",
     formato:                  "Formato",
     plataformaPublicacion:    "Plataforma de publicación",
-    fechaPublicacion:         "Fecha de publicación",
+    fechaPublicacionExterna:  "Fecha de publicación (revista/editorial)",
     medioPublicacion:         "Medio de publicación",
     enlace:                   "Enlace",
     plataformasUtilizadas:    "Plataformas utilizadas",
@@ -288,9 +288,9 @@ export const ATRIBUTO_LABELS = {
  
 // Atributos que son fechas (para renderizar input type="date")
 export const ATRIBUTOS_FECHA = new Set([
-    "fechaSolicitud", "fechaRegistro", "fechaPresentacion", "fechaCreacion",
+    "fechaSolicitud", "fechaRegistro", "fechaPresentacion", "fechaCreacionProducto",
     "fechaInicio", "fechaFin", "fechaCertificacion", "fechaValidacion",
-    "fechaAcuerdo", "fechaEmision", "fechaDeposito", "fechaPublicacion",
+    "fechaAcuerdo", "fechaEmision", "fechaDeposito", "fechaPublicacionExterna",
     "fechaEntrega", "fechaRealizacion", "fechaEvento", "fechaIngreso",
     "fechaLanzamiento",
 ]);

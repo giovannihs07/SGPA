@@ -93,12 +93,6 @@ public class GlobalExceptionHandler {
             .body(Map.of("error", ex.getMessage()));
     }
 
-    @ExceptionHandler(UsuarioNoPendienteException.class)
-    public ResponseEntity<Map<String, String>> handleUsuarioNoPendiente(UsuarioNoPendienteException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-            .body(Map.of("error", ex.getMessage()));
-    }
-
     @ExceptionHandler(TaxonomiaEnUsoException.class)
     public ResponseEntity<Map<String, String>> handleTaxonomiaEnUso(TaxonomiaEnUsoException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)

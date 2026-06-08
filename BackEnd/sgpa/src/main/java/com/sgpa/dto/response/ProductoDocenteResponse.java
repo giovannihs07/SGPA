@@ -30,8 +30,8 @@ public class ProductoDocenteResponse {
 
     private Boolean publicado;
     private Integer totalArchivosRestringidos;
-    private LocalDate fechaCreacion;
-    private LocalDate fechaPublicacion;
+    private LocalDate fechaRegistroSgpa;
+    private LocalDate fechaPublicacionSgpa;
     private String nombreArchivo;
     private String nombreArchivoOriginal;
     private String extensionArchivo;

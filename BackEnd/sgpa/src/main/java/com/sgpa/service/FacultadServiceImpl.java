@@ -41,8 +41,7 @@ public class FacultadServiceImpl implements FacultadService {
                 "Ya existe una facultad con ese nombre en esta institución");
 
         // Evita duplicados de código globalmente
-        if (dto.getCodigo() != null
-                && facultadRepository.existsByCodigo(dto.getCodigo()))
+        if (facultadRepository.existsByCodigo(dto.getCodigo()))
             throw new IllegalStateException(
                 "Ya existe una facultad con código: " + dto.getCodigo());
 
@@ -89,8 +88,7 @@ public class FacultadServiceImpl implements FacultadService {
                 "Ya existe una facultad con ese nombre en esta institución");
 
         // Verifica duplicado de código excluyendo la facultad actual
-        if (dto.getCodigo() != null
-                && !dto.getCodigo().equals(facultad.getCodigo())
+        if (!dto.getCodigo().equals(facultad.getCodigo())
                 && facultadRepository.existsByCodigo(dto.getCodigo()))
             throw new IllegalStateException(
                 "Ya existe una facultad con código: " + dto.getCodigo());

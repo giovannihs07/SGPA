@@ -216,7 +216,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
 
         aplicarVisibilidadArchivos(producto, request);
         producto.setPublicado(true);
-        producto.setFechaPublicacion(LocalDate.now());
+        producto.setFechaPublicacionSgpa(LocalDate.now());
         ProductoDocente guardado = repository.save(producto);
 
         Map<String, Object> detalleVisibilidad = guardado.getArchivos().stream()
@@ -240,7 +240,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
     public ProductoDocenteResponse despublicar(Long id) {
         ProductoDocente producto = buscarEntidad(id);
         producto.setPublicado(false);
-        producto.setFechaPublicacion(null);
+        producto.setFechaPublicacionSgpa(null);
         ProductoDocente guardado = repository.save(producto);
 
         auditService.registrar(ModuloAuditoria.PRODUCTOS, "DESPUBLICAR_PRODUCTO",

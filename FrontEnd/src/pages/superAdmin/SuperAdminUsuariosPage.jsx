@@ -2,17 +2,14 @@ import { AlertCircle, RefreshCw, Users } from "lucide-react";
 import { useUsuariosAdmin } from "../../hooks/superadmin/useUsuariosAdmin";
 import { UsuariosTabla } from "./components/UsuariosTabla";
 import { CambiarRolesModal } from "./components/CambiarRolesModal";
-import { AprobarUsuarioModal } from "./components/AprobarUsuarioModal";
 import { AdminFiltrosBar } from "./components/ProductosAdminTabla";
 import { UsuariosFiltrosContextuales } from "./components/UsuariosFiltrosContextuales";
 import { PERFILES_USUARIO_FILTRO } from "./superAdminHelpers";
 
 const ESTADOS = [
-    { value: "TODOS",     label: "Todos los estados" },
-    { value: "ACTIVO",    label: "Activos" },
-    { value: "PENDIENTE", label: "Pendientes" },
-    { value: "INACTIVO",  label: "Inactivos" },
-    { value: "RECHAZADO", label: "Rechazados" },
+    { value: "TODOS",    label: "Todos los estados" },
+    { value: "ACTIVO",   label: "Activos" },
+    { value: "INACTIVO", label: "Inactivos" },
 ];
 
 export const SuperAdminUsuariosPage = () => {
@@ -25,12 +22,10 @@ export const SuperAdminUsuariosPage = () => {
         filtroDependencia, setFiltroDependencia,
         facultades, programasFiltrados, dependencias,
         usuarioRoles, setUsuarioRoles, rolesDisponibles,
-        usuarioAprobar, cerrarAprobar, confirmarAprobar, savingAprobacion,
         savingRoles, handleGuardarRoles,
-        handleActivar, handleDesactivar, handleRechazar,
+        handleActivar, handleDesactivar,
     } = useUsuariosAdmin();
 
-    // Si está cargando, se muestra el mensaje de carga
     if (loading) {
         return (
             <div className="flex items-center justify-center py-20 text-gray-400 text-sm gap-2">
@@ -38,7 +33,7 @@ export const SuperAdminUsuariosPage = () => {
             </div>
         );
     }
-    // Si hay un error, se muestra el mensaje de error
+
     if (error) {
         return (
             <div className="flex flex-col items-center py-20 gap-3 text-red-500">
@@ -56,7 +51,7 @@ export const SuperAdminUsuariosPage = () => {
                     {usuarios.length} usuario{usuarios.length !== 1 ? "s" : ""}
                 </p>
             </div>
-            {/* Filtros de búsqueda y estado */}
+
             <AdminFiltrosBar
                 busqueda={busqueda}
                 setBusqueda={setBusqueda}
@@ -93,7 +88,6 @@ export const SuperAdminUsuariosPage = () => {
                     usuarios={usuarios}
                     onActivar={handleActivar}
                     onDesactivar={handleDesactivar}
-                    onRechazar={handleRechazar}
                     onCambiarRoles={setUsuarioRoles}
                 />
             )}
@@ -104,14 +98,6 @@ export const SuperAdminUsuariosPage = () => {
                 onClose={() => setUsuarioRoles(null)}
                 onGuardar={handleGuardarRoles}
                 saving={savingRoles}
-            />
-
-            <AprobarUsuarioModal
-                usuario={usuarioAprobar}
-                rolesDisponibles={rolesDisponibles}
-                onClose={cerrarAprobar}
-                onAprobar={confirmarAprobar}
-                saving={savingAprobacion}
             />
         </div>
     );

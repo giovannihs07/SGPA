@@ -14,7 +14,7 @@ import { EstadoBadge } from "./EstadoBadge";
 import { ArchivoBadge } from "./ArchivoBadge";
 import { ProductosPaginacion } from "./ProductosPaginacion";
 
-const COLUMNAS_BASE = ["Nombre", "Tipo", "Categoría", "Estado", "Fecha", "Archivo", "Acciones"];
+const COLUMNAS_BASE = ["Nombre", "Tipo", "Categoría", "Estado", "Registro SGPA", "Archivo", "Acciones"];
 
 // Componente para las acciones de la fila de la tabla de productos
 const AccionesFila = ({
@@ -99,7 +99,7 @@ export const ProductosTabla = ({
     mostrarDocente = false,
 }) => {
     const columnas = mostrarDocente
-        ? ["Nombre", "Docente", "Tipo", "Categoría", "Estado", "Fecha", "Archivo", "Acciones"]
+        ? ["Nombre", "Docente", "Tipo", "Categoría", "Estado", "Registro SGPA", "Archivo", "Acciones"]
         : COLUMNAS_BASE;
 
     return (
@@ -146,7 +146,7 @@ export const ProductosTabla = ({
                                     </td>
                                     {mostrarDocente && (
                                         <td className={`px-4 py-3 ${tableCellMuted} whitespace-nowrap`}>
-                                            #{p.docenteId ?? "—"}
+                                            {p.docenteCodigo ?? "—"}
                                         </td>
                                     )}
                                     <td className={`px-4 py-3 ${tableCellSecondary} max-w-37.5`}>
@@ -159,7 +159,7 @@ export const ProductosTabla = ({
                                         <EstadoBadge publicado={p.publicado} />
                                     </td>
                                     <td className={`px-4 py-3 ${tableCellMuted} whitespace-nowrap`}>
-                                        {formatFecha(p.fechaCreacion)}
+                                        {formatFecha(p.fechaRegistroSgpa)}
                                     </td>
                                     <td className="px-4 py-3 whitespace-nowrap">
                                         <ArchivoBadge producto={p} />

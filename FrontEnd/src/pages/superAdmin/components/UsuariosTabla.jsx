@@ -1,4 +1,4 @@
-import { Shield, UserX, UserCheck, Ban } from "lucide-react";
+import { Shield, UserX, UserCheck } from "lucide-react";
 import {
     tableWrapper, tableHeadRow, tableHeadCell, tableBody, tableRow,
     tableCellPrimary, tableCellMuted, tableCellSubtext,
@@ -10,7 +10,7 @@ import { esUsuarioSuperAdmin } from "../../admin/adminHelpers";
 
 // Tabla de usuarios con los usuarios filtrados por el estado y la búsqueda
 export const UsuariosTabla = ({
-    usuarios, onActivar, onDesactivar, onRechazar, onCambiarRoles,
+    usuarios, onActivar, onDesactivar, onCambiarRoles,
     bloquearSuperAdmin = false,
 }) => (
     <div className={tableWrapper}>
@@ -58,20 +58,10 @@ export const UsuariosTabla = ({
                                     {u.estado !== "ACTIVO" && (
                                         <button
                                             onClick={() => onActivar(u)}
-                                            title={u.estado === "PENDIENTE" ? "Aprobar registro" : "Activar"}
+                                            title="Activar"
                                             className="w-7 h-7 flex items-center justify-center rounded-lg text-green-600 hover:bg-green-50 transition"
                                         >
                                             <UserCheck size={14} />
-                                        </button>
-                                    )}
-                                    {/* Botón para rechazar el usuario */}
-                                    {u.estado === "PENDIENTE" && onRechazar && (
-                                        <button
-                                            onClick={() => onRechazar(u)}
-                                            title="Rechazar registro"
-                                            className="w-7 h-7 flex items-center justify-center rounded-lg text-red-500 hover:bg-red-50 transition"
-                                        >
-                                            <Ban size={14} />
                                         </button>
                                     )}
                                     {u.estado === "ACTIVO" && (

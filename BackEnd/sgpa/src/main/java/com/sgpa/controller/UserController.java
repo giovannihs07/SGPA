@@ -13,12 +13,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sgpa.dto.request.ActualizarEmailRequest;
-import com.sgpa.dto.request.AprobarUsuarioRequest;
 import com.sgpa.dto.request.CambiarPasswordRequest;
 import com.sgpa.dto.request.CambiarRolesRequest;
-import com.sgpa.dto.response.UserDetalleResponse;
 import com.sgpa.dto.response.UserResumenResponse;
-import com.sgpa.model.users.EstadoUsuario;
 import com.sgpa.service.UserService;
 
 import jakarta.validation.Valid;
@@ -63,46 +60,21 @@ public class UserController {
             @RequestBody @Valid CambiarPasswordRequest dto) {
 
         userService.cambiarPassword(
-                userDetails.getUsername(), // email viene del token JWT
+                userDetails.getUsername(),
                 dto.getPasswordActual(),
                 dto.getPasswordNuevo());
         return ResponseEntity.noContent().build();
     }
 
-    // Ver todos los pendientes de aprobación
-    @GetMapping("/pendientes")
-    public ResponseEntity<List<UserDetalleResponse>> listarPendientes() {
-        return ResponseEntity.ok(userService.listarPorEstado(EstadoUsuario.PENDIENTE));
-    }
-
-    // Aprobar registro asignando roles
-    @PatchMapping("/{userId}/aprobar")
-    public ResponseEntity<Void> aprobar(
-            @PathVariable Long userId,
-            @RequestBody @Valid AprobarUsuarioRequest dto) {
-        userService.aprobar(userId, dto.getRoles());
-        return ResponseEntity.noContent().build();
-    }
-
-    // Activar usuario (reactivar sin cambiar roles)
     @PatchMapping("/{userId}/activar")
     public ResponseEntity<Void> activar(@PathVariable Long userId) {
         userService.activar(userId);
         return ResponseEntity.noContent().build();
     }
 
-    // Desactivar usuario
     @PatchMapping("/{userId}/desactivar")
     public ResponseEntity<Void> desactivar(@PathVariable Long userId) {
         userService.desactivar(userId);
         return ResponseEntity.noContent().build();
     }
-
-    // Rechazar registro
-    @PatchMapping("/{userId}/rechazar")
-    public ResponseEntity<Void> rechazar(@PathVariable Long userId) {
-        userService.rechazar(userId);
-        return ResponseEntity.noContent().build();
-    }
-
 }

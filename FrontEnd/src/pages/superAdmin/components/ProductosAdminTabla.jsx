@@ -16,7 +16,7 @@ export const ProductosAdminTabla = ({
             <table className="w-full text-sm">
                 <thead>
                     <tr className={tableHeadRow}>
-                        {["Producto", "Tipo", "Categoría", "Estado", "Fecha", "Acciones"].map((h) => (
+                        {["Producto", "Tipo", "Categoría", "Estado", "Registro SGPA", "Acciones"].map((h) => (
                             <th key={h} className={tableHeadCell}>{h}</th>
                         ))}
                     </tr>
@@ -28,9 +28,9 @@ export const ProductosAdminTabla = ({
                                 <p className={`${tableCellPrimary} line-clamp-2`}>
                                     {p.nombre}
                                 </p>
-                                {p.docenteId && (
+                                {p.docenteCodigo && (
                                     <p className={`${tableCellMuted} text-[10px] mt-0.5`}>
-                                        Docente #{p.docenteId}
+                                        {p.docenteCodigo}
                                     </p>
                                 )}
                             </td>
@@ -44,7 +44,7 @@ export const ProductosAdminTabla = ({
                                 <EstadoBadge publicado={p.publicado} />
                             </td>
                             <td className={`px-4 py-3 ${tableCellMuted} whitespace-nowrap`}>
-                                {formatFecha(p.fechaCreacion)}
+                                {formatFecha(p.fechaRegistroSgpa)}
                             </td>
                             <td className="px-4 py-3">
                                 <div className="flex items-center gap-1 opacity-70 group-hover:opacity-100">

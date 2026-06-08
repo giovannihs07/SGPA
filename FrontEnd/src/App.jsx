@@ -14,13 +14,11 @@ import { DashboardDocentePage }  from "./pages/docente/DashboardDocentePage";
 import { RegistrarProductoPage } from "./pages/docente/registrarProductoPage";
 import { MisProductosPage }      from "./pages/docente/MisProductosPage";
 import { EditarProductoPage }    from "./pages/docente/EditarProductoPage";
-import { BuscarDocentePage }     from "./pages/docente/BuscarDocentePage";
 import { ReportesDocentePage }   from "./pages/docente/ReportesDocentePage";
  
 // Páginas de super admin
 import { DashboardSuperAdminPage }    from "./pages/superAdmin/DashboardSuperAdminPage";
 import { SuperAdminUsuariosPage }     from "./pages/superAdmin/SuperAdminUsuariosPage";
-import { SuperAdminAprobacionesPage } from "./pages/superAdmin/SuperAdminAprobacionesPage";
 import { SuperAdminProductosPage }    from "./pages/superAdmin/SuperAdminProductosPage";
 import { SuperAdminReportesPage }     from "./pages/superAdmin/SuperAdminReportesPage";
 import { SuperAdminConfiguracionPage } from "./pages/superAdmin/SuperAdminConfiguracionPage";
@@ -30,7 +28,6 @@ import { SuperAdminAuditoriaPage } from "./pages/superAdmin/SuperAdminAuditoriaP
 import { DashboardAdminPage }        from "./pages/admin/DashboardAdminPage";
 import { AdminUsuariosPage }         from "./pages/admin/AdminUsuariosPage";
 import { AdminProductosPage }        from "./pages/admin/AdminProductosPage";
-import { AdminAprobacionesPage }     from "./pages/admin/AdminAprobacionesPage";
 import { AdminReportesPage }         from "./pages/admin/AdminReportesPage";
  
 // Páginas de estudiante o público general
@@ -62,7 +59,6 @@ export default function App() {
                                 <Route path="/dashboard/docente/registrar"  element={<RegistrarProductoPage />} />
                                 <Route path="/dashboard/docente/productos"          element={<MisProductosPage />} />
                                 <Route path="/dashboard/docente/productos/:id/editar" element={<EditarProductoPage />} />
-                                <Route path="/dashboard/docente/buscar"     element={<BuscarDocentePage />} />
                                 <Route path="/dashboard/docente/reportes"   element={<ReportesDocentePage />} />
                             </Route>
                         </Route>
@@ -82,7 +78,6 @@ export default function App() {
                                 <Route path="/dashboard/admin"               element={<DashboardAdminPage />} />
                                 <Route path="/dashboard/admin/usuarios"      element={<AdminUsuariosPage />} />
                                 <Route path="/dashboard/admin/productos"     element={<AdminProductosPage />} />
-                                <Route path="/dashboard/admin/aprobaciones"  element={<AdminAprobacionesPage />} />
                                 <Route path="/dashboard/admin/reportes"      element={<AdminReportesPage />} />
                             </Route>
                         </Route>
@@ -93,7 +88,6 @@ export default function App() {
                                 <Route path="/dashboard/superadmin"               element={<DashboardSuperAdminPage />} />
                                 <Route path="/dashboard/superadmin/usuarios"      element={<SuperAdminUsuariosPage />} />
                                 <Route path="/dashboard/superadmin/productos"     element={<SuperAdminProductosPage />} />
-                                <Route path="/dashboard/superadmin/aprobaciones"  element={<SuperAdminAprobacionesPage />} />
                                 <Route path="/dashboard/superadmin/reportes"     element={<SuperAdminReportesPage />} />
                                 <Route path="/dashboard/superadmin/auditoria"   element={<SuperAdminAuditoriaPage />} />
                                 <Route path="/dashboard/superadmin/configuracion" element={<SuperAdminConfiguracionPage />} />

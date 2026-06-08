@@ -8,7 +8,7 @@ export const useRegistrarProducto = () => {
         await crearProducto(payload, archivos);
         await notifySuccess(
             "¡Producto registrado!",
-            "Quedó en estado Sin publicar, pendiente de revisión.",
+            "Quedó en estado Sin publicar.",
         );
     }, []);
 
