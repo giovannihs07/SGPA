@@ -15,6 +15,7 @@ import { RegistrarProductoPage } from "./pages/docente/registrarProductoPage";
 import { MisProductosPage }      from "./pages/docente/MisProductosPage";
 import { EditarProductoPage }    from "./pages/docente/EditarProductoPage";
 import { ReportesDocentePage }   from "./pages/docente/ReportesDocentePage";
+import { DashboardDocenteAdminPage } from "./pages/docenteAdmin/DashboardDocenteAdminPage";
  
 // Páginas de super admin
 import { DashboardSuperAdminPage }    from "./pages/superAdmin/DashboardSuperAdminPage";
@@ -52,8 +53,15 @@ export default function App() {
                         <Route path="/register"     element={<RegisterPage />} />
                         <Route path="/unauthorized" element={<Unauthorized />} />
  
+                        {/* Docente administrativo — dashboard combinado */}
+                        <Route element={<ProtectedRoute onlyDocenteAdmin />}>
+                            <Route element={<DashboardLayout />}>
+                                <Route path="/dashboard/docente-admin" element={<DashboardDocenteAdminPage />} />
+                            </Route>
+                        </Route>
+
                         {/* Docente */}
-                        <Route element={<ProtectedRoute />}>
+                        <Route element={<ProtectedRoute onlyDocente />}>
                             <Route element={<DashboardLayout />}>
                                 <Route path="/dashboard/docente"            element={<DashboardDocentePage />} />
                                 <Route path="/dashboard/docente/registrar"  element={<RegistrarProductoPage />} />

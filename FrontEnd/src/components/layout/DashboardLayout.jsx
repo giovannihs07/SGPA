@@ -9,14 +9,15 @@ import { surface } from "../../components/ui/themeTokens";
 // Mapeo de rutas a títulos para el Header
 const PAGE_TITLES = {
     "/dashboard/docente":              "Dashboard",
+    "/dashboard/docente-admin":        "Dashboard",
     "/dashboard/docente/registrar":    "Registrar producto",
     "/dashboard/docente/productos":    "Mis productos",
-    "/dashboard/docente/reportes":     "Reportes",
+    "/dashboard/docente/reportes":     "Mis reportes",
 
     "/dashboard/admin":                "Dashboard",
     "/dashboard/admin/usuarios":       "Usuarios",
     "/dashboard/admin/productos":      "Todos los productos",
-    "/dashboard/admin/reportes":       "Reportes",
+    "/dashboard/admin/reportes":       "Reportes institucionales",
 
     "/dashboard/superadmin":                "Dashboard",
     "/dashboard/superadmin/usuarios":       "Usuarios",

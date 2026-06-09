@@ -1,7 +1,8 @@
-import { useAuth } from "../../hooks/useAuth";
+import { useContext } from "react";
 import { Sun, Moon, Bell } from "lucide-react";
 import { AuthContext } from "../../context/AuthContext";
 import { useTheme } from "../../hooks/useTheme";
+import { getRolLabel } from "../../utils/authProfile";
 
 // Función para generar las iniciales del email o del nombre de usuario para el avatar
 const getInitials = (user) => {
@@ -13,16 +14,8 @@ const getInitials = (user) => {
         : parts[0].slice(0, 2).toUpperCase();
 };
 
-const getRolLabel = (login) => {
-    if (login?.isSuperAdmin) return "Super Admin";
-    if (login?.isAdmin)      return "Administrativo";
-    if (login?.isDocente)    return "Docente";
-    return "Estudiante";
-};
-
 export const Header = ({ pageTitle = "Dashboard" }) => {
-    const { login } = useAuth();
-    console.log("login state:", login); 
+    const { login } = useContext(AuthContext);
 
     const { isDark, toggleTheme } = useTheme();
 

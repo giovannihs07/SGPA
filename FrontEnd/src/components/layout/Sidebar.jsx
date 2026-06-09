@@ -1,15 +1,13 @@
-import { useAuth } from "../../hooks/useAuth";
+import { useContext } from "react";
 import { NavLink } from "react-router-dom";
 import { ChevronLeft, ChevronRight, LogOut } from "lucide-react";
 import { AuthContext } from "../../context/AuthContext";
 import { NAV_ITEMS } from "./navConfig";
+import { getNavProfile } from "../../utils/authProfile";
 
 export const Sidebar = ({ isCollapsed, onToggle, onLogout }) => {
-    const { login } = useAuth();
-    const rol = login?.isSuperAdmin ? "SUPERADMIN"
-        : login?.isAdmin ? "ADMIN"
-        : "DOCENTE";
-    const sections = NAV_ITEMS[rol] || NAV_ITEMS["DOCENTE"];
+    const { login } = useContext(AuthContext);
+    const sections = NAV_ITEMS[getNavProfile(login)] || NAV_ITEMS.DOCENTE;
 
     return (
         <aside

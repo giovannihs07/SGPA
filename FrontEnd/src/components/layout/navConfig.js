@@ -24,7 +24,32 @@ export const NAV_ITEMS = {
         {
             section: "Consultas",
             items: [
-                { label: "Reportes", icon: BarChart2, path: "/dashboard/docente/reportes" },
+                { label: "Mis reportes", icon: BarChart2, path: "/dashboard/docente/reportes" },
+            ],
+        },
+    ],
+
+    DOCENTE_ADMIN: [
+        {
+            section: "Mi producción",
+            items: [
+                { label: "Dashboard",          icon: LayoutDashboard, path: "/dashboard/docente-admin" },
+                { label: "Registrar producto", icon: FilePlus,         path: "/dashboard/docente/registrar" },
+                { label: "Mis productos",      icon: BookOpen,         path: "/dashboard/docente/productos" },
+            ],
+        },
+        {
+            section: "Gestión institucional",
+            items: [
+                { label: "Usuarios",            icon: Users,    path: "/dashboard/admin/usuarios" },
+                { label: "Todos los productos", icon: BookOpen, path: "/dashboard/admin/productos" },
+            ],
+        },
+        {
+            section: "Reportes",
+            items: [
+                { label: "Mis reportes",             icon: BarChart2, path: "/dashboard/docente/reportes" },
+                { label: "Reportes institucionales", icon: BarChart2, path: "/dashboard/admin/reportes" },
             ],
         },
     ],
