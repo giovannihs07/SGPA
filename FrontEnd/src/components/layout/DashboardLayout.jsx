@@ -3,20 +3,22 @@ import { Outlet, useLocation } from "react-router-dom";
 import  { AuthContext } from "../../context/AuthContext";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
+import { Footer } from "./Footer";
 import { useSidebar } from "../../hooks/useSidebar";
 import { surface } from "../../components/ui/themeTokens";
 
 // Mapeo de rutas a títulos para el Header
 const PAGE_TITLES = {
     "/dashboard/docente":              "Dashboard",
+    "/dashboard/docente-admin":        "Dashboard",
     "/dashboard/docente/registrar":    "Registrar producto",
     "/dashboard/docente/productos":    "Mis productos",
-    "/dashboard/docente/reportes":     "Reportes",
+    "/dashboard/docente/reportes":     "Mis reportes",
 
     "/dashboard/admin":                "Dashboard",
     "/dashboard/admin/usuarios":       "Usuarios",
     "/dashboard/admin/productos":      "Todos los productos",
-    "/dashboard/admin/reportes":       "Reportes",
+    "/dashboard/admin/reportes":       "Reportes institucionales",
 
     "/dashboard/superadmin":                "Dashboard",
     "/dashboard/superadmin/usuarios":       "Usuarios",
@@ -42,19 +44,24 @@ export const DashboardLayout = () => {
             : "Dashboard");
 
     return (
-        <div className={`flex min-h-screen ${surface.page}`}>
+        <div className={`min-h-screen ${surface.page}`}>
             <Sidebar
                 isCollapsed={isCollapsed}
                 onToggle={toggleSidebar}
                 onLogout={handlerLogout}
             />
 
-            <div className="flex flex-col flex-1 min-w-0">
+            <div
+                className={`flex flex-col min-w-0 min-h-screen transition-all duration-300 ease-in-out
+                    ${isCollapsed ? "ml-17" : "ml-55"}`}
+            >
                 <Header pageTitle={pageTitle} />
 
-                <main className="flex-1 p-6 overflow-y-auto">
+                <main className="flex-1 p-6">
                     <Outlet />
                 </main>
+
+                <Footer />
             </div>
         </div>
     );

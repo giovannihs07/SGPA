@@ -2,6 +2,7 @@ import { useReducer } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginReducer } from "../reducers/loginReducer";
 import { loginUser } from "../services/authService";
+import { dashboardPath as resolveDashboardPath } from "../utils/authProfile";
 
 // Función de inicialización para cargar el estado desde sessionStorage 
 // o establecer el estado inicial.
@@ -11,13 +12,6 @@ const init = () => JSON.parse(sessionStorage.getItem('login')) || {
     isSuperAdmin: false,
     isDocente: false,
     user: undefined,
-};
-
-const dashboardPath = ({ isSuperAdmin, isAdmin, isDocente }) => {
-    if (isSuperAdmin) return "/dashboard/superadmin";
-    if (isAdmin)      return "/dashboard/admin";
-    if (isDocente)    return "/dashboard/docente";
-    return "/dashboard/public";
 };
 
 // Manejo de autenticación utilizando un reducer para gestionar el estado de login/logout.
@@ -53,7 +47,7 @@ export const useAuth = () => {
             }));
             sessionStorage.setItem('token', `Bearer ${token}`);
 
-            navigate(dashboardPath({ isSuperAdmin, isAdmin, isDocente }));
+            navigate(resolveDashboardPath({ isAuth: true, isSuperAdmin, isAdmin, isDocente }));
             return { ok: true };
 
         } catch (error) {

@@ -1,8 +1,10 @@
+import { useContext } from "react";
 import { Navigate, Outlet } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
+import { AuthContext } from "../context/AuthContext";
+import { isDocenteAdmin } from "../utils/authProfile";
 
-export default function ProtectedRoute({ onlyAdmin, onlySuperAdmin }) {
-    const { login } = useAuth();
+export default function ProtectedRoute({ onlyAdmin, onlySuperAdmin, onlyDocente, onlyDocenteAdmin }) {
+    const { login } = useContext(AuthContext);
 
     if (!login.isAuth) return <Navigate to="/login" replace />;
 
@@ -11,6 +13,14 @@ export default function ProtectedRoute({ onlyAdmin, onlySuperAdmin }) {
     }
 
     if (onlyAdmin && !login.isAdmin && !login.isSuperAdmin) {
+        return <Navigate to="/unauthorized" replace />;
+    }
+
+    if (onlyDocente && !login.isDocente) {
+        return <Navigate to="/unauthorized" replace />;
+    }
+
+    if (onlyDocenteAdmin && !isDocenteAdmin(login)) {
         return <Navigate to="/unauthorized" replace />;
     }
 
