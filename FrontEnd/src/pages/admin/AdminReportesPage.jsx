@@ -5,6 +5,14 @@ import { ProduccionBarrasPanel } from "./components/ProduccionBarrasPanel";
 import { ProduccionDocentesTabla } from "./components/ProduccionDocentesTabla";
 import { ProduccionRecientesTabla } from "./components/ProduccionRecientesTabla";
 import { ReporteExportButtons } from "./components/ReporteExportButtons";
+import { PeriodoAutoevaluacionPresets } from "./components/PeriodoAutoevaluacionPresets";
+import { CoberturaDocentePanel } from "./components/CoberturaDocentePanel";
+import { ProduccionFacultadesTabla } from "./components/ProduccionFacultadesTabla";
+import { ProduccionProgramasTabla } from "./components/ProduccionProgramasTabla";
+import { CoberturaFacultadesChart } from "./components/charts/CoberturaFacultadesChart";
+import { ProduccionPorAnioChart } from "./components/charts/ProduccionPorAnioChart";
+import { CategoriaDistribucionChart } from "./components/charts/CategoriaDistribucionChart";
+import { EstadoDistribucionChart } from "./components/charts/EstadoDistribucionChart";
 import { FiltroFechaRango } from "../../components/ui/FiltroFechaRango";
 import { CATEGORIA_LABELS, SUBCATEGORIA_LABELS, TIPO_LABELS } from "../docente/components/productoHelpers";
 import { SelectFilter } from "../docente/components/misProductos/SelectFilter";
@@ -29,6 +37,7 @@ export const AdminReportesPage = () => {
         programasFiltrados,
         resumen,
         kpis,
+        porAnio,
         porCategoria,
         porSubcategoria,
         porTipo,
@@ -36,6 +45,12 @@ export const AdminReportesPage = () => {
         productosRecientes,
         productosFiltrados,
         totalFiltrados,
+        cobertura,
+        porFacultad,
+        porPrograma,
+        aplicarPresetPeriodo,
+        limpiarPeriodo,
+        notaAtribucion,
     } = useAdminReportesProduccion();
 
     if (error) {
@@ -57,7 +72,7 @@ export const AdminReportesPage = () => {
                         Reportes de producción docente
                     </h2>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        Análisis de la producción académica registrada por los docentes en el SGPA
+                        Indicadores de producción y cobertura docente para autoevaluación y acreditación
                     </p>
                 </div>
                 <div className="flex flex-col items-stretch sm:items-end gap-2">
@@ -69,6 +84,9 @@ export const AdminReportesPage = () => {
                         filtros={filtros}
                         facultades={facultades}
                         programasFiltrados={programasFiltrados}
+                        cobertura={cobertura}
+                        porFacultad={porFacultad}
+                        porPrograma={porPrograma}
                     />
                     <button
                         onClick={refetch}
@@ -133,16 +151,21 @@ export const AdminReportesPage = () => {
                             </option>
                         ))}
                     </SelectFilter>
+
+                    <FiltroFechaRango
+                        fechaDesde={fechaDesde}
+                        fechaHasta={fechaHasta}
+                        onDesdeChange={setFechaDesde}
+                        onHastaChange={setFechaHasta}
+                        filtroCampo={filtroCampoFecha}
+                        onCampoChange={setFiltroCampoFecha}
+                    />
                 </div>
             </div>
 
-            <FiltroFechaRango
-                fechaDesde={fechaDesde}
-                fechaHasta={fechaHasta}
-                onDesdeChange={setFechaDesde}
-                onHastaChange={setFechaHasta}
-                filtroCampo={filtroCampoFecha}
-                onCampoChange={setFiltroCampoFecha}
+            <PeriodoAutoevaluacionPresets
+                onAplicar={aplicarPresetPeriodo}
+                onLimpiar={limpiarPeriodo}
             />
 
             <p className="text-xs text-gray-400">
@@ -151,13 +174,43 @@ export const AdminReportesPage = () => {
 
             <SuperAdminKpiGrid resumen={kpis} loading={loading} />
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <ProduccionBarrasPanel
-                    titulo="Por categoría"
-                    items={porCategoria}
-                    labelFn={(k) => CATEGORIA_LABELS[k] ?? k}
-                    loading={loading}
+            <CoberturaDocentePanel cobertura={cobertura} notaAtribucion={notaAtribucion} />
+
+            <div className="space-y-4">
+                <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
+                    Vista gráfica
+                </p>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <CoberturaFacultadesChart filas={porFacultad} loading={loading} />
+                    <ProduccionPorAnioChart
+                        datos={porAnio}
+                        loading={loading}
+                        campoFecha={filtroCampoFecha}
+                    />
+                    <EstadoDistribucionChart resumen={resumen} loading={loading} />
+                    <CategoriaDistribucionChart
+                        items={porCategoria}
+                        labelFn={(k) => CATEGORIA_LABELS[k] ?? k}
+                        loading={loading}
+                    />
+                </div>
+            </div>
+
+            <div className="space-y-4">
+                <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
+                    Indicadores por unidad académica
+                </p>
+                <ProduccionFacultadesTabla
+                    filas={porFacultad}
+                    vacio={loading ? "Cargando…" : "No hay facultades en el alcance actual."}
                 />
+                <ProduccionProgramasTabla
+                    filas={porPrograma}
+                    vacio={loading ? "Cargando…" : "No hay programas en el alcance actual."}
+                />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <ProduccionBarrasPanel
                     titulo="Por subcategoría"
                     items={porSubcategoria}
@@ -165,15 +218,15 @@ export const AdminReportesPage = () => {
                     loading={loading}
                     maxItems={10}
                 />
+                <ProduccionBarrasPanel
+                    titulo="Por tipo de producto"
+                    items={porTipo}
+                    labelFn={(k) => TIPO_LABELS[k] ?? k}
+                    loading={loading}
+                    maxItems={porTipo.length || 1}
+                    emptyMessage="Sin productos registrados por tipo"
+                />
             </div>
-
-            <ProduccionBarrasPanel
-                titulo="Tipos de producto más frecuentes"
-                items={porTipo}
-                labelFn={(k) => TIPO_LABELS[k] ?? k}
-                loading={loading}
-                maxItems={10}
-            />
 
             <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">

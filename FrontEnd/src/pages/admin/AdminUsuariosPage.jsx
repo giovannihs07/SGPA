@@ -25,7 +25,7 @@ export const AdminUsuariosPage = () => {
         usuarioRoles, setUsuarioRoles, rolesDisponibles,
         savingRoles, handleGuardarRoles,
         handleActivar, handleDesactivar,
-    } = useUsuariosAdmin();
+    } = useUsuariosAdmin({ ocultarSuperAdmin: true });
 
     const rolesAsignables = ROLES_ASIGNABLES_ADMIN(rolesDisponibles);
 
@@ -52,7 +52,7 @@ export const AdminUsuariosPage = () => {
             <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
                 <p className="text-sm text-blue-800 dark:text-blue-300">
                     Como administrativo puedes gestionar docentes y otros administrativos.
-                    Las cuentas de <strong>Super Admin</strong> no son editables desde este panel.
+                    Las cuentas de <strong>Super Admin</strong> no se muestran ni son editables desde este panel.
                 </p>
             </div>
 

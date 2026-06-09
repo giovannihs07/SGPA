@@ -2,6 +2,9 @@ import { AlertCircle, RefreshCw, BarChart2, Search, Filter } from "lucide-react"
 import { useDocenteReportes } from "../../hooks/useDocenteReportes";
 import { SuperAdminKpiGrid } from "../superAdmin/components/SuperAdminKpiGrid";
 import { ProduccionBarrasPanel } from "../admin/components/ProduccionBarrasPanel";
+import { ProduccionPorAnioChart } from "../admin/components/charts/ProduccionPorAnioChart";
+import { EstadoDistribucionChart } from "../admin/components/charts/EstadoDistribucionChart";
+import { CategoriaDistribucionChart } from "../admin/components/charts/CategoriaDistribucionChart";
 import { ReporteDocenteExportButtons } from "./components/reportes/ReporteDocenteExportButtons";
 import { DocenteMisProductosTabla } from "./components/reportes/DocenteMisProductosTabla";
 import { FiltroFechaRango } from "../../components/ui/FiltroFechaRango";
@@ -26,6 +29,7 @@ export const ReportesDocentePage = () => {
         subcategoriasDisponibles,
         resumen,
         kpis,
+        porAnio,
         porCategoria,
         porSubcategoria,
         porTipo,
@@ -116,17 +120,17 @@ export const ReportesDocentePage = () => {
                             </option>
                         ))}
                     </SelectFilter>
+
+                    <FiltroFechaRango
+                        fechaDesde={fechaDesde}
+                        fechaHasta={fechaHasta}
+                        onDesdeChange={setFechaDesde}
+                        onHastaChange={setFechaHasta}
+                        filtroCampo={filtroCampoFecha}
+                        onCampoChange={setFiltroCampoFecha}
+                    />
                 </div>
             </div>
-
-            <FiltroFechaRango
-                fechaDesde={fechaDesde}
-                fechaHasta={fechaHasta}
-                onDesdeChange={setFechaDesde}
-                onHastaChange={setFechaHasta}
-                filtroCampo={filtroCampoFecha}
-                onCampoChange={setFiltroCampoFecha}
-            />
 
             <p className="text-xs text-gray-400">
                 {loading ? "Calculando reportes…" : `${totalFiltrados} producto${totalFiltrados !== 1 ? "s" : ""} en el reporte`}
@@ -134,13 +138,23 @@ export const ReportesDocentePage = () => {
 
             <SuperAdminKpiGrid resumen={kpis} loading={loading} />
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <ProduccionBarrasPanel
-                    titulo="Por categoría"
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <ProduccionPorAnioChart
+                    datos={porAnio}
+                    loading={loading}
+                    campoFecha={filtroCampoFecha}
+                    compact
+                />
+                <EstadoDistribucionChart resumen={resumen} loading={loading} compact />
+                <CategoriaDistribucionChart
                     items={porCategoria}
                     labelFn={(k) => CATEGORIA_LABELS[k] ?? k}
                     loading={loading}
+                    compact
                 />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <ProduccionBarrasPanel
                     titulo="Por subcategoría"
                     items={porSubcategoria}
@@ -148,16 +162,15 @@ export const ReportesDocentePage = () => {
                     loading={loading}
                     maxItems={10}
                 />
+                <ProduccionBarrasPanel
+                    titulo="Por tipo"
+                    items={porTipo}
+                    labelFn={(k) => TIPO_LABELS[k] ?? k}
+                    loading={loading}
+                    maxItems={porTipo.length || 1}
+                    emptyMessage="Sin productos registrados por tipo"
+                />
             </div>
-
-            <ProduccionBarrasPanel
-                titulo="Por tipo"
-                items={porTipo}
-                labelFn={(k) => TIPO_LABELS[k] ?? k}
-                loading={loading}
-                maxItems={porTipo.length || 1}
-                emptyMessage="Sin productos registrados por tipo"
-            />
 
             <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">

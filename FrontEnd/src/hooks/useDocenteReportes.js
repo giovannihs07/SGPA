@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { BookOpen, Globe, FileCheck, Clock } from "lucide-react";
 import { getMisProductos } from "../services/productoServices";
 import { getMiPerfilDocente } from "../services/docenteService";
-import { agruparConteo } from "../pages/admin/adminReportesHelpers";
+import { agruparConteo, agruparPorAnio } from "../pages/admin/adminReportesHelpers";
 import {
     calcularResumenPersonal,
     filtrarMisProductosReporte,
@@ -68,6 +68,11 @@ export const useDocenteReportes = () => {
         { label: "Nuevos (30 días)", value: resumen.recientes, icon: Clock, accent: "bg-orange-50 text-[#EC7A21] dark:bg-orange-900/20" },
     ], [resumen]);
 
+    const porAnio = useMemo(
+        () => agruparPorAnio(productosFiltrados, filtroCampoFecha),
+        [productosFiltrados, filtroCampoFecha],
+    );
+
     const porCategoria = useMemo(
         () => agruparConteo(productosFiltrados, (p) => p.categoria),
         [productosFiltrados],
@@ -125,6 +130,7 @@ export const useDocenteReportes = () => {
         subcategoriasDisponibles,
         resumen,
         kpis,
+        porAnio,
         porCategoria,
         porSubcategoria,
         porTipo,

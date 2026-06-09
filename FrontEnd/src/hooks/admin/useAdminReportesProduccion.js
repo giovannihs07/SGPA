@@ -1,13 +1,18 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { BookOpen, Globe, FileCheck, Clock, Users } from "lucide-react";
+import { BookOpen, Globe, FileCheck, Clock, Users, UserCheck, UserX } from "lucide-react";
 import { getAllProductos } from "../../services/productoServices";
 import { getDocentes } from "../../services/docenteService";
 import { getFacultades, getProgramas } from "../../services/institucionService";
 import {
     agruparConteo,
     agruparPorDocente,
+    agruparPorFacultad,
+    agruparPorPrograma,
+    agruparPorAnio,
+    calcularCoberturaDocente,
     calcularResumenProduccion,
     construirMapaDocentes,
+    docentesEnAlcance,
     enriquecerProductosConDocente,
     filtrarProductosReporte,
 } from "../../pages/admin/adminReportesHelpers";
@@ -85,13 +90,50 @@ export const useAdminReportesProduccion = () => {
         [productosFiltrados],
     );
 
+    const docentesAlcance = useMemo(
+        () => docentesEnAlcance(docentes, filtros),
+        [docentes, filtros],
+    );
+
+    const cobertura = useMemo(
+        () => calcularCoberturaDocente(docentesAlcance, productosFiltrados),
+        [docentesAlcance, productosFiltrados],
+    );
+
+    const facultadesAlcance = useMemo(() => {
+        if (filtroFacultad === "TODAS") return facultades;
+        return facultades.filter((f) => String(f.id) === String(filtroFacultad));
+    }, [facultades, filtroFacultad]);
+
+    const programasFiltrados = useMemo(() => {
+        if (filtroFacultad === "TODAS") return programas;
+        return programas.filter((p) => String(p.facultadId) === String(filtroFacultad));
+    }, [programas, filtroFacultad]);
+
+    const porFacultad = useMemo(
+        () => agruparPorFacultad(productosFiltrados, facultadesAlcance, docentes),
+        [productosFiltrados, facultadesAlcance, docentes],
+    );
+
+    const porPrograma = useMemo(
+        () => agruparPorPrograma(productosFiltrados, programasFiltrados, docentes),
+        [productosFiltrados, programasFiltrados, docentes],
+    );
+
     const kpis = useMemo(() => [
         { label: "Total productos", value: resumen.total, icon: BookOpen, accent: "bg-[#ffc20e]/15 text-[#EC7A21]" },
         { label: "Publicados", value: resumen.publicados, icon: Globe, accent: "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400" },
         { label: "Sin publicar", value: resumen.sinPublicar, icon: FileCheck, accent: "bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400" },
         { label: "Docentes con producción", value: resumen.docentesActivos, icon: Users, accent: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400" },
+        { label: "% Cobertura docente", value: `${cobertura.porcentajeCobertura}%`, icon: UserCheck, accent: "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400" },
+        { label: "Docentes sin producción", value: cobertura.docentesSinProduccion, icon: UserX, accent: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400" },
         { label: "Nuevos (30 días)", value: resumen.recientes, icon: Clock, accent: "bg-orange-50 text-[#EC7A21] dark:bg-orange-900/20" },
-    ], [resumen]);
+    ], [resumen, cobertura]);
+
+    const porAnio = useMemo(
+        () => agruparPorAnio(productosFiltrados, filtroCampoFecha),
+        [productosFiltrados, filtroCampoFecha],
+    );
 
     const porCategoria = useMemo(
         () => agruparConteo(productosFiltrados, (p) => p.categoria),
@@ -104,7 +146,7 @@ export const useAdminReportesProduccion = () => {
     );
 
     const porTipo = useMemo(
-        () => agruparConteo(productosFiltrados, (p) => p.tipo).slice(0, 10),
+        () => agruparConteo(productosFiltrados, (p) => p.tipo),
         [productosFiltrados],
     );
 
@@ -133,11 +175,6 @@ export const useAdminReportesProduccion = () => {
         return ["TODAS", ...set];
     }, [productos, filtroCategoria]);
 
-    const programasFiltrados = useMemo(() => {
-        if (filtroFacultad === "TODAS") return programas;
-        return programas.filter((p) => String(p.facultadId) === String(filtroFacultad));
-    }, [programas, filtroFacultad]);
-
     const handleFiltroCategoria = useCallback((v) => {
         setFiltroCategoria(v);
         setFiltroSubcategoria("TODAS");
@@ -147,6 +184,19 @@ export const useAdminReportesProduccion = () => {
         setFiltroFacultad(v);
         setFiltroPrograma("TODOS");
     }, []);
+
+    const aplicarPresetPeriodo = useCallback(({ fechaDesde: desde, fechaHasta: hasta }) => {
+        setFechaDesde(desde);
+        setFechaHasta(hasta);
+    }, []);
+
+    const limpiarPeriodo = useCallback(() => {
+        setFechaDesde("");
+        setFechaHasta("");
+    }, []);
+
+    const NOTA_ATRIBUCION_PROGRAMA =
+        "La facultad y el programa de cada producto se infieren de los programas académicos asociados al docente autor, no de un campo propio del producto.";
 
     return {
         loading,
@@ -177,6 +227,7 @@ export const useAdminReportesProduccion = () => {
         programasFiltrados,
         resumen,
         kpis,
+        porAnio,
         porCategoria,
         porSubcategoria,
         porTipo,
@@ -184,5 +235,11 @@ export const useAdminReportesProduccion = () => {
         productosRecientes,
         productosFiltrados,
         totalFiltrados: productosFiltrados.length,
+        cobertura,
+        porFacultad,
+        porPrograma,
+        aplicarPresetPeriodo,
+        limpiarPeriodo,
+        notaAtribucion: NOTA_ATRIBUCION_PROGRAMA,
     };
 };

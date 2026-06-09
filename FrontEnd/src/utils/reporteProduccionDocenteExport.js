@@ -9,6 +9,7 @@ import {
 } from "../pages/docente/components/productoHelpers";
 import {
     etiquetasFiltrosDocente,
+    filasFiltrosReporteDocente,
     nombreDocentePerfil,
 } from "../pages/docente/docenteReportesHelpers";
 
@@ -68,14 +69,18 @@ export const exportarMiReportePdf = ({ productos, resumen, docente, filtros }) =
     doc.setTextColor(100);
     doc.text(`Docente: ${nombre} · Código: ${docente?.codigoDocente ?? "—"}`, 14, 22);
     doc.text(`Generado: ${new Date().toLocaleString("es-CO")}`, 14, 27);
-    doc.text(
-        `Filtros: ${filtrosLabel.estado} · ${filtrosLabel.categoria} · ${filtrosLabel.subcategoria} · ${filtrosLabel.fecha}`,
-        14,
-        32,
-    );
 
     autoTable(doc, {
-        startY: 37,
+        startY: 32,
+        head: [["Filtro", "Valor"]],
+        body: filasFiltrosReporteDocente(filtrosLabel),
+        theme: "grid",
+        headStyles: { fillColor: [100, 100, 100] },
+        styles: { fontSize: 8 },
+    });
+
+    autoTable(doc, {
+        startY: doc.lastAutoTable.finalY + 6,
         head: [["Métrica", "Valor"]],
         body: [
             ["Total productos", resumen.total],

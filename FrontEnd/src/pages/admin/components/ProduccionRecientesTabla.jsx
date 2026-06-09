@@ -1,5 +1,5 @@
 import {
-    tableWrapper, tableHeadRow, tableHeadCell, tableBody, tableRow,
+    tableWrapper, tableHeadRowReporte, tableHeadCellReporte, tableBody, tableRow,
     tableCellPrimary, tableCellMuted, tableCellSubtext,
 } from "../../../components/ui/themeTokens";
 import { CATEGORIA_LABELS, TIPO_LABELS, formatFecha, truncar } from "../../docente/components/productoHelpers";
@@ -28,9 +28,9 @@ export const ProduccionRecientesTabla = ({ productos, loading }) => {
             <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                     <thead>
-                        <tr className={tableHeadRow}>
+                        <tr className={tableHeadRowReporte}>
                             {["Producto", "Docente", "Facultad", "Programa", "Tipo", "Categoría", "Estado", "Fecha"].map((h) => (
-                                <th key={h} className={tableHeadCell}>{h}</th>
+                                <th key={h} className={tableHeadCellReporte}>{h}</th>
                             ))}
                         </tr>
                     </thead>

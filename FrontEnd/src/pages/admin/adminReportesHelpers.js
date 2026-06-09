@@ -86,6 +86,108 @@ export const calcularResumenProduccion = (productos) => {
     };
 };
 
+export const docentesEnAlcance = (docentes, filtros) =>
+    (docentes ?? []).filter((d) => {
+        const programas = d.programas ?? [];
+        const facultadIds = [...new Set(programas.map((p) => p.facultadId).filter(Boolean))];
+        const programaIds = programas.map((p) => p.id).filter(Boolean);
+
+        if (filtros.filtroFacultad !== "TODAS"
+            && !facultadIds.some((id) => String(id) === String(filtros.filtroFacultad))) {
+            return false;
+        }
+        if (filtros.filtroPrograma !== "TODOS"
+            && !programaIds.some((id) => String(id) === String(filtros.filtroPrograma))) {
+            return false;
+        }
+        return true;
+    });
+
+export const calcularCoberturaDocente = (docentesAlcance, productos) => {
+    const conProduccion = new Set(productos.map((p) => p.docenteId).filter(Boolean));
+    const total = docentesAlcance.length;
+    const activos = docentesAlcance.filter((d) => conProduccion.has(d.id)).length;
+    return {
+        totalDocentes: total,
+        docentesConProduccion: activos,
+        docentesSinProduccion: Math.max(0, total - activos),
+        porcentajeCobertura: total > 0 ? Math.round((activos / total) * 100) : 0,
+    };
+};
+
+const acumularProduccionUnidad = (prods, docentesUnidad) => {
+    const docenteIdsProduccion = new Set(prods.map((p) => p.docenteId).filter(Boolean));
+    const docentesConProd = docentesUnidad.filter((d) => docenteIdsProduccion.has(d.id)).length;
+    const totalDocentes = docentesUnidad.length;
+    return {
+        total: prods.length,
+        publicados: prods.filter((p) => p.publicado).length,
+        sinPublicar: prods.filter((p) => !p.publicado).length,
+        recientes: prods.filter((p) => esReciente(p.fechaRegistroSgpa)).length,
+        docentesConProduccion: docentesConProd,
+        totalDocentes,
+        porcentajeCobertura: totalDocentes > 0 ? Math.round((docentesConProd / totalDocentes) * 100) : 0,
+    };
+};
+
+export const agruparPorFacultad = (productos, facultades, docentes) =>
+    (facultades ?? [])
+        .map((f) => {
+            const prods = productos.filter((p) =>
+                (p.facultadIds ?? []).some((id) => String(id) === String(f.id)));
+            const docentesFacultad = docentes.filter((d) =>
+                (d.programas ?? []).some((p) => String(p.facultadId) === String(f.id)));
+            return {
+                facultadId: f.id,
+                nombre: f.nombre,
+                codigo: f.codigo ?? "—",
+                ...acumularProduccionUnidad(prods, docentesFacultad),
+            };
+        })
+        .sort((a, b) => b.total - a.total);
+
+export const agruparPorPrograma = (productos, programas, docentes) =>
+    (programas ?? [])
+        .map((prog) => {
+            const prods = productos.filter((p) =>
+                (p.programaIds ?? []).some((id) => String(id) === String(prog.id)));
+            const docentesPrograma = docentes.filter((d) =>
+                (d.programas ?? []).some((p) => String(p.id) === String(prog.id)));
+            return {
+                programaId: prog.id,
+                nombre: prog.nombre,
+                codigo: prog.codigo ?? "—",
+                facultadNombre: prog.facultadNombre ?? "—",
+                nivel: prog.nivel ?? "—",
+                ...acumularProduccionUnidad(prods, docentesPrograma),
+            };
+        })
+        .sort((a, b) => b.total - a.total);
+
+export const agruparPorAnio = (productos, campoFecha = CAMPO_FECHA_REGISTRO_SGPA) => {
+    const map = new Map();
+    for (const p of productos) {
+        const raw = p[campoFecha];
+        if (!raw) continue;
+        const anio = new Date(raw).getFullYear();
+        if (Number.isNaN(anio)) continue;
+        map.set(anio, (map.get(anio) ?? 0) + 1);
+    }
+    return [...map.entries()]
+        .map(([anio, total]) => ({ anio: String(anio), total }))
+        .sort((a, b) => Number(a.anio) - Number(b.anio));
+};
+
+export const presetPeriodoAutoevaluacion = (anios) => {
+    const hasta = new Date();
+    const desde = new Date();
+    desde.setFullYear(hasta.getFullYear() - anios);
+    return {
+        fechaDesde: desde.toISOString().slice(0, 10),
+        fechaHasta: hasta.toISOString().slice(0, 10),
+    };
+};
+
 const matchIdEnSet = (valor, ids) => {
     if (valor === "TODAS" || valor === "TODOS") return true;
     const num = Number(valor);
@@ -157,3 +259,13 @@ export const etiquetasFiltrosActivos = (filtros, { facultades, programas, labels
         busqueda: filtros.busqueda?.trim() || "—",
     };
 };
+
+export const filasFiltrosReporteAdmin = (filtrosLabel) => [
+    ["Estado", filtrosLabel.estado],
+    ["Categoría", filtrosLabel.categoria],
+    ["Subcategoría", filtrosLabel.subcategoria],
+    ["Facultad", filtrosLabel.facultad],
+    ["Programa", filtrosLabel.programa],
+    ["Rango de fechas", filtrosLabel.fecha],
+    ["Búsqueda", filtrosLabel.busqueda],
+];

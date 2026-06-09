@@ -1,5 +1,5 @@
 import {
-    tableWrapper, tableHeadRow, tableHeadCell, tableBody, tableRow,
+    tableWrapper, tableHeadRowReporte, tableHeadCellReporte, tableBody, tableRow,
     tableCellPrimary, tableCellMuted,
 } from "../../../components/ui/themeTokens";
 
@@ -25,9 +25,9 @@ export const ProduccionDocentesTabla = ({ docentes, loading }) => {
             <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                     <thead>
-                        <tr className={tableHeadRow}>
+                        <tr className={tableHeadRowReporte}>
                             {["#", "Docente", "Código", "Facultad", "Programa", "Total", "Publicados", "Sin publicar", "Nuevos (30 d)"].map((h) => (
-                                <th key={h} className={tableHeadCell}>{h}</th>
+                                <th key={h} className={tableHeadCellReporte}>{h}</th>
                             ))}
                         </tr>
                     </thead>

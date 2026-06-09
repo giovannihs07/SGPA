@@ -9,6 +9,9 @@ export const ReporteExportButtons = ({
     filtros,
     facultades,
     programasFiltrados,
+    cobertura,
+    porFacultad,
+    porPrograma,
 }) => {
     const payload = {
         productos: productosFiltrados,
@@ -17,12 +20,18 @@ export const ReporteExportButtons = ({
         filtros,
         facultades,
         programas: programasFiltrados,
+        cobertura,
+        porFacultad,
+        porPrograma,
     };
+
+    const puedeExportar = productosFiltrados.length > 0
+        || (cobertura?.totalDocentes ?? 0) > 0;
 
     const handleExcel = async () => {
         try {
-            if (productosFiltrados.length === 0) {
-                notifyError("Sin datos", "No hay productos para exportar con los filtros actuales.");
+            if (!puedeExportar) {
+                notifyError("Sin datos", "No hay información para exportar con los filtros actuales.");
                 return;
             }
             const { exportarReporteExcel } = await import("../../../utils/reporteProduccionExport");
@@ -34,8 +43,8 @@ export const ReporteExportButtons = ({
 
     const handlePdf = async () => {
         try {
-            if (productosFiltrados.length === 0) {
-                notifyError("Sin datos", "No hay productos para exportar con los filtros actuales.");
+            if (!puedeExportar) {
+                notifyError("Sin datos", "No hay información para exportar con los filtros actuales.");
                 return;
             }
             const { exportarReportePdf } = await import("../../../utils/reporteProduccionExport");
