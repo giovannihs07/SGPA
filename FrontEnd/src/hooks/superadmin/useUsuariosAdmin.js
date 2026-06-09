@@ -20,8 +20,9 @@ import {
     enriquecerUsuariosConPerfil,
     listarDependenciasUnicas,
 } from "../../pages/superAdmin/superAdminHelpers";
+import { esUsuarioSuperAdmin } from "../../pages/admin/adminHelpers";
 
-export const useUsuariosAdmin = () => {
+export const useUsuariosAdmin = ({ ocultarSuperAdmin = false } = {}) => {
     const [usuariosRaw, setUsuariosRaw]   = useState([]);
     const [rolesDisponibles, setRoles]  = useState([]);
     const [facultades, setFacultades]   = useState([]);
@@ -69,6 +70,8 @@ export const useUsuariosAdmin = () => {
 
     const usuariosFiltrados = useMemo(() =>
         usuariosRaw.filter((u) => {
+            if (ocultarSuperAdmin && esUsuarioSuperAdmin(u)) return false;
+
             const matchBusqueda = matchBusquedaUsuario(u, busqueda);
             const matchEstado = filtroEstado === "TODOS" || u.estado === filtroEstado;
             const matchPerfil = matchFiltroPerfilUsuario(u, filtroPerfil);
@@ -82,7 +85,7 @@ export const useUsuariosAdmin = () => {
             return matchBusqueda && matchEstado && matchPerfil
                 && matchFacultad && matchPrograma && matchDependencia;
         }),
-    [usuariosRaw, busqueda, filtroEstado, filtroPerfil, filtroFacultad, filtroPrograma, filtroDependencia]);
+    [usuariosRaw, busqueda, filtroEstado, filtroPerfil, filtroFacultad, filtroPrograma, filtroDependencia, ocultarSuperAdmin]);
 
     const programasFiltrados = useMemo(() => {
         if (filtroFacultad === "TODAS") return programas;

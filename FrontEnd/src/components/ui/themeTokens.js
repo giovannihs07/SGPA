@@ -105,6 +105,16 @@ export const tableHeadRow =
 export const tableHeadCell =
     `px-4 py-3 text-left ${labelTable} whitespace-nowrap`;
 
+/** Encabezados de tablas en reportes admin — identidad SGPA */
+export const tableHeadRowReporte =
+    "border-b border-[#d96a15]/60 bg-[#EC7A21]/90 dark:bg-[#b85a18]/90";
+
+export const tableHeadCellReporte =
+    "px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-white whitespace-nowrap";
+
+export const tableHeadCellReporteRight =
+    `${tableHeadCellReporte} text-right`;
+
 export const tableBody =
     "divide-y divide-gray-200 dark:divide-gray-600";
 

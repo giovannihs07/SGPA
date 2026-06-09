@@ -60,6 +60,14 @@ export const etiquetasFiltrosDocente = (filtros, labels) => ({
     busqueda: filtros.busqueda?.trim() || "—",
 });
 
+export const filasFiltrosReporteDocente = (filtrosLabel) => [
+    ["Estado", filtrosLabel.estado],
+    ["Categoría", filtrosLabel.categoria],
+    ["Subcategoría", filtrosLabel.subcategoria],
+    ["Rango de fechas", filtrosLabel.fecha],
+    ["Búsqueda", filtrosLabel.busqueda],
+];
+
 export const nombreDocentePerfil = (docente) => {
     if (!docente) return "—";
     const nombre = [docente.nombre, docente.apellido].filter(Boolean).join(" ").trim();

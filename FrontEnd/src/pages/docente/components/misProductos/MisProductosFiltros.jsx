@@ -16,7 +16,6 @@ export const MisProductosFiltros = ({
     setFechaDesde, setFechaHasta,
     filtroCampoFecha, setFiltroCampoFecha,
 }) => (
-    <div className="space-y-2">
     <div className={filterBar}>
         <div className="relative flex-1 min-w-45">
             <Search size={13} className={inputIcon} aria-hidden="true" />
@@ -56,17 +55,17 @@ export const MisProductosFiltros = ({
                     </option>
                 ))}
             </SelectFilter>
+
+            {mostrarFiltroFecha && (
+                <FiltroFechaRango
+                    fechaDesde={fechaDesde}
+                    fechaHasta={fechaHasta}
+                    onDesdeChange={setFechaDesde}
+                    onHastaChange={setFechaHasta}
+                    filtroCampo={filtroCampoFecha}
+                    onCampoChange={setFiltroCampoFecha}
+                />
+            )}
         </div>
-    </div>
-    {mostrarFiltroFecha && (
-        <FiltroFechaRango
-            fechaDesde={fechaDesde}
-            fechaHasta={fechaHasta}
-            onDesdeChange={setFechaDesde}
-            onHastaChange={setFechaHasta}
-            filtroCampo={filtroCampoFecha}
-            onCampoChange={setFiltroCampoFecha}
-        />
-    )}
     </div>
 );

@@ -89,6 +89,7 @@ export const SuperAdminUsuariosPage = () => {
                     onActivar={handleActivar}
                     onDesactivar={handleDesactivar}
                     onCambiarRoles={setUsuarioRoles}
+                    bloquearSuperAdmin
                 />
             )}
 
