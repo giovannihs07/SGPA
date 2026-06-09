@@ -12,13 +12,13 @@ export const Sidebar = ({ isCollapsed, onToggle, onLogout }) => {
     return (
         <aside
             className={`
-                relative flex flex-col bg-[#222222] transition-all duration-300 ease-in-out
+                fixed top-0 left-0 z-30 flex flex-col h-screen bg-[#222222]
+                transition-all duration-300 ease-in-out
                 ${isCollapsed ? "w-17" : "w-55"}
-                min-h-screen shrink-0
             `}
         >
             {/* Logo */}
-            <div className={`flex items-center gap-3 px-5 py-5 border-b border-white/10 ${isCollapsed ? "justify-center px-0" : ""}`}>
+            <div className={`shrink-0 flex items-center gap-3 px-5 py-5 border-b border-white/10 ${isCollapsed ? "justify-center px-0" : ""}`}>
                 <div className="w-10 h-10 bg-[#ffc20e] rounded-sm flex items-center justify-center shrink-0">
                     <svg viewBox="0 0 24 24" className="w-6 h-6 fill-white">
                         <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" />
@@ -32,8 +32,8 @@ export const Sidebar = ({ isCollapsed, onToggle, onLogout }) => {
                 )}
             </div>
 
-            {/* Navegación */}
-            <nav className="flex-1 py-3 overflow-y-auto">
+            {/* Navegación — scroll propio si el menú no cabe */}
+            <nav className="flex-1 min-h-0 py-3 overflow-y-auto overscroll-contain">
                 {sections.map(({ section, items }) => (
                     <div key={section}>
                         {!isCollapsed && (
@@ -70,7 +70,7 @@ export const Sidebar = ({ isCollapsed, onToggle, onLogout }) => {
                 onClick={onToggle}
                 title={isCollapsed ? "Expandir sidebar" : "Colapsar sidebar"}
                 className={`
-                    flex items-center gap-2 px-5 py-3 text-white/60 hover:text-white
+                    shrink-0 flex items-center gap-2 px-5 py-3 text-white/60 hover:text-white
                     hover:bg-white/5 transition-colors text-sm border-t border-white/10
                     ${isCollapsed ? "justify-center px-0" : ""}
                 `}
@@ -85,7 +85,7 @@ export const Sidebar = ({ isCollapsed, onToggle, onLogout }) => {
             <button
                 onClick={onLogout}
                 className={`
-                    flex items-center gap-2 px-5 py-4 text-white/60 hover:text-white
+                    shrink-0 flex items-center gap-2 px-5 py-4 text-white/60 hover:text-white
                     hover:bg-white/5 transition-colors text-sm border-t border-white/10
                     ${isCollapsed ? "justify-center px-0" : ""}
                 `}
