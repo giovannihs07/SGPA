@@ -1,6 +1,7 @@
 package com.sgpa.dto.response;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 import lombok.Builder;
@@ -26,6 +27,8 @@ public class UserDetalleResponse {
     private Long docenteId;
     private String codigoDocente;
     private String tipoContratoDocente;
+    private Set<ProgramaResponse> programas;
+    private List<TituloAcademicoResponse> titulos;
 
     // Perfil Administrativo 
     private Long administrativoId;

@@ -33,6 +33,9 @@ import { AdminReportesPage }         from "./pages/admin/AdminReportesPage";
  
 // Páginas de estudiante o público general
 import { DashboardPublicPage } from "./pages/public/DashboardPublicPage";
+
+// Perfil de usuario
+import { MiPerfilPage } from "./pages/perfil/MiPerfilPage";
  
 // Utilidades
 const Unauthorized = () => (
@@ -77,6 +80,13 @@ export default function App() {
                                 <Route path="/dashboard/public"          element={<DashboardPublicPage />} />
                                 <Route path="/dashboard/public/explorar" element={<div>Explorar</div>} />
                                 <Route path="/dashboard/public/buscar"   element={<div>Buscar</div>} />
+                            </Route>
+                        </Route>
+
+                        {/* Perfil — cualquier usuario autenticado */}
+                        <Route element={<ProtectedRoute />}>
+                            <Route element={<DashboardLayout />}>
+                                <Route path="/dashboard/perfil" element={<MiPerfilPage />} />
                             </Route>
                         </Route>
  

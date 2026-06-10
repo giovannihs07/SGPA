@@ -1,25 +1,15 @@
 import { useContext } from "react";
-import { Sun, Moon, Bell } from "lucide-react";
+import { Sun, Moon } from "lucide-react";
 import { AuthContext } from "../../context/AuthContext";
 import { useTheme } from "../../hooks/useTheme";
 import { getRolLabel } from "../../utils/authProfile";
+import { UserMenu } from "./UserMenu";
 
-// Función para generar las iniciales del email o del nombre de usuario para el avatar
-const getInitials = (user) => {
-    if (!user?.email) return "U";
-    const name = user.email.split("@")[0];
-    const parts = name.split(".");
-    return parts.length >= 2
-        ? (parts[0][0] + parts[1][0]).toUpperCase()
-        : parts[0].slice(0, 2).toUpperCase();
-};
-
-export const Header = ({ pageTitle = "Dashboard" }) => {
+export const Header = () => {
     const { login } = useContext(AuthContext);
 
     const { isDark, toggleTheme } = useTheme();
 
-    const initials = getInitials(login?.user);
     const rolLabel = getRolLabel(login);
 
     return (
@@ -37,11 +27,6 @@ export const Header = ({ pageTitle = "Dashboard" }) => {
                     }}
                 />
             </div>
-            {/* Título de la página */}
-            <h1 className="text-base font-semibold text-gray-900 dark:text-white">
-                {pageTitle}
-            </h1>
-            
 
             {/* Acciones */}
             <div className="flex items-center gap-4">
@@ -50,7 +35,8 @@ export const Header = ({ pageTitle = "Dashboard" }) => {
                 <button
                     onClick={toggleTheme}
                     title={isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors
+                        ${isDark ? "text-[#222222] hover:bg-black/15" : "text-gray-700 hover:bg-black/10"}`}
                 >
                     {isDark
                         ? <Sun size={18} />
@@ -58,26 +44,12 @@ export const Header = ({ pageTitle = "Dashboard" }) => {
                     }
                 </button>
 
-                {/* Notificaciones */}
-                <button
-                    title="Notificaciones"
-                    className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                >
-                    <Bell size={18} />
-                </button>
-
                 {/* Badge de rol */}
-                <span className="hidden sm:inline-flex text-xs font-medium px-2.5 py-1 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+                <span className="hidden sm:inline-flex text-xs font-medium px-2.5 py-1 rounded-md bg-black/15 text-[#222222]">
                     {rolLabel}
                 </span>
 
-                {/* Avatar con iniciales */}
-                <div
-                    title={login?.user?.email}
-                    className="w-8 h-8 rounded-full bg-[#2B2B2B] flex items-center justify-center text-[#C8963E] text-xs font-semibold shrink-0 cursor-default"
-                >
-                    {initials}
-                </div>
+                <UserMenu />
             </div>
         </header>
     );

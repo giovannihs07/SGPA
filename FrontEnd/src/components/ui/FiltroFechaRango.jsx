@@ -19,7 +19,7 @@ export const FiltroFechaRango = ({
     <div className={`inline-flex flex-nowrap items-center gap-2 shrink-0 ${className}`}>
         <Calendar size={13} className="text-gray-500 dark:text-gray-400 shrink-0" aria-hidden="true" />
         {mostrarSelectorCampo && onCampoChange && (
-            <div className="shrink-0 [&_select]:!w-auto [&_select]:min-w-[11rem]">
+            <div className="shrink-0 [&_select]:w-auto! [&_select]:min-w-44">
                 <SelectFilter value={filtroCampo} onChange={onCampoChange} aria-label="Filtrar por tipo de fecha">
                     <option value={CAMPO_FECHA_REGISTRO_SGPA}>Registrado en SGPA</option>
                     <option value={CAMPO_FECHA_PUBLICACION_SGPA}>Publicado en SGPA</option>
@@ -31,7 +31,7 @@ export const FiltroFechaRango = ({
             value={fechaDesde}
             onChange={(e) => onDesdeChange(e.target.value)}
             aria-label="Fecha desde"
-            className={`${inputXs} !w-auto shrink-0 min-w-[9.5rem]`}
+            className={`${inputXs} w-auto! shrink-0 min-w-38`}
         />
         <span className="text-xs text-gray-400 shrink-0">—</span>
         <input
@@ -40,7 +40,7 @@ export const FiltroFechaRango = ({
             onChange={(e) => onHastaChange(e.target.value)}
             aria-label="Fecha hasta"
             min={fechaDesde || undefined}
-            className={`${inputXs} !w-auto shrink-0 min-w-[9.5rem]`}
+            className={`${inputXs} w-auto! shrink-0 min-w-38`}
         />
     </div>
 );
