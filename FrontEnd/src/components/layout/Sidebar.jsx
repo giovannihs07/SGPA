@@ -33,7 +33,7 @@ export const Sidebar = ({ isCollapsed, onToggle, onLogout }) => {
             </div>
 
             {/* Navegación — scroll propio si el menú no cabe */}
-            <nav className="flex-1 min-h-0 py-3 overflow-y-auto overscroll-contain">
+            <nav className="sidebar-nav-scroll flex-1 min-h-0 py-3 overflow-y-auto overscroll-contain">
                 {sections.map(({ section, items }) => (
                     <div key={section}>
                         {!isCollapsed && (

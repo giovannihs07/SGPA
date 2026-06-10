@@ -1,10 +1,12 @@
 package com.sgpa.mapper;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
+import com.sgpa.dto.response.DocenteResponse;
 import com.sgpa.dto.response.UserDetalleResponse;
 import com.sgpa.model.users.Administrativo;
 import com.sgpa.model.users.Docente;
@@ -21,6 +23,7 @@ public class UserDetalleMapper {
 
     private final DocenteRepository docenteRepository;
     private final AdministrativoRepository administrativoRepository;
+    private final DocenteMapper docenteMapper;
 
     public UserDetalleResponse toDTO(User user) {
         Persona persona = user.getPersona();
@@ -34,6 +37,8 @@ public class UserDetalleMapper {
         Administrativo admin = persona != null
             ? administrativoRepository.findById(persona.getId()).orElse(null)
             : null;
+
+        DocenteResponse docenteDto = docente != null ? docenteMapper.toDTO(docente) : null;
 
         return UserDetalleResponse.builder()
             .userId(user.getId())
@@ -50,6 +55,8 @@ public class UserDetalleMapper {
             .docenteId(docente != null ? docente.getId() : null)
             .codigoDocente(docente != null ? docente.getCodigoDocente() : null)
             .tipoContratoDocente(docente != null ? docente.getTipoContrato() : null)
+            .programas(docenteDto != null ? docenteDto.getProgramas() : Set.of())
+            .titulos(docenteDto != null ? docenteDto.getTitulos() : List.of())
             .administrativoId(admin != null ? admin.getId() : null)
             .cargo(admin != null ? admin.getCargo() : null)
             .dependencia(admin != null ? admin.getDependencia() : null)

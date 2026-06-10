@@ -17,6 +17,29 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Scrollbar del sidebar — track igual al fondo (#222222) */
+.sidebar-nav-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.25) #222222;
+}
+
+.sidebar-nav-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-nav-scroll::-webkit-scrollbar-track {
+  background: #222222;
+}
+
+.sidebar-nav-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 3px;
+}
+
+.sidebar-nav-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
 /* WCAG 2.4.7 — solo mostrar outline con navegación por teclado */
 :focus:not(:focus-visible) {
   outline: none;
