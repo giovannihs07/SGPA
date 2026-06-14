@@ -82,6 +82,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/programas/niveles").hasRole("SUPER_ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/programas/*").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/productos/schema").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/productos/publicos/resumen").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/productos/publicos").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/productos/publicos/*").permitAll()
                 .requestMatchers("/api/productos/mis/**").hasRole("DOCENTE")

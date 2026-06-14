@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,9 @@ import com.sgpa.dto.response.CategoriaSchemaResponse;
 import com.sgpa.dto.response.ProductoArchivoResponse;
 import com.sgpa.dto.response.ProductoDocenteResponse;
 import com.sgpa.dto.response.ProductoOpcionesResponse;
+import com.sgpa.dto.response.ProductoPublicoCategoriaCountResponse;
+import com.sgpa.dto.response.ProductoPublicoPageResponse;
+import com.sgpa.dto.response.ProductoPublicoResumenResponse;
 import com.sgpa.dto.response.SubcategoriaSchemaResponse;
 import com.sgpa.dto.response.TipoProductoAtributoResponse;
 import com.sgpa.dto.response.TipoProductoSchemaResponse;
@@ -47,6 +51,7 @@ import com.sgpa.repository.DocenteRepository;
 import com.sgpa.repository.ProductoDocenteRepository;
 import com.sgpa.repository.SubcategoriaProductoRepository;
 import com.sgpa.repository.TipoProductoRepository;
+import com.sgpa.repository.spec.ProductoPublicoSpecifications;
 
 import lombok.RequiredArgsConstructor;
 
@@ -220,10 +225,66 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
     }
 
     @Override
-    public List<ProductoDocenteResponse> buscarPublicadosPortal() {
-        return repository.findByPublicado(true).stream()
+    @Transactional(readOnly = true)
+    public ProductoPublicoPageResponse buscarPublicadosPortal(
+            String q,
+            String categoria,
+            String tipo,
+            LocalDate desde,
+            LocalDate hasta,
+            String campoFecha,
+            Pageable pageable) {
+
+        String qNorm = normalizarTexto(q);
+        String categoriaNorm = normalizarFiltroTaxonomia(categoria);
+        String tipoNorm = normalizarFiltroTaxonomia(tipo);
+        String campoFechaNorm = normalizarCampoFecha(campoFecha);
+
+        Specification<ProductoDocente> spec = ProductoPublicoSpecifications.publicadosConFiltros(
+                qNorm, categoriaNorm, tipoNorm, desde, hasta, campoFechaNorm);
+
+        Page<ProductoDocente> page = repository.findAll(spec, pageable);
+        List<ProductoDocenteResponse> content = page.getContent().stream()
                 .map(p -> toDtoConAcceso(p, ProductoAccesoService.VisorProducto.PUBLICO))
                 .toList();
+
+        long ultimos30Dias = repository.count(
+                spec.and(ProductoPublicoSpecifications.ultimos30Dias(campoFechaNorm)));
+
+        return ProductoPublicoPageResponse.builder()
+                .content(content)
+                .page(page.getNumber())
+                .size(page.getSize())
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .ultimos30Dias(ultimos30Dias)
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProductoPublicoResumenResponse resumenPublicosPortal() {
+        String campoFecha = "fechaPublicacionSgpa";
+        Specification<ProductoDocente> publicados = ProductoPublicoSpecifications.publicadosConFiltros(
+                null, null, null, null, null, campoFecha);
+
+        long ultimos30Dias = repository.count(
+                publicados.and(ProductoPublicoSpecifications.ultimos30Dias(campoFecha)));
+
+        List<ProductoPublicoCategoriaCountResponse> porCategoria = repository
+                .contarPublicadosPorCategoria()
+                .stream()
+                .map(row -> ProductoPublicoCategoriaCountResponse.builder()
+                        .categoria((String) row[0])
+                        .count((Long) row[1])
+                        .build())
+                .toList();
+
+        return ProductoPublicoResumenResponse.builder()
+                .total(repository.countByPublicadoTrue())
+                .ultimos30Dias(ultimos30Dias)
+                .porCategoria(porCategoria)
+                .build();
     }
 
     @Override
@@ -533,5 +594,28 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
         return docenteRepository.findByUserEmail(email)
                 .orElseThrow(() -> new IllegalStateException(
                         "El usuario autenticado no tiene perfil de docente"));
+    }
+
+    private String normalizarTexto(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
+    }
+
+    private String normalizarFiltroTaxonomia(String value) {
+        if (value == null || value.isBlank()
+                || "TODAS".equalsIgnoreCase(value)
+                || "TODOS".equalsIgnoreCase(value)) {
+            return null;
+        }
+        return value.trim();
+    }
+
+    private String normalizarCampoFecha(String campoFecha) {
+        if ("fechaRegistroSgpa".equals(campoFecha)) {
+            return "fechaRegistroSgpa";
+        }
+        return "fechaPublicacionSgpa";
     }
 }
