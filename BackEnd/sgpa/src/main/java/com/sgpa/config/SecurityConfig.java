@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -21,89 +22,115 @@ import com.sgpa.security.auth.filters.JwtValidationFilter;
 import com.sgpa.service.AuthService;
 import com.sgpa.service.AuditService;
 
+// Configuración de seguridad para la aplicación
 @Configuration
+// Habilitar la seguridad de métodos en la aplicación @PreAuthorize, @PostAuthorize, etc.
+@EnableMethodSecurity
 public class SecurityConfig {
 
+    // Configuración de autenticación
     @Autowired
     private AuthenticationConfiguration authenticationConfiguration;
 
+    // Servicio de detalles de usuario
     @Autowired
     private UserDetailsService userDetailsService;
 
+    // Configuración de CORS
     @Autowired
     private CorsConfigurationSource corsConfigurationSource;
 
+    // Servicio de autenticación
     @Autowired
     private AuthService authService;
 
+    // Servicio de auditoría
     @Autowired
     private AuditService auditService;
 
+    // Codificador de contraseñas
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    // Gestor de autenticación
     @Bean
     AuthenticationManager authenticationManager() throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
+    // Cadena de filtros de seguridad
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http, ObjectMapper objectMapper) throws Exception {
 
         AuthenticationManager authManager = authenticationManager();
 
-        // Configura las reglas de seguridad para las solicitudes HTTP.
         return http
             .cors(cors -> cors.configurationSource(corsConfigurationSource))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
+                // PERMISOS GENERALES
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers(HttpMethod.PATCH, "/usuarios/{id}/activar").permitAll()
-                .requestMatchers(HttpMethod.PATCH, "/usuarios/{id}/desactivar").permitAll()
-                .requestMatchers(HttpMethod.POST, "/usuarios").permitAll()
-                .requestMatchers(HttpMethod.PUT, "/usuarios/{id}").permitAll()
-                // GET en todos los endpoints - lectura permitida públicamente
-                .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/**").permitAll()
-                .requestMatchers(HttpMethod.PUT, "/api/**").permitAll()
-                .requestMatchers(HttpMethod.DELETE, "/api/**").permitAll()
-                .requestMatchers(HttpMethod.PATCH, "/api/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/docentes/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/docentes/registro").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/docentes/{id}/titulos").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/docentes/registro").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/docentes/registro-docente-admin").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/administrativos/registro").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/usuarios/perfil").authenticated()
-                .requestMatchers(HttpMethod.PATCH, "/api/usuarios/perfil").authenticated()
-                .requestMatchers(HttpMethod.PATCH, "/api/usuarios/perfil/docente").authenticated()
-                .requestMatchers(HttpMethod.PATCH, "/api/usuarios/perfil/docente/programas").authenticated()
-                .requestMatchers(HttpMethod.PATCH, "/api/usuarios/perfil/administrativo").authenticated()
-                .requestMatchers(HttpMethod.POST, "/api/usuarios/perfil/titulos").authenticated()
-                .requestMatchers(HttpMethod.DELETE, "/api/usuarios/perfil/titulos/*").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/facultades").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/facultades/*").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/programas").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/programas/niveles").hasRole("SUPER_ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/programas/*").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/productos/schema").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/productos/publicos").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/productos/publicos/*").permitAll()
+                .requestMatchers("/api/productos/mis/**").hasRole("DOCENTE")
+                .requestMatchers(HttpMethod.GET, "/api/productos/opciones").hasRole("DOCENTE")
+                .requestMatchers(HttpMethod.GET, "/api/productos/*/archivo").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/productos/*/archivos/*").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/productos/*").hasAnyRole("DOCENTE", "ADMIN", "SUPER_ADMIN")
+                .requestMatchers("/api/usuarios/perfil/**").authenticated()
                 .requestMatchers(HttpMethod.PATCH, "/api/usuarios/cambiar-password").authenticated()
 
-                // Rutas públicas para listar facultades y programas (necesarias para el registro de docentes)
-                .requestMatchers(HttpMethod.GET, "/api/facultades").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/facultades/{id}").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/programas").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/programas/{id}").permitAll()
-                // Descargas de archivos permitidas públicamente
-                .requestMatchers(HttpMethod.GET, "/api/productos/{id}/archivo").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/productos/{id}/archivos/{archivoId}").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/productos").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/productos").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/productos/schema").permitAll()
-                .requestMatchers(HttpMethod.PATCH, "/api/productos").permitAll()
-                .requestMatchers(HttpMethod.DELETE, "/api/productos").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/categorias").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/categorias").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/subcategorias").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/subcategorias").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/tipos-productos").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/tipos-productos").permitAll()
-                .anyRequest().permitAll()
+                // SUPERADMIN
+                .requestMatchers("/api/auditoria/**").hasRole("SUPER_ADMIN")
+                .requestMatchers("/api/taxonomia/**").hasRole("SUPER_ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/roles/disponibles").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                .requestMatchers("/api/roles/**").hasRole("SUPER_ADMIN")
+                .requestMatchers("/api/categorias/**").hasRole("SUPER_ADMIN")
+                .requestMatchers("/api/subcategorias/**").hasRole("SUPER_ADMIN")
+                .requestMatchers("/api/tipos-producto/**").hasRole("SUPER_ADMIN")
+                .requestMatchers("/api/instituciones/**").hasRole("SUPER_ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/facultades").hasRole("SUPER_ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/facultades/*").hasRole("SUPER_ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/facultades/*").hasRole("SUPER_ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/programas").hasRole("SUPER_ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/programas/*").hasRole("SUPER_ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/programas/*").hasRole("SUPER_ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/usuarios/*/roles").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/usuarios").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/usuarios/*").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/usuarios/*/activar").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/usuarios/*/desactivar").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/usuarios/*/email").hasAnyRole("ADMIN", "SUPER_ADMIN")
+
+                // DOCENTES Y ADMINISTRATIVOS
+                .requestMatchers(HttpMethod.GET, "/api/docentes/mi").hasRole("DOCENTE")
+                .requestMatchers(HttpMethod.GET, "/api/docentes").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/docentes/*").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/docentes/*").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/docentes/*/titulos").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/docentes/titulos/*").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                .requestMatchers("/api/administrativos/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/productos").hasRole("DOCENTE")
+
+                // Docentes, Administrativos y Superadmin
+                .requestMatchers(HttpMethod.GET, "/api/productos").hasAnyRole("DOCENTE", "ADMIN", "SUPER_ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/productos/*").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/productos/*/publicar").hasAnyRole("DOCENTE", "ADMIN", "SUPER_ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/productos/*/despublicar").hasAnyRole("DOCENTE", "ADMIN", "SUPER_ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/productos/*").hasAnyRole("DOCENTE", "ADMIN", "SUPER_ADMIN")
+                .anyRequest().denyAll()
             )
             .addFilter(new JwtAuthenticationFilter(authManager, authService, objectMapper, auditService))
             .addFilter(new JwtValidationFilter(authManager, userDetailsService))
@@ -113,6 +140,8 @@ public class SecurityConfig {
             .build();
     }
 
+    // Configuración de seguridad web
+    // Ignorar las rutas de swagger y api-docs
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring().requestMatchers(

@@ -3,6 +3,7 @@ package com.sgpa.service;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -91,22 +92,26 @@ public class AdministrativoServiceImpl implements AdministrativoService {
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public AdministrativoResponse buscarPorId(Long id) {
         return mapper.toDTO(buscarEntidad(id));
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public List<AdministrativoResponse> listarTodos() {
         return mapper.toDTOList(administrativoRepository.findAll());
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public List<AdministrativoResponse> listarPorDependencia(String dependencia) {
         return mapper.toDTOList(administrativoRepository.findByDependencia(dependencia));
     }
 
     @Override
     @Transactional
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public AdministrativoResponse actualizar(Long id, RegistroAdministrativoRequest dto) {
         Administrativo administrativo = buscarEntidad(id);
         Persona persona = administrativo.getPersona();

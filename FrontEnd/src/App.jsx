@@ -31,8 +31,10 @@ import { AdminUsuariosPage }         from "./pages/admin/AdminUsuariosPage";
 import { AdminProductosPage }        from "./pages/admin/AdminProductosPage";
 import { AdminReportesPage }         from "./pages/admin/AdminReportesPage";
  
-// Páginas de estudiante o público general
-import { DashboardPublicPage } from "./pages/public/DashboardPublicPage";
+// Portal público (sin autenticación)
+import { PublicLayout } from "./components/layout/PublicLayout";
+import { PortalPublicPage } from "./pages/public/PortalPublicPage";
+import { ProductoPublicoDetallePage } from "./pages/public/ProductoPublicoDetallePage";
 
 // Perfil de usuario
 import { MiPerfilPage } from "./pages/perfil/MiPerfilPage";
@@ -51,10 +53,16 @@ export default function App() {
                 <ToastProvider>
                     <AuthProvider>
                         <Routes>
-                        {/* Públicas */}
+                        {/* Autenticación */}
                         <Route path="/login"        element={<LoginPage />} />
                         <Route path="/register"     element={<RegisterPage />} />
                         <Route path="/unauthorized" element={<Unauthorized />} />
+
+                        {/* Portal público — sin login */}
+                        <Route element={<PublicLayout />}>
+                            <Route path="/portal/public" element={<PortalPublicPage />} />
+                            <Route path="/portal/public/productos/:id" element={<ProductoPublicoDetallePage />} />
+                        </Route>
  
                         {/* Docente administrativo — dashboard combinado */}
                         <Route element={<ProtectedRoute onlyDocenteAdmin />}>
@@ -74,15 +82,6 @@ export default function App() {
                             </Route>
                         </Route>
  
-                        {/* Estudiante o Público general */}
-                        <Route element={<ProtectedRoute />}>
-                            <Route element={<DashboardLayout />}>
-                                <Route path="/dashboard/public"          element={<DashboardPublicPage />} />
-                                <Route path="/dashboard/public/explorar" element={<div>Explorar</div>} />
-                                <Route path="/dashboard/public/buscar"   element={<div>Buscar</div>} />
-                            </Route>
-                        </Route>
-
                         {/* Perfil — cualquier usuario autenticado */}
                         <Route element={<ProtectedRoute />}>
                             <Route element={<DashboardLayout />}>
@@ -112,8 +111,8 @@ export default function App() {
                             </Route>
                         </Route>
  
-                        <Route path="/"  element={<Navigate to="/login" replace />} />
-                        <Route path="*"  element={<Navigate to="/login" replace />} />
+                        <Route path="/" element={<Navigate to="/portal/public" replace />} />
+                        <Route path="*" element={<Navigate to="/portal/public" replace />} />
                         </Routes>
                     </AuthProvider>
                 </ToastProvider>

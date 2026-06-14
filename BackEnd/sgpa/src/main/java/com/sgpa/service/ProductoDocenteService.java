@@ -28,6 +28,8 @@ public interface ProductoDocenteService {
     List<ProductoDocenteResponse> buscarMisProductos();
     ProductoDocenteResponse buscarMiProductoPorId(Long id);
     List<ProductoDocenteResponse> buscarPublicados();
+    List<ProductoDocenteResponse> buscarPublicadosPortal();
+    ProductoDocenteResponse buscarPublicoPorId(Long id);
     ProductoDocenteResponse publicar(Long id, PublicarProductoRequest request);
     ProductoArchivo validarDescargaPropietario(Long productoId, Long archivoId);
     ProductoArchivo validarDescargaPublica(Long productoId, Long archivoId);

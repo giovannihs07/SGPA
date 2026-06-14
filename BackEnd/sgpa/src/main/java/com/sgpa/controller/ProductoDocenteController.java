@@ -92,6 +92,18 @@ public class ProductoDocenteController {
         return respuestaDescarga(resource, archivo.getNombreOriginal());
     }
 
+    // Portal público — solo productos publicados (vista pública)
+    @GetMapping("/publicos")
+    public ResponseEntity<List<ProductoDocenteResponse>> buscarPublicosPortal() {
+        return ResponseEntity.ok(service.buscarPublicadosPortal());
+    }
+
+    @GetMapping("/publicos/{id}")
+    public ResponseEntity<ProductoDocenteResponse> buscarPublicoPorId(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(service.buscarPublicoPorId(id));
+    }
+
     // Buscar un producto docente por su ID
     @GetMapping("/{id}")
     public ResponseEntity<ProductoDocenteResponse> buscarPorId(
@@ -104,7 +116,6 @@ public class ProductoDocenteController {
     public ResponseEntity<?> buscarTodos(
             @RequestParam(required = false) Long tipoProductoId,
             @RequestParam(required = false) Long docenteId,
-            @RequestParam(required = false) Boolean publicado,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size) {
 
@@ -121,9 +132,6 @@ public class ProductoDocenteController {
 
         if (docenteId != null)
             return ResponseEntity.ok(service.buscarPorDocente(docenteId));
-
-        if (Boolean.TRUE.equals(publicado))
-            return ResponseEntity.ok(service.buscarPublicados());
 
         return ResponseEntity.ok(service.buscarTodos());
     }

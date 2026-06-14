@@ -4,11 +4,11 @@
             "type": "java",
             "name": "Spring Boot-SgpaApplication<sgpa>",
             "request": "launch",
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/BackEnd/sgpa",
             "mainClass": "com.sgpa.SgpaApplication",
             "projectName": "sgpa",
             "args": "",
-            "envFile": "${workspaceFolder}/.env"
+            "vmArgs": "-Dspring.jmx.enabled=false"
         }
     ]
 }

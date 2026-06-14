@@ -15,6 +15,7 @@ export const MisProductosFiltros = ({
     fechaDesde, fechaHasta,
     setFechaDesde, setFechaHasta,
     filtroCampoFecha, setFiltroCampoFecha,
+    placeholderBusqueda = "Buscar por nombre o descripción…",
 }) => (
     <div className={filterBar}>
         <div className="relative flex-1 min-w-45">
@@ -23,7 +24,7 @@ export const MisProductosFiltros = ({
                 type="search"
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
-                placeholder="Buscar por nombre o descripción…"
+                placeholder={placeholderBusqueda}
                 aria-label="Buscar productos"
                 className={`${inputXs} pl-8`}
             />

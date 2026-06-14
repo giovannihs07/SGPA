@@ -44,12 +44,26 @@ export const getAllProductos = async (params = {}) => {
 };
 
 /**
- * GET /api/productos?publicado=true  (solo productos publicados por docentes)
+ * GET /api/productos/publicos  (catálogo publicado — admin/superadmin autenticados)
  */
 export const getProductosPublicados = async () => {
-    const { data } = await axiosInstance.get("/api/productos", {
-        params: { publicado: true },
-    });
+    const { data } = await axiosInstance.get("/api/productos/publicos");
+    return data;
+};
+
+/**
+ * GET /api/productos/publicos  (portal público anónimo)
+ */
+export const getProductosPublicos = async () => {
+    const { data } = await axiosInstance.get("/api/productos/publicos", { skipAuth: true });
+    return data;
+};
+
+/**
+ * GET /api/productos/publicos/:id  (detalle publicado — portal anónimo)
+ */
+export const getProductoPublicoPorId = async (id) => {
+    const { data } = await axiosInstance.get(`/api/productos/publicos/${id}`, { skipAuth: true });
     return data;
 };
 

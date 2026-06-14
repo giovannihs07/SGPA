@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,7 +17,6 @@ import com.sgpa.dto.request.ActualizarPerfilDocenteRequest;
 import com.sgpa.dto.request.ActualizarPerfilProgramasRequest;
 import com.sgpa.dto.request.ActualizarPerfilRequest;
 import com.sgpa.dto.request.TituloAcademicoRequest;
-import com.sgpa.model.institucion.Programa;
 import com.sgpa.dto.response.UserDetalleResponse;
 import com.sgpa.dto.response.UserResumenResponse;
 import com.sgpa.exception.UserNotFoundException;
@@ -58,24 +58,28 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public List<UserResumenResponse> listarTodos() {
         return mapper.toDTOList(userRepository.findAll());
     }
 
     @Override
     @Transactional(readOnly = true)
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public UserResumenResponse buscarPorId(Long id) {
         return mapper.toDTO(buscarEntidad(id));
     }
 
     @Override
     @Transactional(readOnly = true)
+    @PreAuthorize("isAuthenticated()")
     public UserDetalleResponse obtenerPerfil(String email) {
         return detalleMapper.toDTO(buscarPorEmail(email));
     }
 
     @Override
     @Transactional
+    @PreAuthorize("isAuthenticated()")
     public UserDetalleResponse actualizarPerfil(String email, ActualizarPerfilRequest dto) {
         User user = buscarPorEmail(email);
         Persona persona = user.getPersona();
@@ -93,6 +97,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @PreAuthorize("isAuthenticated()")
     public UserDetalleResponse actualizarPerfilDocente(String email, ActualizarPerfilDocenteRequest dto) {
         Docente docente = buscarDocentePorEmail(email);
         docente.setTipoContrato(dto.getTipoContrato().trim());
@@ -102,6 +107,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @PreAuthorize("isAuthenticated()")
     public UserDetalleResponse actualizarProgramasPerfil(String email, ActualizarPerfilProgramasRequest dto) {
         Docente docente = buscarDocentePorEmail(email);
         Set<Long> programaIds = dto.getProgramaIds();
@@ -122,6 +128,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @PreAuthorize("isAuthenticated()")
     public UserDetalleResponse actualizarPerfilAdministrativo(String email, ActualizarPerfilAdministrativoRequest dto) {
         Administrativo administrativo = buscarAdministrativoPorEmail(email);
         administrativo.setCargo(dto.getCargo().trim());
@@ -132,6 +139,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @PreAuthorize("isAuthenticated()")
     public UserDetalleResponse agregarTituloPerfil(String email, TituloAcademicoRequest dto) {
         Docente docente = buscarDocentePorEmail(email);
 
@@ -149,6 +157,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @PreAuthorize("isAuthenticated()")
     public UserDetalleResponse eliminarTituloPerfil(String email, Long tituloId) {
         Docente docente = buscarDocentePorEmail(email);
         TituloAcademico titulo = tituloRepository.findById(tituloId)
@@ -164,6 +173,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public void activar(Long userId) {
         User user = buscarEntidad(userId);
         EstadoUsuario anterior = user.getEstado();
@@ -178,6 +188,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public void desactivar(Long userId) {
         User user = buscarEntidad(userId);
         user.setEstado(EstadoUsuario.INACTIVO);
@@ -190,6 +201,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public void cambiarRoles(Long userId, Set<String> nuevosRoles) {
         User user = buscarEntidad(userId);
         Set<String> rolesAnteriores = user.getRoles().stream()
@@ -215,6 +227,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public UserResumenResponse actualizarEmail(Long userId, ActualizarEmailRequest dto) {
 
         User user = buscarEntidad(userId);
@@ -233,6 +246,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @PreAuthorize("isAuthenticated()")
     public void cambiarPassword(String email, String passwordActual, String passwordNuevo) {
 
         User user = userRepository.findByEmail(email)

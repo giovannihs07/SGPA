@@ -3,6 +3,7 @@ package com.sgpa.service;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +31,7 @@ public class ProgramaServiceImpl implements ProgramaService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ProgramaResponse crear(ProgramaRequest dto) {
         Facultad facultad = facultadRepository.findById(dto.getFacultadId())
             .orElseThrow(() -> new RuntimeException(
@@ -88,6 +90,7 @@ public class ProgramaServiceImpl implements ProgramaService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ProgramaResponse actualizar(Long id, ProgramaRequest dto) {
         Programa programa = buscarEntidad(id);
 
@@ -121,6 +124,7 @@ public class ProgramaServiceImpl implements ProgramaService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public void eliminar(Long id) {
         Programa programa = buscarEntidad(id);
         String nombre = programa.getNombre();

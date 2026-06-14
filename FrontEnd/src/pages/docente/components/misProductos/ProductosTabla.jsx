@@ -15,6 +15,28 @@ import { ArchivoBadge } from "./ArchivoBadge";
 import { ProductosPaginacion } from "./ProductosPaginacion";
 
 const COLUMNAS_BASE = ["Nombre", "Tipo", "Categoría", "Estado", "Registro SGPA", "Archivo", "Acciones"];
+const COLUMNAS_PUBLICO = ["Nombre", "Docente", "Tipo", "Categoría", "Publicación", "Archivo", "Acciones"];
+
+const AccionesFilaPublica = ({ producto, onVer, onDescargar }) => (
+    <div className="flex items-center gap-1 opacity-60 group-hover:opacity-100 transition">
+        <button
+            onClick={() => onVer(producto)}
+            title="Ver detalle"
+            className={`${btnIcon} w-7 h-7 text-gray-600 dark:text-gray-400 hover:bg-[#ffc20e]/15 hover:text-[#EC7A21]`}
+        >
+            <Eye size={14} />
+        </button>
+        {productoTieneArchivos(producto) && (
+            <button
+                onClick={() => onDescargar(producto)}
+                title="Descargar archivo"
+                className={`${btnIcon} w-7 h-7 text-gray-500 dark:text-gray-400 hover:bg-orange-50 hover:text-[#EC7A21] dark:hover:bg-orange-900/20`}
+            >
+                <Download size={14} />
+            </button>
+        )}
+    </div>
+);
 
 // Componente para las acciones de la fila de la tabla de productos
 const AccionesFila = ({
@@ -97,10 +119,13 @@ export const ProductosTabla = ({
     toggling, onVer, onEditar, onToggle, onDescargar, onEliminar,
     mostrarEditar = true,
     mostrarDocente = false,
+    modoPublico = false,
 }) => {
-    const columnas = mostrarDocente
-        ? ["Nombre", "Docente", "Tipo", "Categoría", "Estado", "Registro SGPA", "Archivo", "Acciones"]
-        : COLUMNAS_BASE;
+    const columnas = modoPublico
+        ? COLUMNAS_PUBLICO
+        : mostrarDocente
+            ? ["Nombre", "Docente", "Tipo", "Categoría", "Estado", "Registro SGPA", "Archivo", "Acciones"]
+            : COLUMNAS_BASE;
 
     return (
     <div className={tableWrapper}>
@@ -111,7 +136,9 @@ export const ProductosTabla = ({
                 <FileText size={32} className="mb-3 opacity-30" />
                 <p className="text-sm font-medium">Sin resultados</p>
                 <p className="text-xs mt-1 opacity-70">
-                    Prueba cambiando los filtros o registra un nuevo producto.
+                    {modoPublico
+                        ? "Prueba cambiando los filtros o el término de búsqueda."
+                        : "Prueba cambiando los filtros o registra un nuevo producto."}
                 </p>
             </div>
         ) : (
@@ -144,9 +171,13 @@ export const ProductosTabla = ({
                                             </div>
                                         </div>
                                     </td>
-                                    {mostrarDocente && (
-                                        <td className={`px-4 py-3 ${tableCellMuted} whitespace-nowrap`}>
-                                            {p.docenteCodigo ?? "—"}
+                                    {(mostrarDocente || modoPublico) && (
+                                        <td className={`px-4 py-3 ${tableCellMuted} whitespace-nowrap max-w-32`}>
+                                            <span className="line-clamp-2">
+                                                {[p.docenteNombre, p.docenteApellido].filter(Boolean).join(" ")
+                                                    || p.docenteCodigo
+                                                    || "—"}
+                                            </span>
                                         </td>
                                     )}
                                     <td className={`px-4 py-3 ${tableCellSecondary} max-w-37.5`}>
@@ -155,26 +186,36 @@ export const ProductosTabla = ({
                                     <td className={`px-4 py-3 ${tableCellMuted} whitespace-nowrap`}>
                                         {CATEGORIA_LABELS[p.categoria] ?? p.categoria ?? "—"}
                                     </td>
-                                    <td className="px-4 py-3 whitespace-nowrap">
-                                        <EstadoBadge publicado={p.publicado} />
-                                    </td>
+                                    {!modoPublico && (
+                                        <td className="px-4 py-3 whitespace-nowrap">
+                                            <EstadoBadge publicado={p.publicado} />
+                                        </td>
+                                    )}
                                     <td className={`px-4 py-3 ${tableCellMuted} whitespace-nowrap`}>
-                                        {formatFecha(p.fechaRegistroSgpa)}
+                                        {formatFecha(modoPublico ? p.fechaPublicacionSgpa : p.fechaRegistroSgpa)}
                                     </td>
                                     <td className="px-4 py-3 whitespace-nowrap">
                                         <ArchivoBadge producto={p} />
                                     </td>
                                     <td className="px-4 py-3">
-                                        <AccionesFila
-                                            producto={p}
-                                            toggling={toggling}
-                                            onVer={onVer}
-                                            onEditar={onEditar}
-                                            onToggle={onToggle}
-                                            onDescargar={onDescargar}
-                                            onEliminar={onEliminar}
-                                            mostrarEditar={mostrarEditar}
-                                        />
+                                        {modoPublico ? (
+                                            <AccionesFilaPublica
+                                                producto={p}
+                                                onVer={onVer}
+                                                onDescargar={onDescargar}
+                                            />
+                                        ) : (
+                                            <AccionesFila
+                                                producto={p}
+                                                toggling={toggling}
+                                                onVer={onVer}
+                                                onEditar={onEditar}
+                                                onToggle={onToggle}
+                                                onDescargar={onDescargar}
+                                                onEliminar={onEliminar}
+                                                mostrarEditar={mostrarEditar}
+                                            />
+                                        )}
                                     </td>
                                 </tr>
                             ))}

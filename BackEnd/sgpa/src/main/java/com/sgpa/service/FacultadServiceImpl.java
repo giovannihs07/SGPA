@@ -2,6 +2,7 @@ package com.sgpa.service;
 
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +29,7 @@ public class FacultadServiceImpl implements FacultadService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public FacultadResponse crear(FacultadRequest dto) {
         Institucion institucion = institucionRepository
             .findById(dto.getInstitucionId())
@@ -76,6 +78,7 @@ public class FacultadServiceImpl implements FacultadService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public FacultadResponse actualizar(Long id, FacultadRequest dto) {
         Facultad facultad = buscarEntidad(id);
 
@@ -112,6 +115,7 @@ public class FacultadServiceImpl implements FacultadService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public void eliminar(Long id) {
         Facultad facultad = buscarEntidad(id);
         String nombre = facultad.getNombre();

@@ -94,9 +94,7 @@ export const NAV_ITEMS = {
         {
             section: "Principal",
             items: [
-                { label: "Dashboard",    icon: LayoutDashboard, path: "/dashboard/estudiante" },
-                { label: "Explorar",     icon: Library,         path: "/dashboard/estudiante/explorar" },
-                { label: "Buscar",       icon: Search,          path: "/dashboard/estudiante/buscar" },
+                { label: "Explorar producción", icon: Library, path: "/portal/public" },
             ],
         },
     ],
