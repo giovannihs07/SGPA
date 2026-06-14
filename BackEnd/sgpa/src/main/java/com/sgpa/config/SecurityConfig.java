@@ -82,6 +82,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/programas/niveles").hasRole("SUPER_ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/programas/*").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/productos/schema").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/productos/publicos/resumen").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/productos/publicos").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/productos/publicos/*").permitAll()
                 .requestMatchers("/api/productos/mis/**").hasRole("DOCENTE")
@@ -146,6 +147,7 @@ public class SecurityConfig {
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring().requestMatchers(
             "/swagger-ui/**",
+            "/swagger-ui.html",
             "/v3/api-docs/**",
             "/swagger-resources/**",
             "/webjars/**"

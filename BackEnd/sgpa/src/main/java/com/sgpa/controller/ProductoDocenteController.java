@@ -1,11 +1,14 @@
 package com.sgpa.controller;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -29,6 +32,8 @@ import com.sgpa.dto.request.PublicarProductoRequest;
 import com.sgpa.dto.response.CategoriaSchemaResponse;
 import com.sgpa.dto.response.ProductoDocenteResponse;
 import com.sgpa.dto.response.ProductoOpcionesResponse;
+import com.sgpa.dto.response.ProductoPublicoPageResponse;
+import com.sgpa.dto.response.ProductoPublicoResumenResponse;
 import com.sgpa.exception.AccesoDenegadoException;
 import com.sgpa.model.products.ProductoArchivo;
 import com.sgpa.model.products.RolArchivoProducto;
@@ -92,10 +97,26 @@ public class ProductoDocenteController {
         return respuestaDescarga(resource, archivo.getNombreOriginal());
     }
 
-    // Portal público — solo productos publicados (vista pública)
+    // Portal público — catálogo publicado con filtros y paginación
     @GetMapping("/publicos")
-    public ResponseEntity<List<ProductoDocenteResponse>> buscarPublicosPortal() {
-        return ResponseEntity.ok(service.buscarPublicadosPortal());
+    public ResponseEntity<ProductoPublicoPageResponse> buscarPublicosPortal(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String categoria,
+            @RequestParam(required = false) String tipo,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
+            @RequestParam(required = false, defaultValue = "fechaPublicacionSgpa") String campoFecha,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "fechaPublicacionSgpa,desc") String sort) {
+        Pageable pageable = PageRequest.of(page, size, parsearOrden(sort));
+        return ResponseEntity.ok(service.buscarPublicadosPortal(
+                q, categoria, tipo, desde, hasta, campoFecha, pageable));
+    }
+
+    @GetMapping("/publicos/resumen")
+    public ResponseEntity<ProductoPublicoResumenResponse> resumenPublicosPortal() {
+        return ResponseEntity.ok(service.resumenPublicosPortal());
     }
 
     @GetMapping("/publicos/{id}")
@@ -229,5 +250,22 @@ public class ProductoDocenteController {
             }
         }
         return lista;
+    }
+
+    private Sort parsearOrden(String sort) {
+        if (sort == null || sort.isBlank()) {
+            return Sort.by(Sort.Direction.DESC, "fechaPublicacionSgpa");
+        }
+        String[] partes = sort.split(",", 2);
+        String campo = partes[0].trim();
+        if (!"fechaPublicacionSgpa".equals(campo) && !"fechaRegistroSgpa".equals(campo)
+                && !"nombre".equals(campo)) {
+            campo = "fechaPublicacionSgpa";
+        }
+        Sort.Direction direccion = partes.length > 1
+                && "asc".equalsIgnoreCase(partes[1].trim())
+                ? Sort.Direction.ASC
+                : Sort.Direction.DESC;
+        return Sort.by(direccion, campo);
     }
 }

@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -15,7 +16,8 @@ import com.sgpa.model.products.TipoProducto;
 import com.sgpa.model.users.Docente;
 
 @Repository
-public interface ProductoDocenteRepository extends JpaRepository<ProductoDocente, Long> {
+public interface ProductoDocenteRepository extends JpaRepository<ProductoDocente, Long>,
+        JpaSpecificationExecutor<ProductoDocente> {
 
     @Query("SELECT DISTINCT p FROM ProductoDocente p LEFT JOIN FETCH p.archivos WHERE p.id = :id")
     Optional<ProductoDocente> findByIdWithArchivos(@Param("id") Long id);
@@ -47,6 +49,20 @@ public interface ProductoDocenteRepository extends JpaRepository<ProductoDocente
     Page<ProductoDocente> findByDocenteId(Long docenteId, Pageable pageable);
 
     Page<ProductoDocente> findByPublicado(Boolean publicado, Pageable pageable);
+
+    @Query("""
+            SELECT c.nombre, COUNT(p)
+            FROM ProductoDocente p
+            JOIN p.tipoProducto tp
+            JOIN tp.subcategoria sc
+            JOIN sc.categoria c
+            WHERE p.publicado = true
+            GROUP BY c.nombre
+            ORDER BY COUNT(p) DESC
+            """)
+    List<Object[]> contarPublicadosPorCategoria();
+
+    long countByPublicadoTrue();
 
     @Query("SELECT p FROM ProductoDocente p " +
             "JOIN p.docente d " +

@@ -1,19 +1,15 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
-import { getProductosPublicos } from "../../services/productoServices";
-import { descargarProductoPublico } from "../../utils/publicProductoDownload";
 import {
-    esReciente,
-    matchRangoFecha,
-    CATEGORIA_LABELS,
-} from "../../pages/docente/components/productoHelpers";
+    getProductosPublicos,
+    getResumenProductosPublicos,
+    getProductoSchema,
+} from "../../services/productoServices";
+import { descargarProductoPublico } from "../../utils/publicProductoDownload";
+import { CATEGORIA_LABELS } from "../../pages/docente/components/productoHelpers";
 
 const PAGE_SIZE = 10;
-
-const nombreDocente = (p) => {
-    const partes = [p.docenteNombre, p.docenteApellido].filter(Boolean);
-    return partes.length ? partes.join(" ") : "";
-};
+const DEBOUNCE_MS = 400;
 
 const patchSearchParams = (prev, patch, resetPage = false) => {
     const next = new URLSearchParams(prev);
@@ -26,11 +22,40 @@ const patchSearchParams = (prev, patch, resetPage = false) => {
     return next;
 };
 
+const buildQueryParams = ({
+    busqueda,
+    filtroCategoria,
+    filtroTipo,
+    fechaDesde,
+    fechaHasta,
+    filtroCampoFecha,
+    pagina,
+}) => {
+    const params = { page: pagina, size: PAGE_SIZE };
+    if (busqueda.trim()) params.q = busqueda.trim();
+    if (filtroCategoria !== "TODAS") params.categoria = filtroCategoria;
+    if (filtroTipo !== "TODOS") params.tipo = filtroTipo;
+    if (fechaDesde) params.desde = fechaDesde;
+    if (fechaHasta) params.hasta = fechaHasta;
+    if (filtroCampoFecha !== "fechaPublicacionSgpa") params.campoFecha = filtroCampoFecha;
+    return params;
+};
+
 export const usePublicProductos = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const [productos, setProductos] = useState([]);
+    const [totalPaginas, setTotalPaginas] = useState(1);
+    const [resumen, setResumen] = useState({ total: 0, ultimos30Dias: 0 });
+    const [resumenGlobal, setResumenGlobal] = useState({
+        total: 0,
+        ultimos30Dias: 0,
+        porCategoria: [],
+    });
+    const [schema, setSchema] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [refrescando, setRefrescando] = useState(false);
     const [error, setError] = useState(null);
+    const haCargadoRef = useRef(false);
 
     const busqueda = searchParams.get("q") ?? "";
     const filtroCategoria = searchParams.get("categoria") ?? "TODAS";
@@ -44,32 +69,120 @@ export const usePublicProductos = () => {
         setSearchParams((prev) => patchSearchParams(prev, patch, resetPage), { replace: true });
     }, [setSearchParams]);
 
-    const fetchProductos = useCallback(async () => {
-        setLoading(true);
+    useEffect(() => {
+        getProductoSchema()
+            .then(setSchema)
+            .catch(() => setSchema([]));
+    }, []);
+
+    useEffect(() => {
+        getResumenProductosPublicos()
+            .then((data) => {
+                setResumenGlobal({
+                    total: data.total ?? 0,
+                    ultimos30Dias: data.ultimos30Dias ?? 0,
+                    porCategoria: (data.porCategoria ?? []).map((item) => ({
+                        categoria: item.categoria,
+                        label: CATEGORIA_LABELS[item.categoria] ?? item.categoria,
+                        count: item.count ?? 0,
+                    })),
+                });
+            })
+            .catch(() => {
+                setResumenGlobal({ total: 0, ultimos30Dias: 0, porCategoria: [] });
+            });
+    }, []);
+
+    const fetchProductos = useCallback(async (params, { esRefresco = false } = {}) => {
+        if (esRefresco) {
+            setRefrescando(true);
+        } else {
+            setLoading(true);
+        }
         setError(null);
         try {
-            setProductos(await getProductosPublicos());
+            const data = await getProductosPublicos(params);
+            setProductos(data.content ?? []);
+            setTotalPaginas(Math.max(1, data.totalPages ?? 1));
+            setResumen({
+                total: data.totalElements ?? 0,
+                ultimos30Dias: data.ultimos30Dias ?? 0,
+            });
         } catch (e) {
-            setError(e.response?.data?.error ?? e.response?.data?.message ?? e.message ?? "Error al cargar productos");
+            setError(
+                e.response?.data?.error
+                ?? e.response?.data?.message
+                ?? e.message
+                ?? "Error al cargar productos",
+            );
+            if (!esRefresco) {
+                setProductos([]);
+                setTotalPaginas(1);
+                setResumen({ total: 0, ultimos30Dias: 0 });
+            }
         } finally {
             setLoading(false);
+            setRefrescando(false);
+            haCargadoRef.current = true;
         }
     }, []);
 
-    useEffect(() => { fetchProductos(); }, [fetchProductos]);
+    useEffect(() => {
+        const params = buildQueryParams({
+            busqueda,
+            filtroCategoria,
+            filtroTipo,
+            fechaDesde,
+            fechaHasta,
+            filtroCampoFecha,
+            pagina,
+        });
+
+        const timer = setTimeout(() => {
+            fetchProductos(params, { esRefresco: haCargadoRef.current });
+        }, busqueda ? DEBOUNCE_MS : 0);
+
+        return () => clearTimeout(timer);
+    }, [
+        busqueda,
+        filtroCategoria,
+        filtroTipo,
+        fechaDesde,
+        fechaHasta,
+        filtroCampoFecha,
+        pagina,
+        fetchProductos,
+    ]);
+
+    useEffect(() => {
+        if (pagina > 0 && pagina >= totalPaginas) {
+            updateParams({ pagina: totalPaginas <= 1 ? "" : String(totalPaginas) });
+        }
+    }, [pagina, totalPaginas, updateParams]);
 
     const categoriasDisponibles = useMemo(() => {
-        const set = new Set(productos.map((p) => p.categoria).filter(Boolean));
-        return ["TODAS", ...set];
-    }, [productos]);
+        const nombres = schema.map((c) => c.nombre).filter(Boolean);
+        return nombres.length ? ["TODAS", ...nombres] : ["TODAS"];
+    }, [schema]);
 
     const tiposDisponibles = useMemo(() => {
-        const base = productos.filter(
-            (p) => filtroCategoria === "TODAS" || p.categoria === filtroCategoria,
+        if (!schema.length) return ["TODOS"];
+
+        const extraerTipos = (categorias) => categorias.flatMap((cat) =>
+            (cat.subcategorias ?? []).flatMap((sub) =>
+                (sub.tipos ?? []).map((t) => t.nombre).filter(Boolean),
+            ),
         );
-        const set = new Set(base.map((p) => p.tipo).filter(Boolean));
-        return ["TODOS", ...set];
-    }, [productos, filtroCategoria]);
+
+        if (filtroCategoria === "TODAS") {
+            const tipos = [...new Set(extraerTipos(schema))];
+            return ["TODOS", ...tipos];
+        }
+
+        const categoria = schema.find((c) => c.nombre === filtroCategoria);
+        const tipos = categoria ? [...new Set(extraerTipos([categoria]))] : [];
+        return ["TODOS", ...tipos];
+    }, [schema, filtroCategoria]);
 
     const handleFiltroCategoria = useCallback((v) => {
         setSearchParams((prev) => {
@@ -79,62 +192,10 @@ export const usePublicProductos = () => {
         }, { replace: true });
     }, [setSearchParams]);
 
-    const productosFiltrados = useMemo(() =>
-        productos.filter((p) => {
-            const q = busqueda.toLowerCase();
-            const docente = nombreDocente(p).toLowerCase();
-            const matchBusqueda = !busqueda
-                || p.nombre?.toLowerCase().includes(q)
-                || p.descripcion?.toLowerCase().includes(q)
-                || p.docenteCodigo?.toLowerCase().includes(q)
-                || docente.includes(q);
-            const matchCategoria = filtroCategoria === "TODAS" || p.categoria === filtroCategoria;
-            const matchTipo = filtroTipo === "TODOS" || p.tipo === filtroTipo;
-            const matchFecha = matchRangoFecha(p, { fechaDesde, fechaHasta, campo: filtroCampoFecha });
-            return matchBusqueda && matchCategoria && matchTipo && matchFecha;
-        }),
-    [productos, busqueda, filtroCategoria, filtroTipo, fechaDesde, fechaHasta, filtroCampoFecha]);
-
-    const resumenGlobal = useMemo(() => {
-        const counts = {};
-        productos.forEach((p) => {
-            if (p.categoria) counts[p.categoria] = (counts[p.categoria] || 0) + 1;
-        });
-        return {
-            total: productos.length,
-            ultimos30Dias: productos.filter((p) => esReciente(p.fechaPublicacionSgpa)).length,
-            porCategoria: Object.entries(counts)
-                .map(([categoria, count]) => ({
-                    categoria,
-                    label: CATEGORIA_LABELS[categoria] ?? categoria,
-                    count,
-                }))
-                .sort((a, b) => b.count - a.count),
-        };
-    }, [productos]);
-
-    const resumen = useMemo(() => ({
-        total: productosFiltrados.length,
-        ultimos30Dias: productosFiltrados.filter((p) => esReciente(p.fechaPublicacionSgpa)).length,
-    }), [productosFiltrados]);
-
     const hayFiltrosActivos = Boolean(
         busqueda || filtroCategoria !== "TODAS" || filtroTipo !== "TODOS"
         || fechaDesde || fechaHasta,
     );
-
-    const totalPaginas = Math.max(1, Math.ceil(productosFiltrados.length / PAGE_SIZE));
-
-    useEffect(() => {
-        if (pagina > 0 && pagina >= totalPaginas) {
-            updateParams({ pagina: totalPaginas <= 1 ? "" : String(totalPaginas) });
-        }
-    }, [pagina, totalPaginas, updateParams]);
-
-    const productosPaginados = useMemo(() => {
-        const inicio = pagina * PAGE_SIZE;
-        return productosFiltrados.slice(inicio, inicio + PAGE_SIZE);
-    }, [productosFiltrados, pagina]);
 
     const irPagina = useCallback((nueva) => {
         const idx = Math.max(0, Math.min(nueva, totalPaginas - 1));
@@ -154,21 +215,45 @@ export const usePublicProductos = () => {
         setSearchParams({}, { replace: true });
     }, [setSearchParams]);
 
+    const refetch = useCallback(() => {
+        fetchProductos(buildQueryParams({
+            busqueda,
+            filtroCategoria,
+            filtroTipo,
+            fechaDesde,
+            fechaHasta,
+            filtroCampoFecha,
+            pagina,
+        }), { esRefresco: true });
+    }, [
+        fetchProductos,
+        busqueda,
+        filtroCategoria,
+        filtroTipo,
+        fechaDesde,
+        fechaHasta,
+        filtroCampoFecha,
+        pagina,
+    ]);
+
     const handleDescargar = useCallback(
         (producto, archivo = null) => descargarProductoPublico(producto, archivo),
         [],
     );
 
+    const productosFiltrados = productos;
+
     return {
-        productos: productosPaginados,
+        productos,
         todosProductos: productos,
         productosFiltrados,
         resumen,
         resumenGlobal,
         hayFiltrosActivos,
         loading,
+        refrescando,
         error,
-        refetch: fetchProductos,
+        refetch,
         busqueda,
         setBusqueda: handleBusqueda,
         filtroCategoria,
@@ -189,5 +274,6 @@ export const usePublicProductos = () => {
         pageSize: PAGE_SIZE,
         irPagina,
         handleDescargar,
+        schema,
     };
 };

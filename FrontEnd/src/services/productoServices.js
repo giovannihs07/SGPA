@@ -47,15 +47,28 @@ export const getAllProductos = async (params = {}) => {
  * GET /api/productos/publicos  (catálogo publicado — admin/superadmin autenticados)
  */
 export const getProductosPublicados = async () => {
-    const { data } = await axiosInstance.get("/api/productos/publicos");
+    const { data } = await axiosInstance.get("/api/productos/publicos", {
+        params: { page: 0, size: 5000 },
+    });
+    return data.content ?? data;
+};
+
+/**
+ * GET /api/productos/publicos  (portal público anónimo, paginado)
+ */
+export const getProductosPublicos = async (params = {}) => {
+    const { data } = await axiosInstance.get("/api/productos/publicos", {
+        params,
+        skipAuth: true,
+    });
     return data;
 };
 
 /**
- * GET /api/productos/publicos  (portal público anónimo)
+ * GET /api/productos/publicos/resumen  (KPIs globales del portal)
  */
-export const getProductosPublicos = async () => {
-    const { data } = await axiosInstance.get("/api/productos/publicos", { skipAuth: true });
+export const getResumenProductosPublicos = async () => {
+    const { data } = await axiosInstance.get("/api/productos/publicos/resumen", { skipAuth: true });
     return data;
 };
 

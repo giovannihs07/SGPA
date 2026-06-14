@@ -15,12 +15,12 @@ const ACCENTOS = {
     Académico: "from-emerald-500/10 to-teal-500/5 border-emerald-200/60 dark:border-emerald-800/40",
 };
 
-const contarPorCategoria = (productos, nombreCategoria) =>
-    productos.filter((p) => p.categoria === nombreCategoria).length;
+const contarPorCategoria = (porCategoria, nombreCategoria) =>
+    porCategoria?.find((item) => item.categoria === nombreCategoria)?.count ?? 0;
 
 export const PublicCategoriaCards = ({
     schema,
-    productos,
+    porCategoria = [],
     filtroCategoria,
     onSelectCategoria,
     onVerTodos,
@@ -28,11 +28,11 @@ export const PublicCategoriaCards = ({
     const categorias = schema?.length
         ? schema.map((c) => ({
             nombre: c.nombre,
-            count: contarPorCategoria(productos, c.nombre),
+            count: contarPorCategoria(porCategoria, c.nombre),
         }))
-        : [...new Set(productos.map((p) => p.categoria).filter(Boolean))].map((nombre) => ({
-            nombre,
-            count: contarPorCategoria(productos, nombre),
+        : porCategoria.map((item) => ({
+            nombre: item.categoria,
+            count: item.count ?? 0,
         }));
 
     if (!categorias.length) return null;

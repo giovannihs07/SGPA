@@ -1,5 +1,6 @@
 package com.sgpa.service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -13,6 +14,8 @@ import com.sgpa.dto.response.CategoriaSchemaResponse;
 import com.sgpa.dto.response.ProductoArchivoResponse;
 import com.sgpa.dto.response.ProductoDocenteResponse;
 import com.sgpa.dto.response.ProductoOpcionesResponse;
+import com.sgpa.dto.response.ProductoPublicoPageResponse;
+import com.sgpa.dto.response.ProductoPublicoResumenResponse;
 
 public interface ProductoDocenteService {
 
@@ -28,7 +31,15 @@ public interface ProductoDocenteService {
     List<ProductoDocenteResponse> buscarMisProductos();
     ProductoDocenteResponse buscarMiProductoPorId(Long id);
     List<ProductoDocenteResponse> buscarPublicados();
-    List<ProductoDocenteResponse> buscarPublicadosPortal();
+    ProductoPublicoPageResponse buscarPublicadosPortal(
+            String q,
+            String categoria,
+            String tipo,
+            LocalDate desde,
+            LocalDate hasta,
+            String campoFecha,
+            Pageable pageable);
+    ProductoPublicoResumenResponse resumenPublicosPortal();
     ProductoDocenteResponse buscarPublicoPorId(Long id);
     ProductoDocenteResponse publicar(Long id, PublicarProductoRequest request);
     ProductoArchivo validarDescargaPropietario(Long productoId, Long archivoId);
