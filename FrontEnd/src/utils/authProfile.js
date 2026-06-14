@@ -17,7 +17,7 @@ export const dashboardPath = (login) => {
     if (isDocenteAdmin(login)) return "/dashboard/docente-admin";
     if (login?.isAdmin) return "/dashboard/admin";
     if (login?.isDocente) return "/dashboard/docente";
-    return "/dashboard/public";
+    return "/portal/public";
 };
 
 /** Etiqueta visible del rol en header y badges. */

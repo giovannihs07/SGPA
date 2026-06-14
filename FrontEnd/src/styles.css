@@ -1,4 +1,9 @@
 @import "tailwindcss";
+
+@theme {
+  --font-sans: "Roboto", ui-sans-serif, system-ui, sans-serif;
+}
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 html,
@@ -12,7 +17,7 @@ body,
 
 body {
   min-width: 320px;
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +50,9 @@ import com.sgpa.repository.TipoProductoRepository;
 
 import lombok.RequiredArgsConstructor;
 
+// Servicio de gestión de productos docentes
+// Implementa la interfaz ProductoDocenteService
+// PreAuthorize: Verifica que el usuario tenga permisos para realizar la acción
 @Service
 @RequiredArgsConstructor
 public class ProductoDocenteServiceImpl implements ProductoDocenteService {
@@ -67,6 +71,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasRole('DOCENTE')") // Verifica que el usuario tenga el rol de DOCENTE
     public ProductoDocenteResponse crear(ProductoDocenteRequest dto, List<MultipartFile> archivos) {
 
         Docente docente = obtenerDocenteAutenticado();
@@ -105,6 +110,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasRole('DOCENTE')") // Verifica que el usuario tenga el rol de DOCENTE
     public ProductoDocenteResponse actualizarMiProducto(Long id, ProductoDocenteRequest dto,
             List<MultipartFile> archivos) {
 
@@ -141,6 +147,8 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
 
     @Override
     @Transactional
+    // PreAuthorize: Verifica que el usuario tenga el rol de ADMIN o SUPER_ADMIN o que sea propietario del producto
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN') or @productoSecurity.esPropietario(#id)")
     public void eliminar(Long id) {
         ProductoDocente producto = buscarEntidad(id);
         verificarProductoEliminable(producto);
@@ -157,6 +165,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('DOCENTE', 'ADMIN', 'SUPER_ADMIN')")
     public List<ProductoDocenteResponse> buscarTodos() {
         return repository.findAll().stream()
                 .map(p -> toDtoConAcceso(p, accesoService.resolverVisor(p)))
@@ -164,12 +173,14 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('DOCENTE', 'ADMIN', 'SUPER_ADMIN')")
     public ProductoDocenteResponse buscarPorId(Long id) {
         ProductoDocente producto = buscarEntidad(id);
         return toDtoConAcceso(producto, accesoService.resolverVisor(producto));
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('DOCENTE', 'ADMIN', 'SUPER_ADMIN')")
     public List<ProductoDocenteResponse> buscarPorTipo(Long tipoProductoId) {
         return repository.findByTipoProductoId(tipoProductoId).stream()
                 .map(p -> toDtoConAcceso(p, accesoService.resolverVisor(p)))
@@ -177,6 +188,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('DOCENTE', 'ADMIN', 'SUPER_ADMIN')")
     public List<ProductoDocenteResponse> buscarPorDocente(Long docenteId) {
         return repository.findByDocenteId(docenteId).stream()
                 .map(p -> toDtoConAcceso(p, accesoService.resolverVisor(p)))
@@ -184,6 +196,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
     }
 
     @Override
+    @PreAuthorize("hasRole('DOCENTE')")
     public List<ProductoDocenteResponse> buscarMisProductos() {
         Docente docente = obtenerDocenteAutenticado();
         return repository.findByDocenteId(docente.getId()).stream()
@@ -193,11 +206,13 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
 
     @Override
     @Transactional(readOnly = true)
+    @PreAuthorize("hasRole('DOCENTE')")
     public ProductoDocenteResponse buscarMiProductoPorId(Long id) {
         return toDtoConAcceso(buscarEntidadPropia(id), ProductoAccesoService.VisorProducto.PROPIETARIO);
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public List<ProductoDocenteResponse> buscarPublicados() {
         return repository.findByPublicado(true).stream()
                 .map(p -> toDtoConAcceso(p, accesoService.resolverVisor(p)))
@@ -205,7 +220,24 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
     }
 
     @Override
+    public List<ProductoDocenteResponse> buscarPublicadosPortal() {
+        return repository.findByPublicado(true).stream()
+                .map(p -> toDtoConAcceso(p, ProductoAccesoService.VisorProducto.PUBLICO))
+                .toList();
+    }
+
+    @Override
+    public ProductoDocenteResponse buscarPublicoPorId(Long id) {
+        ProductoDocente producto = buscarEntidad(id);
+        if (!Boolean.TRUE.equals(producto.getPublicado())) {
+            throw new ProductoDocenteNotFoundException(id);
+        }
+        return toDtoConAcceso(producto, ProductoAccesoService.VisorProducto.PUBLICO);
+    }
+
+    @Override
     @Transactional
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN') or @productoSecurity.esPropietario(#id)")
     public ProductoDocenteResponse publicar(Long id, PublicarProductoRequest request) {
         ProductoDocente producto = buscarEntidad(id);
 
@@ -237,6 +269,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN') or @productoSecurity.esPropietario(#id)")
     public ProductoDocenteResponse despublicar(Long id) {
         ProductoDocente producto = buscarEntidad(id);
         producto.setPublicado(false);
@@ -252,6 +285,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('DOCENTE', 'ADMIN', 'SUPER_ADMIN')")
     public Page<ProductoDocenteResponse> buscarPorDocentePaginado(Long docenteId, Pageable pageable) {
         return repository.findByDocenteId(docenteId, pageable)
                 .map(p -> toDtoConAcceso(p, accesoService.resolverVisor(p)));
@@ -259,6 +293,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasRole('DOCENTE')")
     public ProductoArchivo validarDescargaPropietario(Long productoId, Long archivoId) {
         ProductoDocente producto = buscarEntidadPropia(productoId);
         ProductoArchivo archivo = buscarArchivoEnProducto(producto, archivoId);
@@ -302,6 +337,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
 
     @Override
     @Transactional(readOnly = true)
+    @PreAuthorize("hasRole('DOCENTE')")
     public ProductoOpcionesResponse obtenerOpcionesDisponibles() {
         List<CategoriaProducto> categorias = categoriaRepository.findByActivoTrue();
 
@@ -343,6 +379,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
 
     @Override
     @Transactional(readOnly = true)
+    @PreAuthorize("hasRole('DOCENTE')")
     public ProductoArchivoResponse buscarMiArchivoPorId(Long productoId, Long archivoId) {
         ProductoDocente producto = buscarEntidadPropia(productoId);
         ProductoArchivo archivo = buscarArchivoEnProducto(producto, archivoId);

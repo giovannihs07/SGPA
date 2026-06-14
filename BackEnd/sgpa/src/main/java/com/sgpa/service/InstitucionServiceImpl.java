@@ -2,6 +2,7 @@ package com.sgpa.service;
 
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('SUPER_ADMIN')")
 public class InstitucionServiceImpl implements InstitucionService {
 
     private final InstitucionRepository repository;

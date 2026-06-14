@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -218,11 +219,13 @@ public class DocenteServiceImpl implements DocenteService {
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public DocenteResponse buscarPorId(Long id) {
         return docenteMapper.toDTO(buscarEntidad(id));
     }
 
     @Override
+    @PreAuthorize("hasRole('DOCENTE')")
     public DocenteResponse buscarPorEmail(String email) {
         return docenteMapper.toDTO(docenteRepository.findByUserEmail(email)
                 .orElseThrow(() -> new RuntimeException(
@@ -230,11 +233,13 @@ public class DocenteServiceImpl implements DocenteService {
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public List<DocenteResponse> listarTodos() {
         return docenteMapper.toDTOList(docenteRepository.findAll());
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public List<DocenteResponse> listarPorPrograma(Long programaId) {
         return docenteMapper.toDTOList(
                 docenteRepository.findByProgramaId(programaId));
@@ -242,6 +247,7 @@ public class DocenteServiceImpl implements DocenteService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public DocenteResponse actualizar(Long id, RegistroDocenteRequest dto) {
         Docente docente = buscarEntidad(id);
         Persona persona = docente.getPersona();
@@ -266,6 +272,7 @@ public class DocenteServiceImpl implements DocenteService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public DocenteResponse agregarTitulo(Long docenteId,
             TituloAcademicoRequest dto) {
         Docente docente = buscarEntidad(docenteId);
@@ -284,6 +291,7 @@ public class DocenteServiceImpl implements DocenteService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public void eliminarTitulo(Long tituloId) {
         if (!tituloRepository.existsById(tituloId))
             throw new RuntimeException(
