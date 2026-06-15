@@ -16,11 +16,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.web.cors.CorsConfigurationSource;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sgpa.security.auth.filters.JwtAuthenticationFilter;
 import com.sgpa.security.auth.filters.JwtValidationFilter;
-import com.sgpa.service.AuthService;
-import com.sgpa.service.AuditService;
 
 // Configuración de seguridad para la aplicación
 @Configuration
@@ -40,14 +36,6 @@ public class SecurityConfig {
     @Autowired
     private CorsConfigurationSource corsConfigurationSource;
 
-    // Servicio de autenticación
-    @Autowired
-    private AuthService authService;
-
-    // Servicio de auditoría
-    @Autowired
-    private AuditService auditService;
-
     // Codificador de contraseñas
     @Bean
     PasswordEncoder passwordEncoder() {
@@ -62,7 +50,7 @@ public class SecurityConfig {
 
     // Cadena de filtros de seguridad
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http, ObjectMapper objectMapper) throws Exception {
+    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         AuthenticationManager authManager = authenticationManager();
 
@@ -133,7 +121,6 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/api/productos/*").hasAnyRole("DOCENTE", "ADMIN", "SUPER_ADMIN")
                 .anyRequest().denyAll()
             )
-            .addFilter(new JwtAuthenticationFilter(authManager, authService, objectMapper, auditService))
             .addFilter(new JwtValidationFilter(authManager, userDetailsService))
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
