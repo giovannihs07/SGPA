@@ -268,6 +268,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
 
     @Override
     @Transactional(readOnly = true)
+    // Resumen de productos públicos del portal (KPIs globales)
     public ProductoPublicoResumenResponse resumenPublicosPortal() {
         String campoFecha = "fechaPublicacionSgpa";
         Specification<ProductoDocente> publicados = ProductoPublicoSpecifications.publicadosConFiltros(

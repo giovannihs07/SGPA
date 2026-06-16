@@ -166,11 +166,13 @@ const descargarBlob = (blob, nombreDescarga) => {
     URL.revokeObjectURL(url);
 };
 
-const fetchArchivoBlob = async (url, options = {}) => {
+const fetchArchivoBlob = async (url, config = {}) => {
+    const { params, ...options } = config;
     let response;
     try {
         response = await axiosInstance.get(url, {
             responseType: "blob",
+            params,
             ...options,
         });
     } catch (error) {
@@ -187,6 +189,23 @@ const fetchArchivoBlob = async (url, options = {}) => {
     }
     return blob;
 };
+
+export const fetchArchivoInlinePublico = async (productoId, archivoId) =>
+    fetchArchivoBlob(`/api/productos/${productoId}/archivos/${archivoId}`, {
+        skipAuth: true,
+        params: { disposition: "inline" },
+    });
+
+export const fetchArchivoInlinePrincipalPublico = async (productoId) =>
+    fetchArchivoBlob(`/api/productos/${productoId}/archivo`, {
+        skipAuth: true,
+        params: { disposition: "inline" },
+    });
+
+export const fetchArchivoInlineDocente = async (productoId, archivoId) =>
+    fetchArchivoBlob(`/api/productos/mis/${productoId}/archivos/${archivoId}`, {
+        params: { disposition: "inline" },
+    });
 
 /**
  * PATCH /api/productos/{id}/publicar

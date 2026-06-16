@@ -13,6 +13,7 @@ import { DocenteFields } from "./components/DocenteFields";
 import { AdministrativoFields } from "./components/AdministrativoFields";
 import { FormSection } from "./components/FormSection";
 import { RegisterWizardProgress } from "./components/RegisterWizardProgress";
+import { AuthBackToPublicLink } from "./components/AuthBackToPublicLink";
 
 const req = <span className="text-[#EC7A21]">*</span>;
 
@@ -300,6 +301,8 @@ export const RegisterPage = () => {
                         Inicia sesión
                     </Link>
                 </p>
+
+                <AuthBackToPublicLink />
             </div>
         </div>
     );

@@ -38,6 +38,11 @@ export const esExtensionPermitida = (nombre) => {
     return ext !== "" && EXTENSIONES_PERMITIDAS.includes(ext);
 };
 
+export const esArchivoPdf = (archivo) => {
+    const ext = (archivo?.extensionArchivo ?? obtenerExtensionArchivo(archivo?.nombreOriginal)).toLowerCase();
+    return ext === "pdf";
+};
+
 export const mensajeExtensionNoPermitida = (nombre) => {
     const ext = obtenerExtensionArchivo(nombre) || "sin extensión";
     return `El tipo de archivo ".${ext}" no está permitido.`;

@@ -12,6 +12,7 @@ import {
     validateResetPasswordForm,
     resolvePasswordResetApiError,
 } from "./passwordResetValidation";
+import { AuthBackToPublicLink } from "./components/AuthBackToPublicLink";
 
 const initialForm = { codigo: "", passwordNuevo: "", passwordConfirmacion: "" };
 
@@ -83,6 +84,7 @@ export const ResetPasswordPage = () => {
                     >
                         Solicitar código
                     </Link>
+                    <AuthBackToPublicLink className="mt-6" />
                 </div>
                 <InstitutionalPanel side="right" />
             </div>
@@ -195,6 +197,8 @@ export const ResetPasswordPage = () => {
                         Volver al inicio de sesión
                     </Link>
                 </p>
+
+                <AuthBackToPublicLink />
             </div>
 
             <InstitutionalPanel side="right" />

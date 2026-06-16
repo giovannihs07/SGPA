@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { usePublicProductos } from "../../hooks/public/usePublicProductos";
+import { usePublicProductoDetalle } from "../../hooks/public/usePublicProductoDetalle";
 import { PublicCatalogoLoading, PublicCatalogoError } from "./components/PublicCatalogoEstados";
 import { PublicHero } from "./components/PublicHero";
 import { PublicCatalogoHeader } from "./components/PublicCatalogoHeader";
@@ -10,13 +11,13 @@ import { PublicCategoriaCards } from "./components/PublicCategoriaCards";
 import { PublicRecientesSection } from "./components/PublicRecientesSection";
 import { PublicDocenteBanner } from "./components/PublicDocenteBanner";
 import { ProductosTarjetas } from "./components/ProductosTarjetas";
+import { ProductoPublicoDetalleDrawer } from "./components/ProductoPublicoDetalleDrawer";
 
 const scrollACatalogo = () => {
     document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth", block: "start" });
 };
 
 export const PortalPublicPage = () => {
-    const navigate = useNavigate();
     const location = useLocation();
 
     const {
@@ -40,12 +41,13 @@ export const PortalPublicPage = () => {
         schema,
     } = usePublicProductos();
 
-    const irADetalle = useCallback(
-        (producto) => navigate(`/portal/public/productos/${producto.id}`, {
-            state: { fromSearch: location.search },
-        }),
-        [navigate, location.search],
-    );
+    const {
+        productoId,
+        previewProducto,
+        detalleAbierto,
+        abrirDetalle,
+        cerrarDetalle,
+    } = usePublicProductoDetalle(productos);
 
     const seleccionarCategoria = useCallback((nombre) => {
         handleFiltroCategoria(filtroCategoria === nombre ? "TODAS" : nombre);
@@ -98,7 +100,7 @@ export const PortalPublicPage = () => {
 
                 {!docenteFiltro && (
                     <PublicRecientesSection
-                        onVer={irADetalle}
+                        onVer={abrirDetalle}
                         onDescargar={handleDescargar}
                         onVerCatalogo={scrollACatalogo}
                     />
@@ -198,7 +200,7 @@ export const PortalPublicPage = () => {
                                     totalPaginas={totalPaginas}
                                     pageSize={pageSize}
                                     irPagina={irPagina}
-                                    onVer={irADetalle}
+                                    onVer={abrirDetalle}
                                     onDescargar={handleDescargar}
                                 />
                             </div>
@@ -206,6 +208,14 @@ export const PortalPublicPage = () => {
                     )}
                 </section>
             </div>
+
+            {detalleAbierto && (
+                <ProductoPublicoDetalleDrawer
+                    productoId={productoId}
+                    previewProducto={previewProducto}
+                    onClose={cerrarDetalle}
+                />
+            )}
         </>
     );
 };

@@ -11,6 +11,7 @@ import {
     validateForgotPasswordEmail,
     resolvePasswordResetApiError,
 } from "./passwordResetValidation";
+import { AuthBackToPublicLink } from "./components/AuthBackToPublicLink";
 
 export const ForgotPasswordPage = () => {
     const { toast } = useToast();
@@ -129,6 +130,8 @@ export const ForgotPasswordPage = () => {
                         Volver al inicio de sesión
                     </Link>
                 </p>
+
+                <AuthBackToPublicLink />
             </div>
 
             <InstitutionalPanel side="right" />
