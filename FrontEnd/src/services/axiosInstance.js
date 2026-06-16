@@ -68,7 +68,7 @@ axiosInstance.interceptors.response.use(
       error.sessionExpired = true;
     } else if (
       error.response?.status === 401
-      && !error.config?.url?.includes("/api/auth/login")
+      && !error.config?.url?.includes("/api/auth/")
       && !window.location.pathname.startsWith("/portal/public")
     ) {
       clearSession();

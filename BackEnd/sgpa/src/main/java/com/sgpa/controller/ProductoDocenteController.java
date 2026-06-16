@@ -102,7 +102,10 @@ public class ProductoDocenteController {
     public ResponseEntity<ProductoPublicoPageResponse> buscarPublicosPortal(
             @RequestParam(required = false) String q,
             @RequestParam(required = false) String categoria,
+            @RequestParam(required = false) String subcategoria,
             @RequestParam(required = false) String tipo,
+            @RequestParam(required = false) Long facultad,
+            @RequestParam(required = false) Long programa,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
             @RequestParam(required = false, defaultValue = "fechaPublicacionSgpa") String campoFecha,
@@ -111,7 +114,7 @@ public class ProductoDocenteController {
             @RequestParam(defaultValue = "fechaPublicacionSgpa,desc") String sort) {
         Pageable pageable = PageRequest.of(page, size, parsearOrden(sort));
         return ResponseEntity.ok(service.buscarPublicadosPortal(
-                q, categoria, tipo, desde, hasta, campoFecha, pageable));
+                q, categoria, subcategoria, tipo, facultad, programa, desde, hasta, campoFecha, pageable));
     }
 
     @GetMapping("/publicos/resumen")
@@ -119,7 +122,7 @@ public class ProductoDocenteController {
         return ResponseEntity.ok(service.resumenPublicosPortal());
     }
 
-    @GetMapping("/publicos/{id}")
+    @GetMapping("/publicos/{id:\\d+}")
     public ResponseEntity<ProductoDocenteResponse> buscarPublicoPorId(
             @PathVariable Long id) {
         return ResponseEntity.ok(service.buscarPublicoPorId(id));

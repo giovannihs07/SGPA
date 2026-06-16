@@ -61,6 +61,8 @@ public class SecurityConfig {
                 // PERMISOS GENERALES
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/auth/forgot-password").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/auth/reset-password").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/docentes/registro").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/docentes/registro-docente-admin").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/administrativos/registro").permitAll()

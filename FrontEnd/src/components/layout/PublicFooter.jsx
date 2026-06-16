@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { ExternalLink } from "lucide-react";
 import { FOOTER, PUBLIC_FOOTER } from "./footerConfig";
 
@@ -70,6 +71,11 @@ export const PublicFooter = () => (
                             <EnlaceInterno href="/portal/public">
                                 Portal público de producción
                             </EnlaceInterno>
+                        </li>
+                        <li>
+                            <Link to="/portal/public/acerca" className="text-white/70 hover:text-[#ffc20e] transition">
+                                Acerca del portal
+                            </Link>
                         </li>
                         <li>
                             <EnlaceInterno href="/login">

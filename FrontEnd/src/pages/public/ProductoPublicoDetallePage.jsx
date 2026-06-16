@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link, useParams, useLocation } from "react-router-dom";
-import { ArrowLeft, Download, Lock, Paperclip } from "lucide-react";
+import { ArrowLeft, Download, Lock, Paperclip, User } from "lucide-react";
 import { getProductoPublicoPorId, getProductoSchema } from "../../services/productoServices";
 import { etiquetaRolArchivo } from "../../config/productoArchivo";
 import {
@@ -10,7 +10,9 @@ import {
 } from "../docente/components/productoHelpers";
 import { buildEtiquetasAtributosMap } from "../docente/components/productoFormUtils";
 import { descargarProductoPublico } from "../../utils/publicProductoDownload";
+import { urlVistaDocente } from "../../utils/publicDocenteNav";
 import { MisProductosLoading, MisProductosError } from "../docente/components/misProductos/MisProductosEstados";
+import { DocenteEnlacePorNombre } from "./components/PublicDocenteBanner";
 import { card, text } from "../../components/ui/themeTokens";
 
 const DetallePill = ({ label, value, accent = "border-[#EC7A21]" }) => (
@@ -143,9 +145,23 @@ export const ProductoPublicoDetallePage = () => {
                         {producto.nombre}
                     </h1>
                     {docente && (
-                        <p className={`text-sm mt-2 ${text.muted}`}>
-                            <span className="font-medium">{docente}</span>
-                        </p>
+                        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
+                            <p className={`text-sm flex items-center gap-1.5 ${text.muted}`}>
+                                <User size={14} className="shrink-0" aria-hidden="true" />
+                                <DocenteEnlacePorNombre
+                                    nombre={docente}
+                                    className="font-semibold text-gray-800 dark:text-gray-200"
+                                />
+                            </p>
+                            {urlVistaDocente(producto) && (
+                                <Link
+                                    to={urlVistaDocente(producto)}
+                                    className="text-xs font-semibold text-[#EC7A21] hover:underline"
+                                >
+                                    Ver más productos de este docente
+                                </Link>
+                            )}
+                        </div>
                     )}
                     {programas && (
                         <p className={`text-xs mt-1 ${text.muted}`}>Programas: {programas}</p>

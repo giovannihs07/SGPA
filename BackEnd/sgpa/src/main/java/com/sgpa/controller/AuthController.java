@@ -18,12 +18,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sgpa.dto.request.ForgotPasswordRequest;
 import com.sgpa.dto.request.LoginRequest;
+import com.sgpa.dto.request.ResetPasswordRequest;
 import com.sgpa.dto.response.LoginResponse;
 import com.sgpa.model.audit.ModuloAuditoria;
 import com.sgpa.model.audit.ResultadoAuditoria;
 import com.sgpa.service.AuditService;
 import com.sgpa.service.AuthService;
+import com.sgpa.service.PasswordResetService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
@@ -41,6 +44,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final AuthService authService;
     private final AuditService auditService;
+    private final PasswordResetService passwordResetService;
 
     @PostMapping("/login")
     @SecurityRequirements
@@ -82,5 +86,38 @@ public class AuthController {
                     "message", "Error en la autenticación, email o password incorrecto!",
                     "error", ex.getMessage() != null ? ex.getMessage() : "Credenciales inválidas"));
         }
+    }
+
+    @PostMapping("/forgot-password")
+    @SecurityRequirements
+    @Operation(
+            summary = "Solicitar restablecimiento de contraseña",
+            description = "Envía un código por correo si el usuario existe y está activo.")
+    public ResponseEntity<Map<String, String>> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequest request,
+            HttpServletRequest httpRequest) {
+
+        passwordResetService.solicitarReset(request.getEmail(), httpRequest.getRemoteAddr());
+
+        return ResponseEntity.ok(Map.of(
+                "message",
+                "Si el correo está registrado y activo, recibirás un código para restablecer tu contraseña."));
+    }
+
+    @PostMapping("/reset-password")
+    @SecurityRequirements
+    @Operation(summary = "Restablecer contraseña con código")
+    public ResponseEntity<Void> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest request,
+            HttpServletRequest httpRequest) {
+
+        passwordResetService.restablecerPassword(
+                request.getEmail(),
+                request.getCodigo(),
+                request.getPasswordNuevo(),
+                request.getPasswordConfirmacion(),
+                httpRequest.getRemoteAddr());
+
+        return ResponseEntity.noContent().build();
     }
 }

@@ -8,6 +8,8 @@ import { DashboardLayout } from "./components/layout/DashboardLayout";
 // Páginas de autenticación
 import { LoginPage }    from "./pages/auth/LoginPage";
 import { RegisterPage } from "./pages/auth/RegisterPage";
+import { ForgotPasswordPage } from "./pages/auth/ForgotPasswordPage";
+import { ResetPasswordPage } from "./pages/auth/ResetPasswordPage";
  
 // Páginas de docente
 import { DashboardDocentePage }  from "./pages/docente/DashboardDocentePage";
@@ -35,6 +37,7 @@ import { AdminReportesPage }         from "./pages/admin/AdminReportesPage";
 import { PublicLayout } from "./components/layout/PublicLayout";
 import { PortalPublicPage } from "./pages/public/PortalPublicPage";
 import { ProductoPublicoDetallePage } from "./pages/public/ProductoPublicoDetallePage";
+import { AcercaDePublicPage } from "./pages/public/AcercaDePublicPage";
 
 // Perfil de usuario
 import { MiPerfilPage } from "./pages/perfil/MiPerfilPage";
@@ -56,11 +59,14 @@ export default function App() {
                         {/* Autenticación */}
                         <Route path="/login"        element={<LoginPage />} />
                         <Route path="/register"     element={<RegisterPage />} />
+                        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                        <Route path="/reset-password"  element={<ResetPasswordPage />} />
                         <Route path="/unauthorized" element={<Unauthorized />} />
 
                         {/* Portal público — sin login */}
                         <Route element={<PublicLayout />}>
                             <Route path="/portal/public" element={<PortalPublicPage />} />
+                            <Route path="/portal/public/acerca" element={<AcercaDePublicPage />} />
                             <Route path="/portal/public/productos/:id" element={<ProductoPublicoDetallePage />} />
                         </Route>
  

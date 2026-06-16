@@ -3,8 +3,9 @@ import {
     TIPO_LABELS, formatFecha, truncar, productoTieneArchivos, obtenerArchivosProducto,
 } from "../../docente/components/productoHelpers";
 import { btnIcon, text } from "../../../components/ui/themeTokens";
+import { DocenteEnlace } from "./PublicDocenteBanner";
 import {
-    nombreDocente, inicialesDocente, formatFechaRelativa,
+    inicialesDocente, formatFechaRelativa,
     categoriaBadgeClass, etiquetaCategoria, iconoArchivo,
 } from "./publicProductoUi";
 
@@ -34,7 +35,10 @@ const DocenteRow = ({ producto }) => (
             flex items-center justify-center shrink-0">
             {inicialesDocente(producto)}
         </span>
-        <p className={`text-xs ${text.secondary} line-clamp-1`}>{nombreDocente(producto)}</p>
+        <DocenteEnlace
+            producto={producto}
+            className={`text-xs ${text.secondary} line-clamp-1 font-medium`}
+        />
     </div>
 );
 

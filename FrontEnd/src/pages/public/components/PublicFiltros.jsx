@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Search, ChevronDown, ChevronUp } from "lucide-react";
 import { SelectFilter } from "../../docente/components/misProductos/SelectFilter";
-import { TIPO_LABELS, CATEGORIA_LABELS } from "../../docente/components/productoHelpers";
+import { TIPO_LABELS, CATEGORIA_LABELS, SUBCATEGORIA_LABELS } from "../../docente/components/productoHelpers";
 import { FiltroFechaRango } from "../../../components/ui/FiltroFechaRango";
 import { filterBar, inputXs, inputIcon, focusRing } from "../../../components/ui/themeTokens";
 import { categoriaBadgeClass, etiquetaCategoria } from "./publicProductoUi";
@@ -22,24 +22,33 @@ const ChipCategoria = ({ nombre, activa, onClick }) => (
 export const PublicFiltros = ({
     busqueda,
     setBusqueda,
+    docenteFiltro = "",
     filtroCategoria,
     handleFiltroCategoria,
+    filtroSubcategoria,
+    handleFiltroSubcategoria,
+    filtroFacultad,
+    handleFiltroFacultad,
+    filtroPrograma,
+    handleFiltroPrograma,
+    facultades,
+    programasFiltrados,
     filtroTipo,
     setFiltroTipo,
     categoriasDisponibles,
+    subcategoriasDisponibles,
     tiposDisponibles,
     fechaDesde,
     fechaHasta,
     setFechaDesde,
     setFechaHasta,
-    filtroCampoFecha,
-    setFiltroCampoFecha,
     placeholderBusqueda = "Buscar por nombre, descripción o docente…",
 }) => {
     const [avanzadosAbiertos, setAvanzadosAbiertos] = useState(false);
 
     const categorias = categoriasDisponibles.filter((c) => c !== "TODAS");
-    const hayFiltrosAvanzados = filtroTipo !== "TODOS" || fechaDesde || fechaHasta;
+    const hayFiltrosAvanzados = filtroFacultad !== "TODAS" || filtroPrograma !== "TODOS"
+        || filtroSubcategoria !== "TODAS" || filtroTipo !== "TODOS" || fechaDesde || fechaHasta;
 
     return (
         <div className={`${filterBar} flex-col items-stretch gap-3`}>
@@ -98,6 +107,40 @@ export const PublicFiltros = ({
 
                 {avanzadosAbiertos && (
                     <div className="mt-3 flex flex-wrap items-center gap-2 pt-3 border-t border-gray-100 dark:border-gray-700">
+                        <SelectFilter
+                            value={filtroFacultad}
+                            onChange={handleFiltroFacultad}
+                            aria-label="Filtrar por facultad"
+                        >
+                            <option value="TODAS">Todas las facultades</option>
+                            {facultades.map((f) => (
+                                <option key={f.id} value={f.id}>{f.nombre}</option>
+                            ))}
+                        </SelectFilter>
+
+                        <SelectFilter
+                            value={filtroPrograma}
+                            onChange={handleFiltroPrograma}
+                            aria-label="Filtrar por programa"
+                        >
+                            <option value="TODOS">Todos los programas</option>
+                            {programasFiltrados.map((p) => (
+                                <option key={p.id} value={p.id}>{p.nombre}</option>
+                            ))}
+                        </SelectFilter>
+
+                        <SelectFilter
+                            value={filtroSubcategoria}
+                            onChange={handleFiltroSubcategoria}
+                            aria-label="Filtrar por subcategoría"
+                        >
+                            {subcategoriasDisponibles.map((s) => (
+                                <option key={s} value={s}>
+                                    {s === "TODAS" ? "Todas las subcategorías" : (SUBCATEGORIA_LABELS[s] ?? s)}
+                                </option>
+                            ))}
+                        </SelectFilter>
+
                         <SelectFilter value={filtroTipo} onChange={setFiltroTipo} aria-label="Filtrar por tipo">
                             {tiposDisponibles.map((t) => (
                                 <option key={t} value={t}>
@@ -123,8 +166,7 @@ export const PublicFiltros = ({
                             fechaHasta={fechaHasta}
                             onDesdeChange={setFechaDesde}
                             onHastaChange={setFechaHasta}
-                            filtroCampo={filtroCampoFecha}
-                            onCampoChange={setFiltroCampoFecha}
+                            mostrarSelectorCampo={false}
                         />
                     </div>
                 )}
