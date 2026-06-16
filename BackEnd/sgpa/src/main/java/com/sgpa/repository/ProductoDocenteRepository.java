@@ -77,4 +77,14 @@ public interface ProductoDocenteRepository extends JpaRepository<ProductoDocente
     List<ProductoDocente> findByProgramaIdAndTipo(
             @Param("programaId") Long programaId,
             @Param("tipo") TipoProducto tipo);
+
+    @Query("""
+            SELECT DISTINCT p FROM ProductoDocente p
+            JOIN FETCH p.docente d
+            JOIN FETCH d.persona
+            JOIN FETCH p.tipoProducto tp
+            JOIN FETCH tp.subcategoria sc
+            JOIN FETCH sc.categoria c
+            """)
+    List<ProductoDocente> findAllForReporte();
 }

@@ -107,6 +107,8 @@ public class SecurityConfig {
 
                 // DOCENTES Y ADMINISTRATIVOS
                 .requestMatchers(HttpMethod.GET, "/api/docentes/mi").hasRole("DOCENTE")
+                .requestMatchers(HttpMethod.GET, "/api/reportes/produccion/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/reportes/produccion").hasAnyRole("ADMIN", "SUPER_ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/docentes").hasAnyRole("ADMIN", "SUPER_ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/docentes/*").hasAnyRole("ADMIN", "SUPER_ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/docentes/*").hasAnyRole("ADMIN", "SUPER_ADMIN")

@@ -12,6 +12,7 @@ import {
     filasFiltrosReporteDocente,
     nombreDocentePerfil,
 } from "../pages/docente/docenteReportesHelpers";
+import { filasConteoExcel, bodyConteoPdf } from "./reporteConteoExport";
 
 const fechaArchivo = () => new Date().toISOString().slice(0, 10);
 
@@ -29,11 +30,20 @@ const filasProductos = (productos) =>
         "Publicado en SGPA": formatFecha(p.fechaPublicacionSgpa),
     }));
 
-export const exportarMiReporteExcel = ({ productos, resumen, docente, filtros }) => {
+export const exportarMiReporteExcel = ({
+    productos,
+    resumen,
+    docente,
+    filtros,
+    porCategoria = [],
+    porSubcategoria = [],
+}) => {
     const wb = XLSX.utils.book_new();
     const labels = { categoria: CATEGORIA_LABELS, subcategoria: SUBCATEGORIA_LABELS };
     const filtrosLabel = etiquetasFiltrosDocente(filtros, labels);
     const nombre = nombreDocentePerfil(docente);
+    const labelCategoria = (k) => CATEGORIA_LABELS[k] ?? k;
+    const labelSubcategoria = (k) => SUBCATEGORIA_LABELS[k] ?? k;
 
     const hojaResumen = XLSX.utils.json_to_sheet([
         { Métrica: "Docente", Valor: nombre },
@@ -50,6 +60,20 @@ export const exportarMiReporteExcel = ({ productos, resumen, docente, filtros })
     ]);
     XLSX.utils.book_append_sheet(wb, hojaResumen, "Resumen");
 
+    if (porCategoria.length > 0) {
+        const hojaCategoria = XLSX.utils.json_to_sheet(
+            filasConteoExcel(porCategoria, labelCategoria, resumen.total),
+        );
+        XLSX.utils.book_append_sheet(wb, hojaCategoria, "Por categoría");
+    }
+
+    if (porSubcategoria.length > 0) {
+        const hojaSubcategoria = XLSX.utils.json_to_sheet(
+            filasConteoExcel(porSubcategoria, labelSubcategoria, resumen.total),
+        );
+        XLSX.utils.book_append_sheet(wb, hojaSubcategoria, "Por subcategoría");
+    }
+
     const hojaProductos = XLSX.utils.json_to_sheet(filasProductos(productos));
     XLSX.utils.book_append_sheet(wb, hojaProductos, "Mis productos");
 
@@ -57,11 +81,20 @@ export const exportarMiReporteExcel = ({ productos, resumen, docente, filtros })
     XLSX.writeFile(wb, `mi-produccion-${slug}-${fechaArchivo()}.xlsx`);
 };
 
-export const exportarMiReportePdf = ({ productos, resumen, docente, filtros }) => {
+export const exportarMiReportePdf = ({
+    productos,
+    resumen,
+    docente,
+    filtros,
+    porCategoria = [],
+    porSubcategoria = [],
+}) => {
     const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
     const labels = { categoria: CATEGORIA_LABELS, subcategoria: SUBCATEGORIA_LABELS };
     const filtrosLabel = etiquetasFiltrosDocente(filtros, labels);
     const nombre = nombreDocentePerfil(docente);
+    const labelCategoria = (k) => CATEGORIA_LABELS[k] ?? k;
+    const labelSubcategoria = (k) => SUBCATEGORIA_LABELS[k] ?? k;
 
     doc.setFontSize(14);
     doc.text("Mi producción académica — SGPA", 14, 16);
@@ -92,6 +125,28 @@ export const exportarMiReportePdf = ({ productos, resumen, docente, filtros }) =
         headStyles: { fillColor: [236, 122, 33] },
         styles: { fontSize: 8 },
     });
+
+    if (porCategoria.length > 0) {
+        autoTable(doc, {
+            startY: doc.lastAutoTable.finalY + 8,
+            head: [["Categoría", "Total productos", "% del total"]],
+            body: bodyConteoPdf(porCategoria, labelCategoria, resumen.total),
+            theme: "grid",
+            headStyles: { fillColor: [236, 122, 33] },
+            styles: { fontSize: 7 },
+        });
+    }
+
+    if (porSubcategoria.length > 0) {
+        autoTable(doc, {
+            startY: doc.lastAutoTable.finalY + 8,
+            head: [["Subcategoría", "Total productos", "% del total"]],
+            body: bodyConteoPdf(porSubcategoria, labelSubcategoria, resumen.total),
+            theme: "grid",
+            headStyles: { fillColor: [236, 122, 33] },
+            styles: { fontSize: 7 },
+        });
+    }
 
     autoTable(doc, {
         startY: doc.lastAutoTable.finalY + 8,

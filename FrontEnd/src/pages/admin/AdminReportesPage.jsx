@@ -9,6 +9,7 @@ import { PeriodoAutoevaluacionPresets } from "./components/PeriodoAutoevaluacion
 import { CoberturaDocentePanel } from "./components/CoberturaDocentePanel";
 import { ProduccionFacultadesTabla } from "./components/ProduccionFacultadesTabla";
 import { ProduccionProgramasTabla } from "./components/ProduccionProgramasTabla";
+import { ProduccionConteoTabla } from "./components/ProduccionConteoTabla";
 import { CoberturaFacultadesChart } from "./components/charts/CoberturaFacultadesChart";
 import { ProduccionPorAnioChart } from "./components/charts/ProduccionPorAnioChart";
 import { CategoriaDistribucionChart } from "./components/charts/CategoriaDistribucionChart";
@@ -41,13 +42,14 @@ export const AdminReportesPage = () => {
         porCategoria,
         porSubcategoria,
         porTipo,
-        rankingDocentes,
+        rankingDocentesTop,
         productosRecientes,
-        productosFiltrados,
         totalFiltrados,
         cobertura,
         porFacultad,
         porPrograma,
+        reporte,
+        reporteParams,
         aplicarPresetPeriodo,
         limpiarPeriodo,
         notaAtribucion,
@@ -75,18 +77,11 @@ export const AdminReportesPage = () => {
                         Indicadores de producción y cobertura docente para autoevaluación y acreditación
                     </p>
                 </div>
-                <div className="flex flex-col items-stretch sm:items-end gap-2">
+                <div className="flex items-center gap-2 flex-wrap justify-end">
                     <ReporteExportButtons
                         disabled={loading}
-                        productosFiltrados={productosFiltrados}
-                        resumen={resumen}
-                        rankingDocentes={rankingDocentes}
-                        filtros={filtros}
-                        facultades={facultades}
-                        programasFiltrados={programasFiltrados}
-                        cobertura={cobertura}
-                        porFacultad={porFacultad}
-                        porPrograma={porPrograma}
+                        reporte={reporte}
+                        reporteParams={reporteParams}
                     />
                     <button
                         onClick={refetch}
@@ -178,6 +173,30 @@ export const AdminReportesPage = () => {
 
             <div className="space-y-4">
                 <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
+                    Totales por categoría y subcategoría
+                </p>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <ProduccionConteoTabla
+                        titulo="Por categoría"
+                        items={porCategoria}
+                        labelFn={(k) => CATEGORIA_LABELS[k] ?? k}
+                        loading={loading}
+                        totalGeneral={resumen.total}
+                        vacio="No hay productos por categoría con los filtros actuales."
+                    />
+                    <ProduccionConteoTabla
+                        titulo="Por subcategoría"
+                        items={porSubcategoria}
+                        labelFn={(k) => SUBCATEGORIA_LABELS[k] ?? k}
+                        loading={loading}
+                        totalGeneral={resumen.total}
+                        vacio="No hay productos por subcategoría con los filtros actuales."
+                    />
+                </div>
+            </div>
+
+            <div className="space-y-4">
+                <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
                     Vista gráfica
                 </p>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -229,16 +248,26 @@ export const AdminReportesPage = () => {
             </div>
 
             <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">
-                    Ranking por docente
-                </p>
-                <ProduccionDocentesTabla docentes={rankingDocentes} loading={loading} />
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+                    <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
+                        Top 10 docentes por producción
+                    </p>
+                    <p className="text-xs text-gray-400">
+                        Ranking completo en exportación «Ranking docentes».
+                    </p>
+                </div>
+                <ProduccionDocentesTabla docentes={rankingDocentesTop} loading={loading} />
             </div>
 
             <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">
-                    Últimos productos registrados
-                </p>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+                    <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
+                        Últimos productos registrados
+                    </p>
+                    <p className="text-xs text-gray-400">
+                        Vista previa (10). Inventario completo en exportación «Inventario productos».
+                    </p>
+                </div>
                 <ProduccionRecientesTabla productos={productosRecientes} loading={loading} />
             </div>
         </div>

@@ -1,6 +1,7 @@
 import { AlertCircle, RefreshCw, BarChart2, Search, Filter } from "lucide-react";
 import { useDocenteReportes } from "../../hooks/useDocenteReportes";
 import { SuperAdminKpiGrid } from "../superAdmin/components/SuperAdminKpiGrid";
+import { ProduccionConteoTabla } from "../admin/components/ProduccionConteoTabla";
 import { ProduccionBarrasPanel } from "../admin/components/ProduccionBarrasPanel";
 import { ProduccionPorAnioChart } from "../admin/components/charts/ProduccionPorAnioChart";
 import { EstadoDistribucionChart } from "../admin/components/charts/EstadoDistribucionChart";
@@ -70,6 +71,8 @@ export const ReportesDocentePage = () => {
                         resumen={resumen}
                         docente={docente}
                         filtros={filtros}
+                        porCategoria={porCategoria}
+                        porSubcategoria={porSubcategoria}
                     />
                     <button
                         onClick={refetch}
@@ -137,6 +140,30 @@ export const ReportesDocentePage = () => {
             </p>
 
             <SuperAdminKpiGrid resumen={kpis} loading={loading} />
+
+            <div className="space-y-4">
+                <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
+                    Totales por categoría y subcategoría
+                </p>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <ProduccionConteoTabla
+                        titulo="Por categoría"
+                        items={porCategoria}
+                        labelFn={(k) => CATEGORIA_LABELS[k] ?? k}
+                        loading={loading}
+                        totalGeneral={resumen.total}
+                        vacio="No hay productos por categoría con los filtros actuales."
+                    />
+                    <ProduccionConteoTabla
+                        titulo="Por subcategoría"
+                        items={porSubcategoria}
+                        labelFn={(k) => SUBCATEGORIA_LABELS[k] ?? k}
+                        loading={loading}
+                        totalGeneral={resumen.total}
+                        vacio="No hay productos por subcategoría con los filtros actuales."
+                    />
+                </div>
+            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <ProduccionPorAnioChart
