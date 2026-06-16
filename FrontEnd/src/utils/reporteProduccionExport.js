@@ -9,14 +9,11 @@ import {
 } from "../pages/docente/components/productoHelpers";
 import {
     nombreDocente,
-    etiquetasFiltrosActivos,
     filasFiltrosReporteAdmin,
 } from "../pages/admin/adminReportesHelpers";
+import { filasConteoExcel, bodyConteoPdf } from "./reporteConteoExport";
 
-const fechaArchivo = () => {
-    const d = new Date();
-    return d.toISOString().slice(0, 10);
-};
+const fechaArchivo = () => new Date().toISOString().slice(0, 10);
 
 const estadoLabel = (publicado) => (publicado ? "Publicado" : "Sin publicar");
 
@@ -82,20 +79,83 @@ const filasCobertura = (cobertura) => [
     { Métrica: "Cobertura docente (%)", Valor: cobertura.porcentajeCobertura },
 ];
 
-export const exportarReporteExcel = ({
-    productos,
+const hojaFiltrosExcel = (filtrosLabel) =>
+    XLSX.utils.json_to_sheet([
+        { Filtro: "Estado", Valor: filtrosLabel.estado },
+        { Filtro: "Categoría", Valor: filtrosLabel.categoria },
+        { Filtro: "Subcategoría", Valor: filtrosLabel.subcategoria },
+        { Filtro: "Facultad", Valor: filtrosLabel.facultad },
+        { Filtro: "Programa", Valor: filtrosLabel.programa },
+        { Filtro: "Rango de fechas", Valor: filtrosLabel.fecha },
+        { Filtro: "Búsqueda", Valor: filtrosLabel.busqueda },
+    ]);
+
+const encabezadoPdf = (doc, { titulo, generadoEn }) => {
+    doc.setFontSize(14);
+    doc.setTextColor(0);
+    doc.text(titulo, 14, 16);
+    doc.setFontSize(9);
+    doc.setTextColor(100);
+    const generado = generadoEn
+        ? new Date(generadoEn).toLocaleString("es-CO")
+        : new Date().toLocaleString("es-CO");
+    doc.text(`Generado: ${generado}`, 14, 22);
+};
+
+const tablaFiltrosPdf = (doc, filtrosLabel, startY = 27) => {
+    autoTable(doc, {
+        startY,
+        head: [["Filtro", "Valor"]],
+        body: filasFiltrosReporteAdmin(filtrosLabel),
+        theme: "grid",
+        headStyles: { fillColor: [100, 100, 100] },
+        styles: { fontSize: 8 },
+    });
+};
+
+const bodyProductosPdf = (productos) =>
+    (productos ?? []).map((p) => [
+        p.id,
+        p.nombre ?? "—",
+        nombreDocente(p),
+        p.facultadesLabel ?? "—",
+        p.programasLabel ?? "—",
+        CATEGORIA_LABELS[p.categoria] ?? p.categoria ?? "—",
+        SUBCATEGORIA_LABELS[p.subcategoria] ?? p.subcategoria ?? "—",
+        TIPO_LABELS[p.tipo] ?? p.tipo ?? "—",
+        estadoLabel(p.publicado),
+        formatFecha(p.fechaRegistroSgpa),
+        formatFecha(p.fechaPublicacionSgpa),
+    ]);
+
+const bodyRankingPdf = (ranking) =>
+    (ranking ?? []).map((d, i) => [
+        i + 1,
+        d.nombre,
+        d.codigo,
+        d.facultades ?? "—",
+        d.programas ?? "—",
+        d.total,
+        d.publicados,
+        d.sinPublicar,
+        d.recientes,
+    ]);
+
+/** Reporte ejecutivo — sin listados masivos. */
+export const exportarReporteEjecutivoExcel = ({
     resumen,
-    rankingDocentes,
-    filtros,
-    facultades,
-    programas,
+    filtrosEtiquetas,
     cobertura,
     porFacultad = [],
     porPrograma = [],
+    graficos,
 }) => {
     const wb = XLSX.utils.book_new();
-    const labels = { categoria: CATEGORIA_LABELS, subcategoria: SUBCATEGORIA_LABELS };
-    const filtrosLabel = etiquetasFiltrosActivos(filtros, { facultades, programas, labels });
+    const filtrosLabel = filtrosEtiquetas ?? {};
+    const porCategoria = graficos?.porCategoria ?? [];
+    const porSubcategoria = graficos?.porSubcategoria ?? [];
+    const labelCategoria = (k) => CATEGORIA_LABELS[k] ?? k;
+    const labelSubcategoria = (k) => SUBCATEGORIA_LABELS[k] ?? k;
 
     const hojaResumen = XLSX.utils.json_to_sheet([
         { Métrica: "Total productos", Valor: resumen.total },
@@ -117,58 +177,54 @@ export const exportarReporteExcel = ({
     XLSX.utils.book_append_sheet(wb, hojaResumen, "Resumen");
 
     if (cobertura) {
-        const hojaCobertura = XLSX.utils.json_to_sheet(filasCobertura(cobertura));
-        XLSX.utils.book_append_sheet(wb, hojaCobertura, "Cobertura");
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(filasCobertura(cobertura)), "Cobertura");
     }
-
     if (porFacultad.length > 0) {
-        const hojaFacultad = XLSX.utils.json_to_sheet(filasFacultad(porFacultad));
-        XLSX.utils.book_append_sheet(wb, hojaFacultad, "Por facultad");
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(filasFacultad(porFacultad)), "Por facultad");
     }
-
     if (porPrograma.length > 0) {
-        const hojaPrograma = XLSX.utils.json_to_sheet(filasPrograma(porPrograma));
-        XLSX.utils.book_append_sheet(wb, hojaPrograma, "Por programa");
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(filasPrograma(porPrograma)), "Por programa");
+    }
+    if (porCategoria.length > 0) {
+        XLSX.utils.book_append_sheet(
+            wb,
+            XLSX.utils.json_to_sheet(filasConteoExcel(porCategoria, labelCategoria, resumen.total)),
+            "Por categoría",
+        );
+    }
+    if (porSubcategoria.length > 0) {
+        XLSX.utils.book_append_sheet(
+            wb,
+            XLSX.utils.json_to_sheet(filasConteoExcel(porSubcategoria, labelSubcategoria, resumen.total)),
+            "Por subcategoría",
+        );
     }
 
-    const hojaProductos = XLSX.utils.json_to_sheet(filasProductos(productos));
-    XLSX.utils.book_append_sheet(wb, hojaProductos, "Productos");
-
-    const hojaRanking = XLSX.utils.json_to_sheet(filasRanking(rankingDocentes));
-    XLSX.utils.book_append_sheet(wb, hojaRanking, "Ranking docentes");
-
-    XLSX.writeFile(wb, `reporte-acreditacion-produccion-${fechaArchivo()}.xlsx`);
+    XLSX.writeFile(wb, `reporte-ejecutivo-produccion-${fechaArchivo()}.xlsx`);
 };
 
-export const exportarReportePdf = ({
-    productos,
+export const exportarReporteEjecutivoPdf = ({
     resumen,
-    rankingDocentes,
-    filtros,
-    facultades,
-    programas,
+    filtrosEtiquetas,
     cobertura,
     porFacultad = [],
     porPrograma = [],
+    meta,
+    graficos,
 }) => {
     const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-    const labels = { categoria: CATEGORIA_LABELS, subcategoria: SUBCATEGORIA_LABELS };
-    const filtrosLabel = etiquetasFiltrosActivos(filtros, { facultades, programas, labels });
+    const filtrosLabel = filtrosEtiquetas ?? {};
+    const porCategoria = graficos?.porCategoria ?? [];
+    const porSubcategoria = graficos?.porSubcategoria ?? [];
+    const labelCategoria = (k) => CATEGORIA_LABELS[k] ?? k;
+    const labelSubcategoria = (k) => SUBCATEGORIA_LABELS[k] ?? k;
 
-    doc.setFontSize(14);
-    doc.text("Reporte de acreditación — producción docente SGPA", 14, 16);
-    doc.setFontSize(9);
-    doc.setTextColor(100);
-    doc.text(`Generado: ${new Date().toLocaleString("es-CO")}`, 14, 22);
-
-    autoTable(doc, {
-        startY: 27,
-        head: [["Filtro", "Valor"]],
-        body: filasFiltrosReporteAdmin(filtrosLabel),
-        theme: "grid",
-        headStyles: { fillColor: [100, 100, 100] },
-        styles: { fontSize: 8 },
+    encabezadoPdf(doc, {
+        titulo: meta?.titulo ?? "Reporte ejecutivo — producción docente SGPA",
+        generadoEn: meta?.generadoEn,
     });
+
+    tablaFiltrosPdf(doc, filtrosLabel);
 
     autoTable(doc, {
         startY: doc.lastAutoTable.finalY + 6,
@@ -187,6 +243,28 @@ export const exportarReportePdf = ({
         headStyles: { fillColor: [236, 122, 33] },
         styles: { fontSize: 8 },
     });
+
+    if (porCategoria.length > 0) {
+        autoTable(doc, {
+            startY: doc.lastAutoTable.finalY + 8,
+            head: [["Categoría", "Total productos", "% del total"]],
+            body: bodyConteoPdf(porCategoria, labelCategoria, resumen.total),
+            theme: "grid",
+            headStyles: { fillColor: [236, 122, 33] },
+            styles: { fontSize: 7 },
+        });
+    }
+
+    if (porSubcategoria.length > 0) {
+        autoTable(doc, {
+            startY: doc.lastAutoTable.finalY + 8,
+            head: [["Subcategoría", "Total productos", "% del total"]],
+            body: bodyConteoPdf(porSubcategoria, labelSubcategoria, resumen.total),
+            theme: "grid",
+            headStyles: { fillColor: [236, 122, 33] },
+            styles: { fontSize: 7 },
+        });
+    }
 
     if (porFacultad.length > 0) {
         autoTable(doc, {
@@ -225,44 +303,123 @@ export const exportarReportePdf = ({
         });
     }
 
+    doc.save(`reporte-ejecutivo-produccion-${fechaArchivo()}.pdf`);
+};
+
+/** Inventario de productos — Excel y PDF. */
+export const exportarReporteProductosExcel = (reporte) => {
+    const wb = XLSX.utils.book_new();
+    const filtrosLabel = reporte.filtrosEtiquetas ?? {};
+
+    XLSX.utils.book_append_sheet(wb, hojaFiltrosExcel(filtrosLabel), "Filtros");
+    XLSX.utils.book_append_sheet(
+        wb,
+        XLSX.utils.json_to_sheet([
+            { Métrica: "Total productos", Valor: reporte.total ?? reporte.productos?.length ?? 0 },
+        ]),
+        "Resumen",
+    );
+    XLSX.utils.book_append_sheet(
+        wb,
+        XLSX.utils.json_to_sheet(filasProductos(reporte.productos ?? [])),
+        "Productos",
+    );
+
+    XLSX.writeFile(wb, `reporte-productos-${fechaArchivo()}.xlsx`);
+};
+
+export const exportarReporteProductosPdf = (reporte) => {
+    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    const filtrosLabel = reporte.filtrosEtiquetas ?? {};
+    const productos = reporte.productos ?? [];
+    const total = reporte.total ?? productos.length;
+
+    encabezadoPdf(doc, {
+        titulo: reporte.meta?.titulo ?? "Inventario de productos — SGPA",
+        generadoEn: reporte.meta?.generadoEn,
+    });
+
+    tablaFiltrosPdf(doc, filtrosLabel);
+
+    autoTable(doc, {
+        startY: doc.lastAutoTable.finalY + 6,
+        head: [["Métrica", "Valor"]],
+        body: [["Total productos", total]],
+        theme: "grid",
+        headStyles: { fillColor: [236, 122, 33] },
+        styles: { fontSize: 8 },
+    });
+
     autoTable(doc, {
         startY: doc.lastAutoTable.finalY + 8,
-        head: [["Producto", "Docente", "Facultad", "Programa", "Categoría", "Subcategoría", "Tipo", "Estado", "Registro SGPA", "Publicado en SGPA"]],
-        body: productos.map((p) => [
-            p.nombre ?? "—",
-            nombreDocente(p),
-            p.facultadesLabel ?? "—",
-            p.programasLabel ?? "—",
-            CATEGORIA_LABELS[p.categoria] ?? p.categoria ?? "—",
-            SUBCATEGORIA_LABELS[p.subcategoria] ?? p.subcategoria ?? "—",
-            TIPO_LABELS[p.tipo] ?? p.tipo ?? "—",
-            estadoLabel(p.publicado),
-            formatFecha(p.fechaRegistroSgpa),
-            formatFecha(p.fechaPublicacionSgpa),
+        head: [[
+            "ID", "Producto", "Docente", "Facultad", "Programa",
+            "Categoría", "Subcategoría", "Tipo", "Estado", "Registro SGPA", "Publicado SGPA",
+        ]],
+        body: bodyProductosPdf(productos),
+        theme: "striped",
+        headStyles: { fillColor: [236, 122, 33] },
+        styles: { fontSize: 6, cellWidth: "wrap" },
+    });
+
+    doc.save(`reporte-productos-${fechaArchivo()}.pdf`);
+};
+
+/** Ranking de docentes — Excel y PDF. */
+export const exportarReporteDocentesExcel = (reporte) => {
+    const wb = XLSX.utils.book_new();
+    const filtrosLabel = reporte.filtrosEtiquetas ?? {};
+
+    XLSX.utils.book_append_sheet(wb, hojaFiltrosExcel(filtrosLabel), "Filtros");
+    XLSX.utils.book_append_sheet(
+        wb,
+        XLSX.utils.json_to_sheet([
+            { Métrica: "Docentes en ranking", Valor: reporte.total ?? reporte.rankingDocentes?.length ?? 0 },
         ]),
+        "Resumen",
+    );
+    XLSX.utils.book_append_sheet(
+        wb,
+        XLSX.utils.json_to_sheet(filasRanking(reporte.rankingDocentes ?? [])),
+        "Ranking docentes",
+    );
+
+    XLSX.writeFile(wb, `reporte-docentes-${fechaArchivo()}.xlsx`);
+};
+
+export const exportarReporteDocentesPdf = (reporte) => {
+    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    const filtrosLabel = reporte.filtrosEtiquetas ?? {};
+    const ranking = reporte.rankingDocentes ?? [];
+    const total = reporte.total ?? ranking.length;
+
+    encabezadoPdf(doc, {
+        titulo: reporte.meta?.titulo ?? "Ranking de docentes — SGPA",
+        generadoEn: reporte.meta?.generadoEn,
+    });
+
+    tablaFiltrosPdf(doc, filtrosLabel);
+
+    autoTable(doc, {
+        startY: doc.lastAutoTable.finalY + 6,
+        head: [["Métrica", "Valor"]],
+        body: [["Docentes en ranking", total]],
+        theme: "grid",
+        headStyles: { fillColor: [236, 122, 33] },
+        styles: { fontSize: 8 },
+    });
+
+    autoTable(doc, {
+        startY: doc.lastAutoTable.finalY + 8,
+        head: [[
+            "#", "Docente", "Código", "Facultad", "Programa",
+            "Total", "Publicados", "Sin publicar", "Nuevos (30 d)",
+        ]],
+        body: bodyRankingPdf(ranking),
         theme: "striped",
         headStyles: { fillColor: [236, 122, 33] },
         styles: { fontSize: 7, cellWidth: "wrap" },
     });
 
-    if (rankingDocentes.length > 0) {
-        autoTable(doc, {
-            startY: doc.lastAutoTable.finalY + 8,
-            head: [["#", "Docente", "Facultad", "Total", "Publicados", "Sin publicar", "Nuevos (30 d)"]],
-            body: rankingDocentes.slice(0, 15).map((d, i) => [
-                i + 1,
-                d.nombre,
-                d.facultades ?? "—",
-                d.total,
-                d.publicados,
-                d.sinPublicar,
-                d.recientes,
-            ]),
-            theme: "grid",
-            headStyles: { fillColor: [236, 122, 33] },
-            styles: { fontSize: 7 },
-        });
-    }
-
-    doc.save(`reporte-acreditacion-produccion-${fechaArchivo()}.pdf`);
+    doc.save(`reporte-docentes-${fechaArchivo()}.pdf`);
 };

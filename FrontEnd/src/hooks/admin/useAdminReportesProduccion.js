@@ -1,28 +1,39 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { BookOpen, Globe, FileCheck, Clock, Users, UserCheck, UserX } from "lucide-react";
-import { getAllProductos } from "../../services/productoServices";
-import { getDocentes } from "../../services/docenteService";
+import { getReporteProduccionEjecutivo } from "../../services/reporteService";
 import { getFacultades, getProgramas } from "../../services/institucionService";
-import {
-    agruparConteo,
-    agruparPorDocente,
-    agruparPorFacultad,
-    agruparPorPrograma,
-    agruparPorAnio,
-    calcularCoberturaDocente,
-    calcularResumenProduccion,
-    construirMapaDocentes,
-    docentesEnAlcance,
-    enriquecerProductosConDocente,
-    filtrarProductosReporte,
-} from "../../pages/admin/adminReportesHelpers";
+
+const buildReporteParams = ({
+    filtroEstado,
+    filtroCategoria,
+    filtroSubcategoria,
+    filtroFacultad,
+    filtroPrograma,
+    fechaDesde,
+    fechaHasta,
+    filtroCampoFecha,
+    busqueda,
+}) => ({
+    estado: filtroEstado,
+    categoria: filtroCategoria,
+    subcategoria: filtroSubcategoria,
+    facultadId: filtroFacultad === "TODAS" ? undefined : Number(filtroFacultad),
+    programaId: filtroPrograma === "TODOS" ? undefined : Number(filtroPrograma),
+    fechaDesde: fechaDesde || undefined,
+    fechaHasta: fechaHasta || undefined,
+    campoFecha: filtroCampoFecha,
+    busqueda: busqueda?.trim() || undefined,
+});
+
+const mapConteoAnio = (items = []) =>
+    items.map((item) => ({ anio: item.key, total: item.count }));
 
 export const useAdminReportesProduccion = () => {
-    const [productosRaw, setProductosRaw] = useState([]);
-    const [docentes, setDocentes] = useState([]);
+    const [reporte, setReporte] = useState(null);
     const [facultades, setFacultades] = useState([]);
     const [programas, setProgramas] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loadingCatalogos, setLoadingCatalogos] = useState(true);
+    const [loadingReporte, setLoadingReporte] = useState(true);
     const [error, setError] = useState(null);
 
     const [filtroEstado, setFiltroEstado] = useState("TODOS");
@@ -34,39 +45,12 @@ export const useAdminReportesProduccion = () => {
     const [fechaHasta, setFechaHasta] = useState("");
     const [filtroCampoFecha, setFiltroCampoFecha] = useState("fechaRegistroSgpa");
     const [busqueda, setBusqueda] = useState("");
+    const [busquedaDebounced, setBusquedaDebounced] = useState("");
 
-    const fetchData = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const [productos, docentesData, facultadesData, programasData] = await Promise.all([
-                getAllProductos(),
-                getDocentes(),
-                getFacultades(),
-                getProgramas(),
-            ]);
-            setProductosRaw(productos);
-            setDocentes(docentesData);
-            setFacultades(facultadesData);
-            setProgramas(programasData);
-        } catch (e) {
-            setError(e.response?.data?.error ?? e.response?.data?.message ?? e.message ?? "Error al cargar producción docente");
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
-    useEffect(() => { fetchData(); }, [fetchData]);
-
-    const mapaDocentes = useMemo(
-        () => construirMapaDocentes(docentes),
-        [docentes],
-    );
-
-    const productos = useMemo(
-        () => enriquecerProductosConDocente(productosRaw, mapaDocentes),
-        [productosRaw, mapaDocentes],
-    );
+    useEffect(() => {
+        const timer = setTimeout(() => setBusquedaDebounced(busqueda), 400);
+        return () => clearTimeout(timer);
+    }, [busqueda]);
 
     const filtros = useMemo(() => ({
         filtroEstado,
@@ -80,45 +64,69 @@ export const useAdminReportesProduccion = () => {
         busqueda,
     }), [filtroEstado, filtroCategoria, filtroSubcategoria, filtroFacultad, filtroPrograma, fechaDesde, fechaHasta, filtroCampoFecha, busqueda]);
 
-    const productosFiltrados = useMemo(
-        () => filtrarProductosReporte(productos, filtros),
-        [productos, filtros],
-    );
+    const fetchCatalogos = useCallback(async () => {
+        setLoadingCatalogos(true);
+        try {
+            const [facultadesData, programasData] = await Promise.all([
+                getFacultades(),
+                getProgramas(),
+            ]);
+            setFacultades(facultadesData);
+            setProgramas(programasData);
+        } catch (e) {
+            setError(e.response?.data?.error ?? e.response?.data?.message ?? e.message ?? "Error al cargar catálogos institucionales");
+        } finally {
+            setLoadingCatalogos(false);
+        }
+    }, []);
 
-    const resumen = useMemo(
-        () => calcularResumenProduccion(productosFiltrados),
-        [productosFiltrados],
-    );
+    const fetchReporte = useCallback(async () => {
+        setLoadingReporte(true);
+        setError(null);
+        try {
+            const data = await getReporteProduccionEjecutivo(buildReporteParams({
+                ...filtros,
+                busqueda: busquedaDebounced,
+            }));
+            setReporte(data);
+        } catch (e) {
+            setError(e.response?.data?.error ?? e.response?.data?.message ?? e.message ?? "Error al cargar producción docente");
+        } finally {
+            setLoadingReporte(false);
+        }
+    }, [filtros, busquedaDebounced]);
 
-    const docentesAlcance = useMemo(
-        () => docentesEnAlcance(docentes, filtros),
-        [docentes, filtros],
-    );
+    useEffect(() => { fetchCatalogos(); }, [fetchCatalogos]);
 
-    const cobertura = useMemo(
-        () => calcularCoberturaDocente(docentesAlcance, productosFiltrados),
-        [docentesAlcance, productosFiltrados],
-    );
+    useEffect(() => { fetchReporte(); }, [fetchReporte]);
 
-    const facultadesAlcance = useMemo(() => {
-        if (filtroFacultad === "TODAS") return facultades;
-        return facultades.filter((f) => String(f.id) === String(filtroFacultad));
-    }, [facultades, filtroFacultad]);
+    const loading = loadingCatalogos || loadingReporte;
+
+    const refetch = useCallback(async () => {
+        await Promise.all([fetchCatalogos(), fetchReporte()]);
+    }, [fetchCatalogos, fetchReporte]);
+
+    const resumen = reporte?.resumen ?? {
+        total: 0, publicados: 0, sinPublicar: 0, recientes: 0, docentesActivos: 0,
+    };
+
+    const cobertura = reporte?.cobertura ?? {
+        totalDocentes: 0, docentesConProduccion: 0, docentesSinProduccion: 0, porcentajeCobertura: 0,
+    };
+
+    const rankingDocentesTop = reporte?.graficos?.rankingDocentesTop ?? [];
+    const porFacultad = reporte?.porFacultad ?? [];
+    const porPrograma = reporte?.porPrograma ?? [];
+
+    const reporteParams = useMemo(
+        () => buildReporteParams({ ...filtros, busqueda: busquedaDebounced }),
+        [filtros, busquedaDebounced],
+    );
 
     const programasFiltrados = useMemo(() => {
         if (filtroFacultad === "TODAS") return programas;
         return programas.filter((p) => String(p.facultadId) === String(filtroFacultad));
     }, [programas, filtroFacultad]);
-
-    const porFacultad = useMemo(
-        () => agruparPorFacultad(productosFiltrados, facultadesAlcance, docentes),
-        [productosFiltrados, facultadesAlcance, docentes],
-    );
-
-    const porPrograma = useMemo(
-        () => agruparPorPrograma(productosFiltrados, programasFiltrados, docentes),
-        [productosFiltrados, programasFiltrados, docentes],
-    );
 
     const kpis = useMemo(() => [
         { label: "Total productos", value: resumen.total, icon: BookOpen, accent: "bg-[#ffc20e]/15 text-[#EC7A21]" },
@@ -131,49 +139,24 @@ export const useAdminReportesProduccion = () => {
     ], [resumen, cobertura]);
 
     const porAnio = useMemo(
-        () => agruparPorAnio(productosFiltrados, filtroCampoFecha),
-        [productosFiltrados, filtroCampoFecha],
+        () => mapConteoAnio(reporte?.graficos?.porAnio),
+        [reporte],
     );
 
-    const porCategoria = useMemo(
-        () => agruparConteo(productosFiltrados, (p) => p.categoria),
-        [productosFiltrados],
-    );
-
-    const porSubcategoria = useMemo(
-        () => agruparConteo(productosFiltrados, (p) => p.subcategoria),
-        [productosFiltrados],
-    );
-
-    const porTipo = useMemo(
-        () => agruparConteo(productosFiltrados, (p) => p.tipo),
-        [productosFiltrados],
-    );
-
-    const rankingDocentes = useMemo(
-        () => agruparPorDocente(productosFiltrados),
-        [productosFiltrados],
-    );
-
-    const productosRecientes = useMemo(
-        () => [...productosFiltrados]
-            .sort((a, b) => new Date(b.fechaRegistroSgpa ?? 0) - new Date(a.fechaRegistroSgpa ?? 0))
-            .slice(0, 10),
-        [productosFiltrados],
-    );
+    const porCategoria = reporte?.graficos?.porCategoria ?? [];
+    const porSubcategoria = reporte?.graficos?.porSubcategoria ?? [];
+    const porTipo = reporte?.graficos?.porTipo ?? [];
+    const productosRecientes = reporte?.graficos?.productosRecientes ?? [];
 
     const categoriasDisponibles = useMemo(() => {
-        const set = new Set(productos.map((p) => p.categoria).filter(Boolean));
-        return ["TODAS", ...set];
-    }, [productos]);
+        const items = reporte?.opciones?.categoriasDisponibles ?? [];
+        return ["TODAS", ...items];
+    }, [reporte]);
 
     const subcategoriasDisponibles = useMemo(() => {
-        const base = productos.filter(
-            (p) => filtroCategoria === "TODAS" || p.categoria === filtroCategoria,
-        );
-        const set = new Set(base.map((p) => p.subcategoria).filter(Boolean));
-        return ["TODAS", ...set];
-    }, [productos, filtroCategoria]);
+        const items = reporte?.opciones?.subcategoriasDisponibles ?? [];
+        return ["TODAS", ...items];
+    }, [reporte]);
 
     const handleFiltroCategoria = useCallback((v) => {
         setFiltroCategoria(v);
@@ -195,13 +178,12 @@ export const useAdminReportesProduccion = () => {
         setFechaHasta("");
     }, []);
 
-    const NOTA_ATRIBUCION_PROGRAMA =
-        "La facultad y el programa de cada producto se infieren de los programas académicos asociados al docente autor, no de un campo propio del producto.";
-
     return {
         loading,
         error,
-        refetch: fetchData,
+        refetch,
+        reporte,
+        reporteParams,
         filtros,
         filtroEstado,
         setFiltroEstado,
@@ -231,15 +213,14 @@ export const useAdminReportesProduccion = () => {
         porCategoria,
         porSubcategoria,
         porTipo,
-        rankingDocentes,
+        rankingDocentesTop,
         productosRecientes,
-        productosFiltrados,
-        totalFiltrados: productosFiltrados.length,
+        totalFiltrados: resumen.total,
         cobertura,
         porFacultad,
         porPrograma,
         aplicarPresetPeriodo,
         limpiarPeriodo,
-        notaAtribucion: NOTA_ATRIBUCION_PROGRAMA,
+        notaAtribucion: reporte?.meta?.notaAtribucion ?? "",
     };
 };

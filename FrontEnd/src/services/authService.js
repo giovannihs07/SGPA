@@ -4,7 +4,25 @@ import axiosInstance from "./axiosInstance";
  * @param {{ email: string, password: string }} credentials
  */
 export const loginUser = (credentials) =>
-    axiosInstance.post("/api/auth/login", credentials);
+    axiosInstance.post("/api/auth/login", credentials, { skipAuth: true });
+
+/**
+ * Solicita código de restablecimiento de contraseña.
+ * POST /api/auth/forgot-password
+ */
+export const solicitarResetPassword = (email) =>
+    axiosInstance.post("/api/auth/forgot-password", { email }, { skipAuth: true });
+
+/**
+ * Restablece contraseña con código.
+ * POST /api/auth/reset-password
+ */
+export const restablecerPassword = ({ email, codigo, passwordNuevo, passwordConfirmacion }) =>
+    axiosInstance.post(
+        "/api/auth/reset-password",
+        { email, codigo, passwordNuevo, passwordConfirmacion },
+        { skipAuth: true },
+    );
 
 /**
  * Registro exclusivo de docente.

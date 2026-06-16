@@ -8,6 +8,7 @@ import { InstitutionalPanel } from "../../components/ui/InstitutionalPanel";
 import { FormBanner } from "../../components/ui/FormBanner";
 import { FieldError } from "../../components/ui/FieldError";
 import { inputMd, inputError, labelBold } from "../../components/ui/themeTokens";
+import { AuthBackToPublicLink } from "./components/AuthBackToPublicLink";
 
 const initialForm = { email: "", password: "" };
 
@@ -187,6 +188,8 @@ export const LoginPage = () => {
                         Regístrese
                     </Link>
                 </p>
+
+                <AuthBackToPublicLink />
             </div>
 
             {/* Panel derecho — institucional */}

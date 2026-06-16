@@ -118,6 +118,18 @@ public class GlobalExceptionHandler {
             .body(Map.of("error", ex.getMessage()));
     }
 
+    @ExceptionHandler(PasswordResetTokenException.class)
+    public ResponseEntity<Map<String, String>> handlePasswordResetToken(PasswordResetTokenException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(PasswordResetRateLimitException.class)
+    public ResponseEntity<Map<String, String>> handlePasswordResetRateLimit(PasswordResetRateLimitException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+            .body(Map.of("error", ex.getMessage()));
+    }
+
     // ==================== Upload / multipart ====================
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)

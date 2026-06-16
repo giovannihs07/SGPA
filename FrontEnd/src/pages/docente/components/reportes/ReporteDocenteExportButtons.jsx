@@ -7,12 +7,16 @@ export const ReporteDocenteExportButtons = ({
     resumen,
     docente,
     filtros,
+    porCategoria,
+    porSubcategoria,
 }) => {
     const payload = {
         productos: productosFiltrados,
         resumen,
         docente,
         filtros,
+        porCategoria,
+        porSubcategoria,
     };
 
     const handleExcel = async () => {

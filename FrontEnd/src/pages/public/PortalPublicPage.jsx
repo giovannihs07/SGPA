@@ -1,6 +1,7 @@
-import { useCallback } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useCallback, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { usePublicProductos } from "../../hooks/public/usePublicProductos";
+import { usePublicProductoDetalle } from "../../hooks/public/usePublicProductoDetalle";
 import { PublicCatalogoLoading, PublicCatalogoError } from "./components/PublicCatalogoEstados";
 import { PublicHero } from "./components/PublicHero";
 import { PublicCatalogoHeader } from "./components/PublicCatalogoHeader";
@@ -8,14 +9,15 @@ import { PublicFiltrosChips } from "./components/PublicFiltrosChips";
 import { PublicFiltros } from "./components/PublicFiltros";
 import { PublicCategoriaCards } from "./components/PublicCategoriaCards";
 import { PublicRecientesSection } from "./components/PublicRecientesSection";
+import { PublicDocenteBanner } from "./components/PublicDocenteBanner";
 import { ProductosTarjetas } from "./components/ProductosTarjetas";
+import { ProductoPublicoDetalleDrawer } from "./components/ProductoPublicoDetalleDrawer";
 
 const scrollACatalogo = () => {
     document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth", block: "start" });
 };
 
 export const PortalPublicPage = () => {
-    const navigate = useNavigate();
     const location = useLocation();
 
     const {
@@ -23,24 +25,29 @@ export const PortalPublicPage = () => {
         resumen, resumenGlobal, hayFiltrosActivos,
         loading, refrescando, error, refetch,
         busqueda, setBusqueda,
+        docenteFiltro, quitarFiltroDocente,
         filtroCategoria, handleFiltroCategoria,
+        filtroSubcategoria, handleFiltroSubcategoria,
+        filtroFacultad, handleFiltroFacultad, etiquetaFacultad,
+        filtroPrograma, handleFiltroPrograma, etiquetaPrograma,
         filtroTipo, setFiltroTipo,
         fechaDesde, setFechaDesde,
         fechaHasta, setFechaHasta,
-        filtroCampoFecha, setFiltroCampoFecha,
         limpiarFiltros,
-        categoriasDisponibles, tiposDisponibles,
+        categoriasDisponibles, subcategoriasDisponibles, tiposDisponibles,
+        facultades, programasFiltrados,
         pagina, totalPaginas, pageSize, irPagina,
         handleDescargar,
         schema,
     } = usePublicProductos();
 
-    const irADetalle = useCallback(
-        (producto) => navigate(`/portal/public/productos/${producto.id}`, {
-            state: { fromSearch: location.search },
-        }),
-        [navigate, location.search],
-    );
+    const {
+        productoId,
+        previewProducto,
+        detalleAbierto,
+        abrirDetalle,
+        cerrarDetalle,
+    } = usePublicProductoDetalle(productos);
 
     const seleccionarCategoria = useCallback((nombre) => {
         handleFiltroCategoria(filtroCategoria === nombre ? "TODAS" : nombre);
@@ -52,9 +59,23 @@ export const PortalPublicPage = () => {
         scrollACatalogo();
     }, [handleFiltroCategoria]);
 
-    const subtituloCatalogo = hayFiltrosActivos
-        ? `${resumen.total} resultado${resumen.total === 1 ? "" : "s"} con los filtros actuales`
-        : "Productos publicados por docentes de la institución";
+    useEffect(() => {
+        if (docenteFiltro || location.hash === "#catalogo") {
+            scrollACatalogo();
+        }
+    }, [docenteFiltro, location.hash]);
+
+    const tituloCatalogo = docenteFiltro
+        ? "Producción del docente"
+        : "Catálogo de productos";
+
+    const subtituloCatalogo = docenteFiltro
+        ? (loading
+            ? "Cargando productos…"
+            : `${resumen.total} producto${resumen.total === 1 ? "" : "s"} publicado${resumen.total === 1 ? "" : "s"} por ${docenteFiltro}`)
+        : hayFiltrosActivos
+            ? `${resumen.total} resultado${resumen.total === 1 ? "" : "s"} con los filtros actuales`
+            : "Productos publicados por docentes de la institución";
 
     return (
         <>
@@ -67,38 +88,60 @@ export const PortalPublicPage = () => {
             />
 
             <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
-                <PublicCategoriaCards
-                    schema={schema}
-                    porCategoria={resumenGlobal.porCategoria}
-                    filtroCategoria={filtroCategoria}
-                    onSelectCategoria={seleccionarCategoria}
-                    onVerTodos={verTodasCategorias}
-                />
+                {!docenteFiltro && (
+                    <PublicCategoriaCards
+                        schema={schema}
+                        porCategoria={resumenGlobal.porCategoria}
+                        filtroCategoria={filtroCategoria}
+                        onSelectCategoria={seleccionarCategoria}
+                        onVerTodos={verTodasCategorias}
+                    />
+                )}
 
-                <PublicRecientesSection
-                    onVer={irADetalle}
-                    onDescargar={handleDescargar}
-                    onVerCatalogo={scrollACatalogo}
-                />
+                {!docenteFiltro && (
+                    <PublicRecientesSection
+                        onVer={abrirDetalle}
+                        onDescargar={handleDescargar}
+                        onVerCatalogo={scrollACatalogo}
+                    />
+                )}
 
                 <section id="catalogo" className="space-y-5 scroll-mt-4">
+                    {docenteFiltro && (
+                        <PublicDocenteBanner
+                            nombre={docenteFiltro}
+                            total={resumen.total}
+                            loading={loading}
+                            onQuitar={quitarFiltroDocente}
+                        />
+                    )}
+
                     <PublicCatalogoHeader
-                        title="Catálogo de productos"
-                        subtitle={loading ? "Cargando productos…" : subtituloCatalogo}
+                        title={tituloCatalogo}
+                        subtitle={subtituloCatalogo}
                     />
 
                     <PublicFiltrosChips
                         busqueda={busqueda}
                         setBusqueda={setBusqueda}
+                        docenteFiltro={docenteFiltro}
+                        quitarFiltroDocente={quitarFiltroDocente}
                         filtroCategoria={filtroCategoria}
                         handleFiltroCategoria={handleFiltroCategoria}
+                        filtroSubcategoria={filtroSubcategoria}
+                        handleFiltroSubcategoria={handleFiltroSubcategoria}
+                        filtroFacultad={filtroFacultad}
+                        handleFiltroFacultad={handleFiltroFacultad}
+                        etiquetaFacultad={etiquetaFacultad}
+                        filtroPrograma={filtroPrograma}
+                        handleFiltroPrograma={handleFiltroPrograma}
+                        etiquetaPrograma={etiquetaPrograma}
                         filtroTipo={filtroTipo}
                         setFiltroTipo={setFiltroTipo}
                         fechaDesde={fechaDesde}
                         fechaHasta={fechaHasta}
                         setFechaDesde={setFechaDesde}
                         setFechaHasta={setFechaHasta}
-                        filtroCampoFecha={filtroCampoFecha}
                         limpiarFiltros={limpiarFiltros}
                         hayFiltrosActivos={hayFiltrosActivos}
                     />
@@ -106,19 +149,33 @@ export const PortalPublicPage = () => {
                     <PublicFiltros
                         busqueda={busqueda}
                         setBusqueda={setBusqueda}
+                        docenteFiltro={docenteFiltro}
                         filtroCategoria={filtroCategoria}
                         handleFiltroCategoria={handleFiltroCategoria}
+                        filtroSubcategoria={filtroSubcategoria}
+                        handleFiltroSubcategoria={handleFiltroSubcategoria}
+                        filtroFacultad={filtroFacultad}
+                        handleFiltroFacultad={handleFiltroFacultad}
+                        etiquetaFacultad={etiquetaFacultad}
+                        filtroPrograma={filtroPrograma}
+                        handleFiltroPrograma={handleFiltroPrograma}
+                        etiquetaPrograma={etiquetaPrograma}
                         filtroTipo={filtroTipo}
                         setFiltroTipo={setFiltroTipo}
                         categoriasDisponibles={categoriasDisponibles}
+                        subcategoriasDisponibles={subcategoriasDisponibles}
                         tiposDisponibles={tiposDisponibles}
+                        facultades={facultades}
+                        programasFiltrados={programasFiltrados}
                         fechaDesde={fechaDesde}
                         fechaHasta={fechaHasta}
                         setFechaDesde={setFechaDesde}
                         setFechaHasta={setFechaHasta}
-                        filtroCampoFecha={filtroCampoFecha}
-                        setFiltroCampoFecha={setFiltroCampoFecha}
-                        placeholderBusqueda="Buscar por nombre, descripción o docente…"
+                        placeholderBusqueda={
+                            docenteFiltro
+                                ? "Refinar dentro de la producción de este docente…"
+                                : "Buscar por nombre, descripción o docente…"
+                        }
                     />
 
                     {error && !loading && (
@@ -143,7 +200,7 @@ export const PortalPublicPage = () => {
                                     totalPaginas={totalPaginas}
                                     pageSize={pageSize}
                                     irPagina={irPagina}
-                                    onVer={irADetalle}
+                                    onVer={abrirDetalle}
                                     onDescargar={handleDescargar}
                                 />
                             </div>
@@ -151,6 +208,14 @@ export const PortalPublicPage = () => {
                     )}
                 </section>
             </div>
+
+            {detalleAbierto && (
+                <ProductoPublicoDetalleDrawer
+                    productoId={productoId}
+                    previewProducto={previewProducto}
+                    onClose={cerrarDetalle}
+                />
+            )}
         </>
     );
 };

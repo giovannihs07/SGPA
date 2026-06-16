@@ -1,8 +1,8 @@
 import { X } from "lucide-react";
 import {
     CATEGORIA_LABELS,
+    SUBCATEGORIA_LABELS,
     TIPO_LABELS,
-    CAMPO_FECHA_PUBLICACION_SGPA,
 } from "../../docente/components/productoHelpers";
 
 const Chip = ({ label, onRemove }) => (
@@ -30,21 +30,38 @@ const formatFechaChip = (fecha) => {
 export const PublicFiltrosChips = ({
     busqueda,
     setBusqueda,
+    docenteFiltro,
+    quitarFiltroDocente,
     filtroCategoria,
     handleFiltroCategoria,
+    filtroSubcategoria,
+    handleFiltroSubcategoria,
+    filtroFacultad,
+    handleFiltroFacultad,
+    etiquetaFacultad,
+    filtroPrograma,
+    handleFiltroPrograma,
+    etiquetaPrograma,
     filtroTipo,
     setFiltroTipo,
     fechaDesde,
     fechaHasta,
     setFechaDesde,
     setFechaHasta,
-    filtroCampoFecha,
     limpiarFiltros,
     hayFiltrosActivos,
 }) => {
     if (!hayFiltrosActivos) return null;
 
     const chips = [];
+
+    if (docenteFiltro.trim()) {
+        chips.push({
+            key: "docente",
+            label: `Docente: ${docenteFiltro.trim()}`,
+            onRemove: quitarFiltroDocente,
+        });
+    }
 
     if (busqueda.trim()) {
         chips.push({
@@ -62,6 +79,30 @@ export const PublicFiltrosChips = ({
         });
     }
 
+    if (filtroSubcategoria !== "TODAS") {
+        chips.push({
+            key: "subcategoria",
+            label: SUBCATEGORIA_LABELS[filtroSubcategoria] ?? filtroSubcategoria,
+            onRemove: () => handleFiltroSubcategoria("TODAS"),
+        });
+    }
+
+    if (filtroFacultad !== "TODAS") {
+        chips.push({
+            key: "facultad",
+            label: `Facultad: ${etiquetaFacultad ?? filtroFacultad}`,
+            onRemove: () => handleFiltroFacultad("TODAS"),
+        });
+    }
+
+    if (filtroPrograma !== "TODOS") {
+        chips.push({
+            key: "programa",
+            label: `Programa: ${etiquetaPrograma ?? filtroPrograma}`,
+            onRemove: () => handleFiltroPrograma("TODOS"),
+        });
+    }
+
     if (filtroTipo !== "TODOS") {
         chips.push({
             key: "tipo",
@@ -71,12 +112,9 @@ export const PublicFiltrosChips = ({
     }
 
     if (fechaDesde || fechaHasta) {
-        const campoLabel = filtroCampoFecha === CAMPO_FECHA_PUBLICACION_SGPA
-            ? "Publicado"
-            : "Registrado";
         chips.push({
             key: "fecha",
-            label: `${campoLabel}: ${formatFechaChip(fechaDesde)} — ${formatFechaChip(fechaHasta)}`,
+            label: `Publicado: ${formatFechaChip(fechaDesde)} — ${formatFechaChip(fechaHasta)}`,
             onRemove: () => {
                 setFechaDesde("");
                 setFechaHasta("");

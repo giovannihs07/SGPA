@@ -6,6 +6,7 @@ import {
     getProductoSchema,
 } from "../../services/productoServices";
 import { descargarProductoPublico } from "../../utils/publicProductoDownload";
+import { getFacultades, getProgramas } from "../../services/institucionService";
 import { CATEGORIA_LABELS } from "../../pages/docente/components/productoHelpers";
 
 const PAGE_SIZE = 10;
@@ -24,20 +25,26 @@ const patchSearchParams = (prev, patch, resetPage = false) => {
 
 const buildQueryParams = ({
     busqueda,
+    docenteQuery,
     filtroCategoria,
+    filtroSubcategoria,
     filtroTipo,
+    filtroFacultad,
+    filtroPrograma,
     fechaDesde,
     fechaHasta,
-    filtroCampoFecha,
     pagina,
 }) => {
     const params = { page: pagina, size: PAGE_SIZE };
-    if (busqueda.trim()) params.q = busqueda.trim();
+    const termino = (docenteQuery || busqueda).trim();
+    if (termino) params.q = termino;
     if (filtroCategoria !== "TODAS") params.categoria = filtroCategoria;
+    if (filtroSubcategoria !== "TODAS") params.subcategoria = filtroSubcategoria;
     if (filtroTipo !== "TODOS") params.tipo = filtroTipo;
+    if (filtroFacultad !== "TODAS") params.facultad = filtroFacultad;
+    if (filtroPrograma !== "TODOS") params.programa = filtroPrograma;
     if (fechaDesde) params.desde = fechaDesde;
     if (fechaHasta) params.hasta = fechaHasta;
-    if (filtroCampoFecha !== "fechaPublicacionSgpa") params.campoFecha = filtroCampoFecha;
     return params;
 };
 
@@ -52,18 +59,35 @@ export const usePublicProductos = () => {
         porCategoria: [],
     });
     const [schema, setSchema] = useState([]);
+    const [facultades, setFacultades] = useState([]);
+    const [programas, setProgramas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refrescando, setRefrescando] = useState(false);
     const [error, setError] = useState(null);
     const haCargadoRef = useRef(false);
 
     const busqueda = searchParams.get("q") ?? "";
+    const docenteFiltro = searchParams.get("docenteNombre") ?? searchParams.get("docente") ?? "";
+    const docenteCodigo = searchParams.get("docenteCodigo") ?? "";
+    const docenteQuery = docenteCodigo || docenteFiltro;
     const filtroCategoria = searchParams.get("categoria") ?? "TODAS";
+    const filtroSubcategoria = searchParams.get("subcategoria") ?? "TODAS";
     const filtroTipo = searchParams.get("tipo") ?? "TODOS";
+    const filtroFacultad = searchParams.get("facultad") ?? "TODAS";
+    const filtroPrograma = searchParams.get("programa") ?? "TODOS";
     const fechaDesde = searchParams.get("desde") ?? "";
     const fechaHasta = searchParams.get("hasta") ?? "";
-    const filtroCampoFecha = searchParams.get("campoFecha") ?? "fechaPublicacionSgpa";
     const pagina = Math.max(0, parseInt(searchParams.get("pagina") ?? "1", 10) - 1);
+
+    useEffect(() => {
+        if (!searchParams.get("campoFecha")) return;
+        setSearchParams((prev) => {
+            const next = new URLSearchParams(prev);
+            next.delete("campoFecha");
+            return next;
+        }, { replace: true });
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- limpiar URLs antiguas solo al montar
+    }, []);
 
     const updateParams = useCallback((patch, resetPage = false) => {
         setSearchParams((prev) => patchSearchParams(prev, patch, resetPage), { replace: true });
@@ -73,6 +97,15 @@ export const usePublicProductos = () => {
         getProductoSchema()
             .then(setSchema)
             .catch(() => setSchema([]));
+    }, []);
+
+    useEffect(() => {
+        getFacultades()
+            .then(setFacultades)
+            .catch(() => setFacultades([]));
+        getProgramas()
+            .then(setProgramas)
+            .catch(() => setProgramas([]));
     }, []);
 
     useEffect(() => {
@@ -130,26 +163,32 @@ export const usePublicProductos = () => {
     useEffect(() => {
         const params = buildQueryParams({
             busqueda,
+            docenteQuery,
             filtroCategoria,
+            filtroSubcategoria,
             filtroTipo,
+            filtroFacultad,
+            filtroPrograma,
             fechaDesde,
             fechaHasta,
-            filtroCampoFecha,
             pagina,
         });
 
         const timer = setTimeout(() => {
             fetchProductos(params, { esRefresco: haCargadoRef.current });
-        }, busqueda ? DEBOUNCE_MS : 0);
+        }, (busqueda || docenteQuery) ? DEBOUNCE_MS : 0);
 
         return () => clearTimeout(timer);
     }, [
         busqueda,
+        docenteQuery,
         filtroCategoria,
+        filtroSubcategoria,
         filtroTipo,
+        filtroFacultad,
+        filtroPrograma,
         fechaDesde,
         fechaHasta,
-        filtroCampoFecha,
         pagina,
         fetchProductos,
     ]);
@@ -165,51 +204,140 @@ export const usePublicProductos = () => {
         return nombres.length ? ["TODAS", ...nombres] : ["TODAS"];
     }, [schema]);
 
+    const subcategoriasDisponibles = useMemo(() => {
+        if (!schema.length) return ["TODAS"];
+
+        const categorias = filtroCategoria === "TODAS"
+            ? schema
+            : schema.filter((c) => c.nombre === filtroCategoria);
+        const subs = [...new Set(
+            categorias.flatMap((c) =>
+                (c.subcategorias ?? []).map((s) => s.nombre).filter(Boolean),
+            ),
+        )];
+        return ["TODAS", ...subs];
+    }, [schema, filtroCategoria]);
+
     const tiposDisponibles = useMemo(() => {
         if (!schema.length) return ["TODOS"];
 
-        const extraerTipos = (categorias) => categorias.flatMap((cat) =>
-            (cat.subcategorias ?? []).flatMap((sub) =>
+        const categorias = filtroCategoria === "TODAS"
+            ? schema
+            : schema.filter((c) => c.nombre === filtroCategoria);
+        const subs = categorias.flatMap((c) => c.subcategorias ?? []);
+        const subsFiltradas = filtroSubcategoria === "TODAS"
+            ? subs
+            : subs.filter((s) => s.nombre === filtroSubcategoria);
+        const tipos = [...new Set(
+            subsFiltradas.flatMap((sub) =>
                 (sub.tipos ?? []).map((t) => t.nombre).filter(Boolean),
             ),
-        );
-
-        if (filtroCategoria === "TODAS") {
-            const tipos = [...new Set(extraerTipos(schema))];
-            return ["TODOS", ...tipos];
-        }
-
-        const categoria = schema.find((c) => c.nombre === filtroCategoria);
-        const tipos = categoria ? [...new Set(extraerTipos([categoria]))] : [];
+        )];
         return ["TODOS", ...tipos];
-    }, [schema, filtroCategoria]);
+    }, [schema, filtroCategoria, filtroSubcategoria]);
+
+    const programasFiltrados = useMemo(() => {
+        if (filtroFacultad === "TODAS") return programas;
+        return programas.filter((p) => String(p.facultadId) === String(filtroFacultad));
+    }, [programas, filtroFacultad]);
 
     const handleFiltroCategoria = useCallback((v) => {
         setSearchParams((prev) => {
             const next = patchSearchParams(prev, { categoria: v }, true);
             next.delete("tipo");
+            next.delete("subcategoria");
             return next;
         }, { replace: true });
     }, [setSearchParams]);
 
+    const handleFiltroSubcategoria = useCallback((v) => {
+        setSearchParams((prev) => {
+            const next = patchSearchParams(prev, { subcategoria: v }, true);
+            next.delete("tipo");
+            return next;
+        }, { replace: true });
+    }, [setSearchParams]);
+
+    const handleFiltroFacultad = useCallback((v) => {
+        setSearchParams((prev) => {
+            const next = patchSearchParams(prev, { facultad: v }, true);
+            next.delete("programa");
+            return next;
+        }, { replace: true });
+    }, [setSearchParams]);
+
+    const handleFiltroPrograma = useCallback((v) => {
+        updateParams({ programa: v }, true);
+    }, [updateParams]);
+
+    useEffect(() => {
+        if (filtroPrograma === "TODOS" || !programas.length) return;
+        const valido = programasFiltrados.some((p) => String(p.id) === String(filtroPrograma));
+        if (!valido) handleFiltroPrograma("TODOS");
+    }, [filtroFacultad, programasFiltrados, filtroPrograma, handleFiltroPrograma, programas.length]);
+
     const hayFiltrosActivos = Boolean(
-        busqueda || filtroCategoria !== "TODAS" || filtroTipo !== "TODOS"
+        busqueda || docenteFiltro || filtroCategoria !== "TODAS" || filtroSubcategoria !== "TODAS"
+        || filtroTipo !== "TODOS" || filtroFacultad !== "TODAS" || filtroPrograma !== "TODOS"
         || fechaDesde || fechaHasta,
     );
+
+    const filtrarPorDocente = useCallback((productoONombre) => {
+        setSearchParams((prev) => {
+            const next = new URLSearchParams(prev);
+            next.delete("pagina");
+            next.delete("q");
+            next.delete("docente");
+            next.delete("docenteNombre");
+            next.delete("docenteCodigo");
+
+            const nombreLimpio = typeof productoONombre === "string"
+                ? productoONombre.trim()
+                : [productoONombre?.docenteNombre, productoONombre?.docenteApellido]
+                    .filter(Boolean).join(" ").trim();
+            const codigoDocente = typeof productoONombre === "object"
+                ? productoONombre?.docenteCodigo
+                : null;
+
+            if (!nombreLimpio && !codigoDocente) return next;
+
+            if (codigoDocente) {
+                next.set("docenteCodigo", codigoDocente);
+                if (nombreLimpio) next.set("docenteNombre", nombreLimpio);
+            } else if (nombreLimpio) {
+                next.set("docente", nombreLimpio);
+            }
+            return next;
+        }, { replace: true });
+    }, [setSearchParams]);
+
+    const quitarFiltroDocente = useCallback(() => {
+        setSearchParams((prev) => {
+            const next = new URLSearchParams(prev);
+            next.delete("docente");
+            next.delete("docenteNombre");
+            next.delete("docenteCodigo");
+            return next;
+        }, { replace: true });
+    }, [setSearchParams]);
 
     const irPagina = useCallback((nueva) => {
         const idx = Math.max(0, Math.min(nueva, totalPaginas - 1));
         updateParams({ pagina: idx <= 0 ? "" : String(idx + 1) });
     }, [totalPaginas, updateParams]);
 
-    const handleBusqueda = useCallback((v) => updateParams({ q: v }, true), [updateParams]);
+    const handleBusqueda = useCallback((v) => {
+        setSearchParams((prev) => {
+            const next = patchSearchParams(prev, { q: v }, true);
+            next.delete("docente");
+            next.delete("docenteNombre");
+            next.delete("docenteCodigo");
+            return next;
+        }, { replace: true });
+    }, [setSearchParams]);
     const handleFiltroTipo = useCallback((v) => updateParams({ tipo: v }, true), [updateParams]);
     const handleFechaDesde = useCallback((v) => updateParams({ desde: v }, true), [updateParams]);
     const handleFechaHasta = useCallback((v) => updateParams({ hasta: v }, true), [updateParams]);
-    const handleFiltroCampoFecha = useCallback(
-        (v) => updateParams({ campoFecha: v === "fechaPublicacionSgpa" ? "" : v }, true),
-        [updateParams],
-    );
 
     const limpiarFiltros = useCallback(() => {
         setSearchParams({}, { replace: true });
@@ -218,23 +346,39 @@ export const usePublicProductos = () => {
     const refetch = useCallback(() => {
         fetchProductos(buildQueryParams({
             busqueda,
+            docenteQuery,
             filtroCategoria,
+            filtroSubcategoria,
             filtroTipo,
+            filtroFacultad,
+            filtroPrograma,
             fechaDesde,
             fechaHasta,
-            filtroCampoFecha,
             pagina,
         }), { esRefresco: true });
     }, [
         fetchProductos,
         busqueda,
+        docenteQuery,
         filtroCategoria,
+        filtroSubcategoria,
         filtroTipo,
+        filtroFacultad,
+        filtroPrograma,
         fechaDesde,
         fechaHasta,
-        filtroCampoFecha,
         pagina,
     ]);
+
+    const etiquetaFacultad = useMemo(() => {
+        if (filtroFacultad === "TODAS") return null;
+        return facultades.find((f) => String(f.id) === String(filtroFacultad))?.nombre ?? filtroFacultad;
+    }, [facultades, filtroFacultad]);
+
+    const etiquetaPrograma = useMemo(() => {
+        if (filtroPrograma === "TODOS") return null;
+        return programas.find((p) => String(p.id) === String(filtroPrograma))?.nombre ?? filtroPrograma;
+    }, [programas, filtroPrograma]);
 
     const handleDescargar = useCallback(
         (producto, archivo = null) => descargarProductoPublico(producto, archivo),
@@ -256,19 +400,31 @@ export const usePublicProductos = () => {
         refetch,
         busqueda,
         setBusqueda: handleBusqueda,
+        docenteFiltro,
+        filtrarPorDocente,
+        quitarFiltroDocente,
         filtroCategoria,
         handleFiltroCategoria,
+        filtroSubcategoria,
+        handleFiltroSubcategoria,
+        filtroFacultad,
+        handleFiltroFacultad,
+        filtroPrograma,
+        handleFiltroPrograma,
         filtroTipo,
         setFiltroTipo: handleFiltroTipo,
         fechaDesde,
         setFechaDesde: handleFechaDesde,
         fechaHasta,
         setFechaHasta: handleFechaHasta,
-        filtroCampoFecha,
-        setFiltroCampoFecha: handleFiltroCampoFecha,
         limpiarFiltros,
         categoriasDisponibles,
+        subcategoriasDisponibles,
         tiposDisponibles,
+        facultades,
+        programasFiltrados,
+        etiquetaFacultad,
+        etiquetaPrograma,
         pagina,
         totalPaginas,
         pageSize: PAGE_SIZE,

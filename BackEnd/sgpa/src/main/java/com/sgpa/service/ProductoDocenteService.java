@@ -34,7 +34,10 @@ public interface ProductoDocenteService {
     ProductoPublicoPageResponse buscarPublicadosPortal(
             String q,
             String categoria,
+            String subcategoria,
             String tipo,
+            Long facultadId,
+            Long programaId,
             LocalDate desde,
             LocalDate hasta,
             String campoFecha,

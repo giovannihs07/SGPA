@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { X, Info, Paperclip, Pencil, Download, Lock } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { X, Info, Paperclip, Pencil, Lock } from "lucide-react";
 import { getProductoSchema } from "../../../../services/productoServices";
 import { etiquetaRolArchivo } from "../../../../config/productoArchivo";
 import {
@@ -11,6 +11,10 @@ import {
 } from "../productoHelpers";
 import { buildEtiquetasAtributosMap } from "../productoFormUtils";
 import { EstadoBadge } from "./EstadoBadge";
+import { ArchivoAccionesPdf } from "../../../../components/ui/ArchivoAccionesPdf";
+import { ArchivoPdfViewer } from "../../../../components/ui/ArchivoPdfViewer";
+import { useArchivoPdfViewer } from "../../../../hooks/useArchivoPdfViewer";
+import { verArchivoDocente } from "../../../../utils/verArchivoProducto";
 
 const DetallePill = ({ label, value, accent = "border-[#EC7A21]" }) => (
     <div className={`bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700
@@ -24,7 +28,7 @@ const DetallePill = ({ label, value, accent = "border-[#EC7A21]" }) => (
     </div>
 );
 
-const FilaArchivoDetalle = ({ archivo, producto, onDescargar }) => {
+const FilaArchivoDetalle = ({ archivo, producto, onVer, onDescargar }) => {
     const ext = archivo.extensionArchivo
         ?? (archivo.nombreOriginal?.includes(".")
             ? archivo.nombreOriginal.split(".").pop().toUpperCase()
@@ -64,14 +68,13 @@ const FilaArchivoDetalle = ({ archivo, producto, onDescargar }) => {
                 </span>
             )}
             {descargable && (
-                <button
-                    type="button"
-                    onClick={() => onDescargar(producto, archivo)}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-white
-                        bg-[#EC7A21] hover:bg-[#d96a15] px-3.5 py-2 rounded-lg transition"
-                >
-                    <Download size={14} /> Descargar
-                </button>
+                <ArchivoAccionesPdf
+                    archivo={archivo}
+                    producto={producto}
+                    descargable={descargable}
+                    onVer={onVer}
+                    onDescargar={onDescargar}
+                />
             )}
         </div>
     );
@@ -97,11 +100,19 @@ export const ProductoDetalleModal = ({
     permitirEditar = true,
 }) => {
     const [etiquetasAtributos, setEtiquetasAtributos] = useState({});
+    const { visor, abrirPdf, cerrarVisor } = useArchivoPdfViewer();
+
+    const handleVerArchivo = useCallback(
+        (p, archivo) => verArchivoDocente(p, archivo, abrirPdf),
+        [abrirPdf],
+    );
 
     useEffect(() => {
         if (!producto) return;
 
-        const onKey = (e) => { if (e.key === "Escape") onClose(); };
+        const onKey = (e) => {
+            if (e.key === "Escape" && !visor) onClose();
+        };
         document.addEventListener("keydown", onKey);
         document.body.style.overflow = "hidden";
 
@@ -109,7 +120,11 @@ export const ProductoDetalleModal = ({
             document.removeEventListener("keydown", onKey);
             document.body.style.overflow = "";
         };
-    }, [producto, onClose]);
+    }, [producto, onClose, visor]);
+
+    useEffect(() => {
+        if (!producto) cerrarVisor();
+    }, [producto, cerrarVisor]);
 
     useEffect(() => {
         if (!producto) {
@@ -133,6 +148,7 @@ export const ProductoDetalleModal = ({
     const togglingEste = toggling === producto.id;
 
     return (
+        <>
         <div
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
             role="dialog"
@@ -276,6 +292,7 @@ export const ProductoDetalleModal = ({
                                                     key={archivo.id ?? archivo.nombreOriginal}
                                                     archivo={archivo}
                                                     producto={producto}
+                                                    onVer={handleVerArchivo}
                                                     onDescargar={onDescargar}
                                                 />
                                             ))}
@@ -291,6 +308,7 @@ export const ProductoDetalleModal = ({
                                                     key={archivo.id ?? archivo.nombreOriginal}
                                                     archivo={archivo}
                                                     producto={producto}
+                                                    onVer={handleVerArchivo}
                                                     onDescargar={onDescargar}
                                                 />
                                             ))}
@@ -307,6 +325,7 @@ export const ProductoDetalleModal = ({
                                             key={archivo.id ?? archivo.nombreOriginal}
                                             archivo={archivo}
                                             producto={producto}
+                                            onVer={handleVerArchivo}
                                             onDescargar={onDescargar}
                                         />
                                     ))}
@@ -386,5 +405,14 @@ export const ProductoDetalleModal = ({
                 </div>
             </div>
         </div>
+
+        {visor && (
+            <ArchivoPdfViewer
+                url={visor.url}
+                titulo={visor.titulo}
+                onClose={cerrarVisor}
+            />
+        )}
+        </>
     );
 };

@@ -229,7 +229,10 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
     public ProductoPublicoPageResponse buscarPublicadosPortal(
             String q,
             String categoria,
+            String subcategoria,
             String tipo,
+            Long facultadId,
+            Long programaId,
             LocalDate desde,
             LocalDate hasta,
             String campoFecha,
@@ -237,11 +240,13 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
 
         String qNorm = normalizarTexto(q);
         String categoriaNorm = normalizarFiltroTaxonomia(categoria);
+        String subcategoriaNorm = normalizarFiltroTaxonomia(subcategoria);
         String tipoNorm = normalizarFiltroTaxonomia(tipo);
         String campoFechaNorm = normalizarCampoFecha(campoFecha);
 
         Specification<ProductoDocente> spec = ProductoPublicoSpecifications.publicadosConFiltros(
-                qNorm, categoriaNorm, tipoNorm, desde, hasta, campoFechaNorm);
+                qNorm, categoriaNorm, subcategoriaNorm, tipoNorm,
+                facultadId, programaId, desde, hasta, campoFechaNorm);
 
         Page<ProductoDocente> page = repository.findAll(spec, pageable);
         List<ProductoDocenteResponse> content = page.getContent().stream()
@@ -263,11 +268,13 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
 
     @Override
     @Transactional(readOnly = true)
+    // Resumen de productos públicos del portal (KPIs globales)
     public ProductoPublicoResumenResponse resumenPublicosPortal() {
         String campoFecha = "fechaPublicacionSgpa";
         Specification<ProductoDocente> publicados = ProductoPublicoSpecifications.publicadosConFiltros(
-                null, null, null, null, null, campoFecha);
+                null, null, null, null, null, null, null, null, campoFecha);
 
+        long total = repository.count(publicados);
         long ultimos30Dias = repository.count(
                 publicados.and(ProductoPublicoSpecifications.ultimos30Dias(campoFecha)));
 
@@ -276,12 +283,12 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
                 .stream()
                 .map(row -> ProductoPublicoCategoriaCountResponse.builder()
                         .categoria((String) row[0])
-                        .count((Long) row[1])
+                        .count(row[1] instanceof Number n ? n.longValue() : 0L)
                         .build())
                 .toList();
 
         return ProductoPublicoResumenResponse.builder()
-                .total(repository.countByPublicadoTrue())
+                .total(total)
                 .ultimos30Dias(ultimos30Dias)
                 .porCategoria(porCategoria)
                 .build();
@@ -298,7 +305,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
 
     @Override
     @Transactional
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN') or @productoSecurity.esPropietario(#id)")
+    @PreAuthorize("@productoSecurity.esPropietario(#id)")
     public ProductoDocenteResponse publicar(Long id, PublicarProductoRequest request) {
         ProductoDocente producto = buscarEntidad(id);
 

@@ -91,10 +91,11 @@ public class ProductoDocenteController {
     @GetMapping("/mis/{id}/archivos/{archivoId}")
     public ResponseEntity<Resource> descargarMiArchivo(
             @PathVariable Long id,
-            @PathVariable Long archivoId) {
+            @PathVariable Long archivoId,
+            @RequestParam(defaultValue = "attachment") String disposition) {
         ProductoArchivo archivo = service.validarDescargaPropietario(id, archivoId);
         Resource resource = fileStorageService.cargarArchivo(archivo.getNombreInterno());
-        return respuestaDescarga(resource, archivo.getNombreOriginal());
+        return respuestaArchivo(resource, archivo.getNombreOriginal(), disposition);
     }
 
     // Portal público — catálogo publicado con filtros y paginación
@@ -102,7 +103,10 @@ public class ProductoDocenteController {
     public ResponseEntity<ProductoPublicoPageResponse> buscarPublicosPortal(
             @RequestParam(required = false) String q,
             @RequestParam(required = false) String categoria,
+            @RequestParam(required = false) String subcategoria,
             @RequestParam(required = false) String tipo,
+            @RequestParam(required = false) Long facultad,
+            @RequestParam(required = false) Long programa,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
             @RequestParam(required = false, defaultValue = "fechaPublicacionSgpa") String campoFecha,
@@ -111,7 +115,7 @@ public class ProductoDocenteController {
             @RequestParam(defaultValue = "fechaPublicacionSgpa,desc") String sort) {
         Pageable pageable = PageRequest.of(page, size, parsearOrden(sort));
         return ResponseEntity.ok(service.buscarPublicadosPortal(
-                q, categoria, tipo, desde, hasta, campoFecha, pageable));
+                q, categoria, subcategoria, tipo, facultad, programa, desde, hasta, campoFecha, pageable));
     }
 
     @GetMapping("/publicos/resumen")
@@ -119,7 +123,7 @@ public class ProductoDocenteController {
         return ResponseEntity.ok(service.resumenPublicosPortal());
     }
 
-    @GetMapping("/publicos/{id}")
+    @GetMapping("/publicos/{id:\\d+}")
     public ResponseEntity<ProductoDocenteResponse> buscarPublicoPorId(
             @PathVariable Long id) {
         return ResponseEntity.ok(service.buscarPublicoPorId(id));
@@ -182,11 +186,12 @@ public class ProductoDocenteController {
     /** Descarga el archivo principal (compatibilidad). */
     @GetMapping("/{id}/archivo")
     public ResponseEntity<Resource> descargarArchivoPrincipal(
-            @PathVariable Long id) {
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "attachment") String disposition) {
         try {
             ProductoArchivo principal = service.validarDescargaPublicaPrincipal(id);
             Resource resource = fileStorageService.cargarArchivo(principal.getNombreInterno());
-            return respuestaDescarga(resource, principal.getNombreOriginal());
+            return respuestaArchivo(resource, principal.getNombreOriginal(), disposition);
         } catch (AccesoDenegadoException ex) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -196,11 +201,12 @@ public class ProductoDocenteController {
     @GetMapping("/{id}/archivos/{archivoId}")
     public ResponseEntity<Resource> descargarArchivo(
             @PathVariable Long id,
-            @PathVariable Long archivoId) {
+            @PathVariable Long archivoId,
+            @RequestParam(defaultValue = "attachment") String disposition) {
         try {
             ProductoArchivo archivo = service.validarDescargaPublica(id, archivoId);
             Resource resource = fileStorageService.cargarArchivo(archivo.getNombreInterno());
-            return respuestaDescarga(resource, archivo.getNombreOriginal());
+            return respuestaArchivo(resource, archivo.getNombreOriginal(), disposition);
         } catch (AccesoDenegadoException ex) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -218,13 +224,47 @@ public class ProductoDocenteController {
         return ResponseEntity.ok(service.obtenerOpcionesDisponibles());
     }
 
-    // Respuesta de descarga de un archivo
-    private ResponseEntity<Resource> respuestaDescarga(Resource resource, String nombreOriginal) {
+    private ResponseEntity<Resource> respuestaArchivo(
+            Resource resource,
+            String nombreOriginal,
+            String disposition) {
+        boolean inline = "inline".equalsIgnoreCase(disposition);
+        String filename = nombreOriginal != null
+                ? nombreOriginal.replace("\"", "")
+                : "archivo";
+        String dispositionType = inline ? "inline" : "attachment";
         return ResponseEntity.ok()
-            .contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .contentType(resolverMediaType(nombreOriginal))
             .header(HttpHeaders.CONTENT_DISPOSITION,
-                "attachment; filename=\"" + nombreOriginal + "\"")
+                dispositionType + "; filename=\"" + filename + "\"")
             .body(resource);
+    }
+
+    private MediaType resolverMediaType(String nombreOriginal) {
+        String ext = extensionArchivo(nombreOriginal);
+        return switch (ext) {
+            case "pdf" -> MediaType.APPLICATION_PDF;
+            case "doc" -> MediaType.parseMediaType("application/msword");
+            case "docx" -> MediaType.parseMediaType(
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+            case "xls" -> MediaType.parseMediaType("application/vnd.ms-excel");
+            case "xlsx" -> MediaType.parseMediaType(
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            case "ppt" -> MediaType.parseMediaType("application/vnd.ms-powerpoint");
+            case "pptx" -> MediaType.parseMediaType(
+                    "application/vnd.openxmlformats-officedocument.presentationml.presentation");
+            case "zip" -> MediaType.parseMediaType("application/zip");
+            case "rar" -> MediaType.parseMediaType("application/vnd.rar");
+            case "7z" -> MediaType.parseMediaType("application/x-7z-compressed");
+            default -> MediaType.APPLICATION_OCTET_STREAM;
+        };
+    }
+
+    private String extensionArchivo(String nombreOriginal) {
+        if (nombreOriginal == null || !nombreOriginal.contains(".")) {
+            return "";
+        }
+        return nombreOriginal.substring(nombreOriginal.lastIndexOf('.') + 1).toLowerCase();
     }
 
     /** Compatibilidad con cliente que envía un solo "archivo". */

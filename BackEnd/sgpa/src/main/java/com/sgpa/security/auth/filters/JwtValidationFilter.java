@@ -48,7 +48,7 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
             requestURI.startsWith("/swagger-resources") ||
             requestURI.startsWith("/webjars") ||
             requestURI.equals("/swagger-ui.html") ||
-            requestURI.equals("/api/auth/login")) {
+            requestURI.startsWith("/api/auth/")) {
             chain.doFilter(request, response);
             return;
         }
