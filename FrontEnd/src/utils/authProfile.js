@@ -28,3 +28,7 @@ export const getRolLabel = (login) => {
     if (login?.isDocente) return "Docente";
     return "Estudiante";
 };
+
+/** Nombre completo del usuario autenticado. */
+export const getNombreCompleto = (login) =>
+    [login?.user?.nombre, login?.user?.apellido].filter(Boolean).join(" ").trim();

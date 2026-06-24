@@ -1,3 +1,5 @@
+import { MAX_ARCHIVO_MB } from "../config/productoArchivo";
+
 const SESSION_CODES = new Set(["SESSION_EXPIRED", "INVALID_TOKEN"]);
 
 const isJwtTechnicalMessage = (text) =>
@@ -24,7 +26,7 @@ export const getApiErrorMessage = (error, fallback = "Ocurrió un error inespera
 
     if (!data) {
         if (error?.message === "Network Error") {
-            return "No se pudo conectar con el servidor. Si adjuntaste un archivo, verifica que no supere el tamaño máximo permitido (10 MB).";
+            return `No se pudo conectar con el servidor. Si adjuntaste un archivo, verifica que no supere el tamaño máximo permitido (${MAX_ARCHIVO_MB} MB).`;
         }
         return error?.message ?? fallback;
     }

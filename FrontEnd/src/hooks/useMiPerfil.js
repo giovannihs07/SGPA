@@ -22,7 +22,7 @@ import {
 } from "../pages/perfil/perfilHelpers";
 
 const datosIniciales = { nombre: "", apellido: "", telefono: "" };
-const docenteInicial = { tipoContrato: "" };
+const docenteInicial = { codigoDocente: "", tipoContrato: "" };
 const administrativoInicial = { cargo: "", dependencia: "" };
 const programaInicial = { facultadId: "", programaId: "", facultadNombre: "", programaNombre: "" };
 const tituloInicial = { titulo: "", nivel: "", institucion: "", fechaObtencion: "", pais: "" };
@@ -60,6 +60,7 @@ export const useMiPerfil = () => {
             telefono: data?.telefono ?? "",
         });
         setDocente({
+            codigoDocente: data?.codigoDocente ?? "",
             tipoContrato: data?.tipoContratoDocente ?? "",
         });
         setProgramas(programasDesdePerfil(data?.programas));
@@ -219,7 +220,8 @@ export const useMiPerfil = () => {
 
     const guardarPerfilDocente = async (e) => {
         e.preventDefault();
-        const errors = validarPerfilDocente(docente);
+        const requiereCodigo = !perfil?.codigoDocente?.trim();
+        const errors = validarPerfilDocente(docente, { requiereCodigo });
         if (Object.keys(errors).length) {
             setFieldErrorsDocente(errors);
             return false;
@@ -227,9 +229,13 @@ export const useMiPerfil = () => {
 
         setSavingDocente(true);
         try {
-            const actualizado = await actualizarPerfilDocente({
+            const payload = {
                 tipoContrato: docente.tipoContrato.trim(),
-            });
+            };
+            if (requiereCodigo) {
+                payload.codigoDocente = docente.codigoDocente.trim();
+            }
+            const actualizado = await actualizarPerfilDocente(payload);
             aplicarPerfil(actualizado);
             return true;
         } catch (err) {

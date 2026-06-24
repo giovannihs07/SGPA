@@ -27,7 +27,7 @@ public class TaxonomiaMetadataEnricher {
         dto.setProductosAsociados(productos);
         dto.setSubcategoriasAsociadas(subcategorias);
         dto.setTiposAsociados(tipos);
-        dto.setEliminable(productos == 0);
+        dto.setEliminable(!Boolean.TRUE.equals(dto.getActivo()) && productos == 0);
         return dto;
     }
 
@@ -37,7 +37,7 @@ public class TaxonomiaMetadataEnricher {
         long tipos = tipoProductoRepository.countBySubcategoriaId(dto.getId());
         dto.setProductosAsociados(productos);
         dto.setTiposAsociados(tipos);
-        dto.setEliminable(productos == 0);
+        dto.setEliminable(!Boolean.TRUE.equals(dto.getActivo()) && productos == 0);
         return dto;
     }
 
@@ -45,7 +45,7 @@ public class TaxonomiaMetadataEnricher {
         if (dto == null) return null;
         long productos = productoRepository.countByTipoProductoId(dto.getId());
         dto.setProductosAsociados(productos);
-        dto.setEliminable(productos == 0);
+        dto.setEliminable(!Boolean.TRUE.equals(dto.getActivo()) && productos == 0);
         return dto;
     }
 }

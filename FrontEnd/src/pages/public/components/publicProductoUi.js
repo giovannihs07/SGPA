@@ -1,5 +1,5 @@
 import { FileText, FileArchive, Image, File } from "lucide-react";
-import { CATEGORIA_LABELS } from "../../docente/components/productoHelpers";
+import { CATEGORIA_LABELS, parseFechaLocal } from "../../docente/components/productoHelpers";
 
 export const CATEGORIA_BADGE = {
     INVESTIGATIVO: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
@@ -25,14 +25,14 @@ export const inicialesDocente = (p) => {
 };
 
 export const formatFechaRelativa = (fecha) => {
-    if (!fecha) return null;
-    const objetivo = new Date(fecha);
-    if (Number.isNaN(objetivo.getTime())) return null;
+    const objetivo = parseFechaLocal(fecha);
+    if (!objetivo) return null;
 
-    const diffMs = Date.now() - objetivo.getTime();
-    const dias = Math.floor(diffMs / 86_400_000);
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    const dias = Math.round((hoy.getTime() - objetivo.getTime()) / 86_400_000);
 
-    if (dias < 1) return "Hoy";
+    if (dias <= 0) return "Hoy";
     if (dias === 1) return "Ayer";
     if (dias < 30) return `Hace ${dias} días`;
     if (dias < 365) {

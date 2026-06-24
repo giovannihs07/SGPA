@@ -28,7 +28,6 @@ export const RegisterPage = () => {
         isDocente, isAdministrativo,
         onInputChange, toggleUserType,
         onProgramaChange, addPrograma, removePrograma,
-        onTituloChange, addTitulo, removeTitulo,
         goNext, goBack, onSubmit,
     } = useRegisterForm();
 
@@ -39,7 +38,7 @@ export const RegisterPage = () => {
 
     const {
         userTypes, firstName, lastName, documentId, phone,
-        codigoDocente, tipoContrato, programas, titulos,
+        codigoDocente, tipoContrato, programas,
         cargo, dependencia, email, password, confirmPassword,
     } = form;
 
@@ -152,10 +151,11 @@ export const RegisterPage = () => {
                                         <label htmlFor="phone" className={labelBold}>Teléfono {req}</label>
                                         <input
                                             id="phone"
-                                            type="tel"
+                                            type="text"
                                             name="phone"
                                             value={phone}
                                             onChange={onInputChange}
+                                            inputMode="numeric"
                                             autoComplete="tel"
                                             aria-invalid={!!fieldErrors.phone || undefined}
                                             className={fieldClass(fieldErrors, "phone")}
@@ -182,10 +182,6 @@ export const RegisterPage = () => {
                                         onProgramaChange={onProgramaChange}
                                         addPrograma={addPrograma}
                                         removePrograma={removePrograma}
-                                        titulos={titulos}
-                                        onTituloChange={onTituloChange}
-                                        addTitulo={addTitulo}
-                                        removeTitulo={removeTitulo}
                                         facultades={facultades}
                                         getProgramas={getProgramas}
                                         cargarProgramas={cargarProgramas}

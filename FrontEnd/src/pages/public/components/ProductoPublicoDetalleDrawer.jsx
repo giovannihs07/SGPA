@@ -4,8 +4,6 @@ import { getProductoPublicoPorId, getProductoSchema } from "../../../services/pr
 import { buildEtiquetasAtributosMap } from "../../docente/components/productoFormUtils";
 import { MisProductosLoading, MisProductosError } from "../../docente/components/misProductos/MisProductosEstados";
 import { ProductoPublicoDetalleContent } from "./ProductoPublicoDetalleContent";
-import { useArchivoPdfViewer } from "../../../hooks/useArchivoPdfViewer";
-import { ArchivoPdfViewer } from "../../../components/ui/ArchivoPdfViewer";
 import { descargarProductoPublico } from "../../../utils/publicProductoDownload";
 import { verArchivoPublico } from "../../../utils/verArchivoProducto";
 
@@ -18,11 +16,10 @@ export const ProductoPublicoDetalleDrawer = ({
     const [loading, setLoading] = useState(!previewProducto);
     const [error, setError] = useState(null);
     const [etiquetasAtributos, setEtiquetasAtributos] = useState({});
-    const { visor, abrirPdf, cerrarVisor } = useArchivoPdfViewer();
 
     const handleVerArchivo = useCallback(
-        (p, archivo) => verArchivoPublico(p, archivo, abrirPdf),
-        [abrirPdf],
+        (p, archivo) => verArchivoPublico(p, archivo),
+        [],
     );
 
     const cargar = useCallback(async () => {
@@ -55,7 +52,7 @@ export const ProductoPublicoDetalleDrawer = ({
         if (!productoId) return undefined;
 
         const onKey = (e) => {
-            if (e.key === "Escape" && !visor) onClose();
+            if (e.key === "Escape") onClose();
         };
         document.addEventListener("keydown", onKey);
         document.body.style.overflow = "hidden";
@@ -64,7 +61,7 @@ export const ProductoPublicoDetalleDrawer = ({
             document.removeEventListener("keydown", onKey);
             document.body.style.overflow = "";
         };
-    }, [productoId, onClose, visor]);
+    }, [productoId, onClose]);
 
     useEffect(() => {
         if (!producto) {
@@ -153,14 +150,6 @@ export const ProductoPublicoDetalleDrawer = ({
                     )}
                 </div>
             </div>
-
-            {visor && (
-                <ArchivoPdfViewer
-                    url={visor.url}
-                    titulo={visor.titulo}
-                    onClose={cerrarVisor}
-                />
-            )}
         </div>
     );
 };

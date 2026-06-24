@@ -1,9 +1,11 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import {
-    getProductosPublicados, eliminarProducto,
+    getProductosPublicados, getProductoPorId, eliminarProducto,
     descargarArchivo, descargarArchivoPublico,
     publicarProducto, despublicarProducto,
+    getProductoSchema,
 } from "../../services/productoServices";
+import { getFacultades, getProgramas } from "../../services/institucionService";
 import { obtenerArchivosProducto } from "../../pages/docente/components/productoHelpers";
 import { notifySuccess, notifyError } from "../../utils/notify";
 import { esReciente, matchRangoFecha } from "../../pages/docente/components/productoHelpers";
@@ -15,19 +17,54 @@ import {
 
 const PAGE_SIZE = 10;
 
+const nombresProgramaProducto = (producto) => {
+    if (!producto?.programas) return [];
+    return Array.isArray(producto.programas) ? producto.programas : [...producto.programas];
+};
+
+const coincideFacultadPrograma = (producto, filtroFacultad, filtroPrograma, programas) => {
+    const nombres = nombresProgramaProducto(producto);
+
+    if (filtroPrograma !== "TODOS") {
+        const programa = programas.find((p) => String(p.id) === String(filtroPrograma));
+        if (programa?.nombre) return nombres.includes(programa.nombre);
+        return true;
+    }
+
+    if (filtroFacultad !== "TODAS") {
+        const nombresFacultad = programas
+            .filter((p) => String(p.facultadId) === String(filtroFacultad))
+            .map((p) => p.nombre);
+        return nombres.some((n) => nombresFacultad.includes(n));
+    }
+
+    return true;
+};
+
 export const useSuperAdminProductos = () => {
     const [productos, setProductos] = useState([]);
-    const [loading, setLoading]     = useState(true);
-    const [error, setError]         = useState(null);
-    const [toggling, setToggling]   = useState(null);
+    const [schema, setSchema] = useState([]);
+    const [facultades, setFacultades] = useState([]);
+    const [programas, setProgramas] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [toggling, setToggling] = useState(null);
     const [productoDetalle, setProductoDetalle] = useState(null);
 
-    // Función para obtener los productos del backend
     const fetchProductos = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
-            setProductos(await getProductosPublicados());
+            const [productosData, schemaData, facultadesData, programasData] = await Promise.all([
+                getProductosPublicados(),
+                getProductoSchema(),
+                getFacultades(),
+                getProgramas(),
+            ]);
+            setProductos(productosData ?? []);
+            setSchema(schemaData ?? []);
+            setFacultades(facultadesData ?? []);
+            setProgramas(programasData ?? []);
         } catch (e) {
             setError(e.response?.data?.error ?? e.response?.data?.message ?? e.message ?? "Error al cargar productos");
         } finally {
@@ -37,50 +74,108 @@ export const useSuperAdminProductos = () => {
 
     useEffect(() => { fetchProductos(); }, [fetchProductos]);
 
-    // Función para obtener el resumen de los productos (según filtros activos)
-    const [busqueda, setBusqueda]             = useState("");
+    const [busqueda, setBusqueda] = useState("");
+    const [busquedaBorrador, setBusquedaBorrador] = useState("");
     const [filtroCategoria, setFiltroCategoria] = useState("TODAS");
-    const [filtroTipo, setFiltroTipo]           = useState("TODOS");
-    const [fechaDesde, setFechaDesde]           = useState("");
-    const [fechaHasta, setFechaHasta]           = useState("");
+    const [filtroSubcategoria, setFiltroSubcategoria] = useState("TODAS");
+    const [filtroTipo, setFiltroTipo] = useState("TODOS");
+    const [filtroFacultad, setFiltroFacultad] = useState("TODAS");
+    const [filtroPrograma, setFiltroPrograma] = useState("TODOS");
+    const [fechaDesde, setFechaDesde] = useState("");
+    const [fechaHasta, setFechaHasta] = useState("");
     const [filtroCampoFecha, setFiltroCampoFecha] = useState("fechaRegistroSgpa");
-    const [pagina, setPagina]                   = useState(0);
+    const [pagina, setPagina] = useState(0);
 
-    // Función para obtener las categorias disponibles
+    useEffect(() => {
+        setBusquedaBorrador(busqueda);
+    }, [busqueda]);
+
     const categoriasDisponibles = useMemo(() => {
-        const set = new Set(productos.map((p) => p.categoria).filter(Boolean));
-        return ["TODAS", ...set];
-    }, [productos]);
+        const nombres = schema.map((c) => c.nombre).filter(Boolean);
+        return nombres.length ? ["TODAS", ...nombres] : ["TODAS"];
+    }, [schema]);
 
-    // Función para obtener los tipos disponibles
+    const subcategoriasDisponibles = useMemo(() => {
+        if (!schema.length) return ["TODAS"];
+
+        const categorias = filtroCategoria === "TODAS"
+            ? schema
+            : schema.filter((c) => c.nombre === filtroCategoria);
+        const subs = [...new Set(
+            categorias.flatMap((c) =>
+                (c.subcategorias ?? []).map((s) => s.nombre).filter(Boolean),
+            ),
+        )];
+        return ["TODAS", ...subs];
+    }, [schema, filtroCategoria]);
+
     const tiposDisponibles = useMemo(() => {
-        const base = productos.filter(
-            (p) => filtroCategoria === "TODAS" || p.categoria === filtroCategoria,
-        );
-        const set = new Set(base.map((p) => p.tipo).filter(Boolean));
-        return ["TODOS", ...set];
-    }, [productos, filtroCategoria]);
+        if (!schema.length) return ["TODOS"];
+
+        const categorias = filtroCategoria === "TODAS"
+            ? schema
+            : schema.filter((c) => c.nombre === filtroCategoria);
+        const subs = categorias.flatMap((c) => c.subcategorias ?? []);
+        const subsFiltradas = filtroSubcategoria === "TODAS"
+            ? subs
+            : subs.filter((s) => s.nombre === filtroSubcategoria);
+        const tipos = [...new Set(
+            subsFiltradas.flatMap((sub) =>
+                (sub.tipos ?? []).map((t) => t.nombre).filter(Boolean),
+            ),
+        )];
+        return ["TODOS", ...tipos];
+    }, [schema, filtroCategoria, filtroSubcategoria]);
+
+    const programasFiltrados = useMemo(() => {
+        if (filtroFacultad === "TODAS") return programas;
+        return programas.filter((p) => String(p.facultadId) === String(filtroFacultad));
+    }, [programas, filtroFacultad]);
 
     const handleFiltroCategoria = useCallback((v) => {
         setFiltroCategoria(v);
+        setFiltroSubcategoria("TODAS");
         setFiltroTipo("TODOS");
+        setPagina(0);
+    }, []);
+
+    const handleFiltroSubcategoria = useCallback((v) => {
+        setFiltroSubcategoria(v);
+        setFiltroTipo("TODOS");
+        setPagina(0);
+    }, []);
+
+    const handleFiltroFacultad = useCallback((v) => {
+        setFiltroFacultad(v);
+        setFiltroPrograma("TODOS");
         setPagina(0);
     }, []);
 
     const productosFiltrados = useMemo(() =>
         productos.filter((p) => {
-            const matchBusqueda = !busqueda
-                || p.nombre?.toLowerCase().includes(busqueda.toLowerCase())
-                || p.descripcion?.toLowerCase().includes(busqueda.toLowerCase());
+            const termino = busqueda.trim().toLowerCase();
+            const docenteTexto = [p.docenteNombre, p.docenteApellido, p.docenteCodigo]
+                .filter(Boolean)
+                .join(" ");
+            const matchBusqueda = !termino
+                || p.nombre?.toLowerCase().includes(termino)
+                || p.descripcion?.toLowerCase().includes(termino)
+                || docenteTexto.toLowerCase().includes(termino);
             const matchCategoria = filtroCategoria === "TODAS" || p.categoria === filtroCategoria;
-            const matchTipo      = filtroTipo === "TODOS" || p.tipo === filtroTipo;
+            const matchSubcategoria = filtroSubcategoria === "TODAS" || p.subcategoria === filtroSubcategoria;
+            const matchTipo = filtroTipo === "TODOS" || p.tipo === filtroTipo;
+            const matchInstitucion = coincideFacultadPrograma(p, filtroFacultad, filtroPrograma, programas);
             const matchFecha = matchRangoFecha(p, { fechaDesde, fechaHasta, campo: filtroCampoFecha });
-            return matchBusqueda && matchCategoria && matchTipo && matchFecha;
+            return matchBusqueda && matchCategoria && matchSubcategoria
+                && matchTipo && matchInstitucion && matchFecha;
         }),
-    [productos, busqueda, filtroCategoria, filtroTipo, fechaDesde, fechaHasta, filtroCampoFecha]);
+    [
+        productos, busqueda, filtroCategoria, filtroSubcategoria, filtroTipo,
+        filtroFacultad, filtroPrograma, programas, fechaDesde, fechaHasta, filtroCampoFecha,
+    ]);
 
     const resumen = useMemo(() => ({
-        total:         productosFiltrados.length,
+        total: productosFiltrados.length,
         ultimos30Dias: productosFiltrados.filter((p) => esReciente(p.fechaRegistroSgpa)).length,
     }), [productosFiltrados]);
 
@@ -89,6 +184,17 @@ export const useSuperAdminProductos = () => {
     useEffect(() => {
         if (pagina >= totalPaginas) setPagina(Math.max(0, totalPaginas - 1));
     }, [pagina, totalPaginas]);
+
+    useEffect(() => {
+        if (filtroTipo === "TODOS" || !tiposDisponibles.length) return;
+        if (!tiposDisponibles.includes(filtroTipo)) setFiltroTipo("TODOS");
+    }, [tiposDisponibles, filtroTipo]);
+
+    useEffect(() => {
+        if (filtroPrograma === "TODOS" || !programas.length) return;
+        const valido = programasFiltrados.some((p) => String(p.id) === String(filtroPrograma));
+        if (!valido) setFiltroPrograma("TODOS");
+    }, [filtroFacultad, programasFiltrados, filtroPrograma, programas.length]);
 
     const productosPaginados = useMemo(() => {
         const inicio = pagina * PAGE_SIZE;
@@ -101,8 +207,14 @@ export const useSuperAdminProductos = () => {
     );
 
     const resetPagina = useCallback(() => setPagina(0), []);
-    const handleBusqueda   = useCallback((v) => { setBusqueda(v); resetPagina(); }, [resetPagina]);
+    const aplicarBusqueda = useCallback(() => {
+        const value = busquedaBorrador.trim();
+        setBusquedaBorrador(value);
+        setBusqueda(value);
+        resetPagina();
+    }, [busquedaBorrador, resetPagina]);
     const handleFiltroTipo = useCallback((v) => { setFiltroTipo(v); resetPagina(); }, [resetPagina]);
+    const handleFiltroPrograma = useCallback((v) => { setFiltroPrograma(v); resetPagina(); }, [resetPagina]);
     const handleFechaDesde = useCallback((v) => { setFechaDesde(v); resetPagina(); }, [resetPagina]);
     const handleFechaHasta = useCallback((v) => { setFechaHasta(v); resetPagina(); }, [resetPagina]);
     const handleFiltroCampoFecha = useCallback((v) => { setFiltroCampoFecha(v); resetPagina(); }, [resetPagina]);
@@ -178,7 +290,22 @@ export const useSuperAdminProductos = () => {
         }
     }, []);
 
-    const abrirDetalle  = useCallback((p) => setProductoDetalle(p), []);
+    const abrirDetalle = useCallback(async (p) => {
+        if (!p?.id) return;
+        setProductoDetalle(p);
+        try {
+            const full = await getProductoPorId(p.id);
+            setProductoDetalle(full);
+        } catch (e) {
+            notifyError(
+                "Error",
+                e.response?.data?.error
+                ?? e.response?.data?.message
+                ?? "No se pudo cargar el producto",
+            );
+            setProductoDetalle(null);
+        }
+    }, []);
     const cerrarDetalle = useCallback(() => setProductoDetalle(null), []);
 
     const toggleFromDetalle = useCallback(async () => {
@@ -197,13 +324,17 @@ export const useSuperAdminProductos = () => {
         productosFiltrados,
         resumen,
         loading, error, refetch: fetchProductos,
-        busqueda, setBusqueda: handleBusqueda,
+        busqueda, busquedaBorrador, setBusquedaBorrador, aplicarBusqueda,
         filtroCategoria, handleFiltroCategoria,
+        filtroSubcategoria, handleFiltroSubcategoria,
         filtroTipo, setFiltroTipo: handleFiltroTipo,
+        filtroFacultad, setFiltroFacultad: handleFiltroFacultad,
+        filtroPrograma, setFiltroPrograma: handleFiltroPrograma,
         fechaDesde, setFechaDesde: handleFechaDesde,
         fechaHasta, setFechaHasta: handleFechaHasta,
         filtroCampoFecha, setFiltroCampoFecha: handleFiltroCampoFecha,
-        categoriasDisponibles, tiposDisponibles,
+        categoriasDisponibles, subcategoriasDisponibles, tiposDisponibles,
+        facultades, programasFiltrados,
         pagina, totalPaginas, pageSize: PAGE_SIZE, irPagina,
         abrirDetalle, cerrarDetalle, productoDetalle,
         toggleFromDetalle, eliminarFromDetalle,

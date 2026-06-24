@@ -1,7 +1,8 @@
-import { useReducer } from "react";
+import { useEffect, useReducer } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginReducer } from "../reducers/loginReducer";
 import { loginUser } from "../services/authService";
+import { getMiPerfil } from "../services/perfilService";
 import { dashboardPath as resolveDashboardPath } from "../utils/authProfile";
 
 // Función de inicialización para cargar el estado desde sessionStorage 
@@ -19,15 +20,35 @@ export const useAuth = () => {
     const [login, dispatch] = useReducer(loginReducer, undefined, init);
     const navigate = useNavigate();
 
+    useEffect(() => {
+        const stored = JSON.parse(sessionStorage.getItem("login"));
+        if (!stored?.isAuth || stored?.user?.nombre) return;
+
+        getMiPerfil()
+            .then((data) => {
+                if (!data?.nombre && !data?.apellido) return;
+                const user = {
+                    ...stored.user,
+                    nombre: data.nombre ?? null,
+                    apellido: data.apellido ?? null,
+                };
+                dispatch({ type: "updateUser", payload: { user } });
+                sessionStorage.setItem("login", JSON.stringify({ ...stored, user }));
+            })
+            .catch(() => {});
+    }, []);
+
     const handlerLogin = async ({ email, password }) => {
         try {
             const response = await loginUser({ email, password });
-            const { token, userId, personaId, email: respEmail, roles: respRoles } = response.data;
+            const { token, userId, personaId, email: respEmail, nombre, apellido, roles: respRoles } = response.data;
             const claims = JSON.parse(window.atob(token.split('.')[1]));
             const user = {
                 email: respEmail ?? claims.sub,
                 id: userId,
                 personaId: personaId ?? null,
+                nombre: nombre ?? null,
+                apellido: apellido ?? null,
             };
             const roles = respRoles ?? claims.roles ?? [];
             const isAdmin      = roles.includes("ROLE_ADMIN");

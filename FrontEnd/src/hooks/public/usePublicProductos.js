@@ -10,7 +10,6 @@ import { getFacultades, getProgramas } from "../../services/institucionService";
 import { CATEGORIA_LABELS } from "../../pages/docente/components/productoHelpers";
 
 const PAGE_SIZE = 10;
-const DEBOUNCE_MS = 400;
 
 const patchSearchParams = (prev, patch, resetPage = false) => {
     const next = new URLSearchParams(prev);
@@ -25,7 +24,7 @@ const patchSearchParams = (prev, patch, resetPage = false) => {
 
 const buildQueryParams = ({
     busqueda,
-    docenteQuery,
+    docente,
     filtroCategoria,
     filtroSubcategoria,
     filtroTipo,
@@ -36,8 +35,10 @@ const buildQueryParams = ({
     pagina,
 }) => {
     const params = { page: pagina, size: PAGE_SIZE };
-    const termino = (docenteQuery || busqueda).trim();
-    if (termino) params.q = termino;
+    const q = busqueda.trim();
+    if (q) params.q = q;
+    const docenteTerm = docente.trim();
+    if (docenteTerm) params.docente = docenteTerm;
     if (filtroCategoria !== "TODAS") params.categoria = filtroCategoria;
     if (filtroSubcategoria !== "TODAS") params.subcategoria = filtroSubcategoria;
     if (filtroTipo !== "TODOS") params.tipo = filtroTipo;
@@ -67,9 +68,13 @@ export const usePublicProductos = () => {
     const haCargadoRef = useRef(false);
 
     const busqueda = searchParams.get("q") ?? "";
-    const docenteFiltro = searchParams.get("docenteNombre") ?? searchParams.get("docente") ?? "";
+    const [busquedaBorrador, setBusquedaBorrador] = useState(busqueda);
+    const docenteManual = searchParams.get("docente") ?? "";
+    const docenteNombreCard = searchParams.get("docenteNombre") ?? "";
     const docenteCodigo = searchParams.get("docenteCodigo") ?? "";
-    const docenteQuery = docenteCodigo || docenteFiltro;
+    const docenteFiltro = docenteNombreCard || docenteManual || docenteCodigo;
+    const docenteApi = docenteCodigo || docenteManual || docenteNombreCard;
+    const [docenteBorrador, setDocenteBorrador] = useState(docenteFiltro);
     const filtroCategoria = searchParams.get("categoria") ?? "TODAS";
     const filtroSubcategoria = searchParams.get("subcategoria") ?? "TODAS";
     const filtroTipo = searchParams.get("tipo") ?? "TODOS";
@@ -92,6 +97,14 @@ export const usePublicProductos = () => {
     const updateParams = useCallback((patch, resetPage = false) => {
         setSearchParams((prev) => patchSearchParams(prev, patch, resetPage), { replace: true });
     }, [setSearchParams]);
+
+    useEffect(() => {
+        setBusquedaBorrador(busqueda);
+    }, [busqueda]);
+
+    useEffect(() => {
+        setDocenteBorrador(docenteFiltro);
+    }, [docenteFiltro]);
 
     useEffect(() => {
         getProductoSchema()
@@ -163,7 +176,7 @@ export const usePublicProductos = () => {
     useEffect(() => {
         const params = buildQueryParams({
             busqueda,
-            docenteQuery,
+            docente: docenteApi,
             filtroCategoria,
             filtroSubcategoria,
             filtroTipo,
@@ -174,14 +187,10 @@ export const usePublicProductos = () => {
             pagina,
         });
 
-        const timer = setTimeout(() => {
-            fetchProductos(params, { esRefresco: haCargadoRef.current });
-        }, (busqueda || docenteQuery) ? DEBOUNCE_MS : 0);
-
-        return () => clearTimeout(timer);
+        fetchProductos(params, { esRefresco: haCargadoRef.current });
     }, [
         busqueda,
-        docenteQuery,
+        docenteApi,
         filtroCategoria,
         filtroSubcategoria,
         filtroTipo,
@@ -327,26 +336,49 @@ export const usePublicProductos = () => {
     }, [totalPaginas, updateParams]);
 
     const handleBusqueda = useCallback((v) => {
+        setSearchParams((prev) => patchSearchParams(prev, { q: v }, true), { replace: true });
+    }, [setSearchParams]);
+
+    const aplicarBusqueda = useCallback((termino) => {
+        const value = (termino ?? busquedaBorrador).trim();
+        setBusquedaBorrador(value);
+        handleBusqueda(value);
+    }, [busquedaBorrador, handleBusqueda]);
+
+    const aplicarBusquedaDocente = useCallback((termino) => {
+        const value = (termino ?? docenteBorrador).trim();
+        setDocenteBorrador(value);
         setSearchParams((prev) => {
-            const next = patchSearchParams(prev, { q: v }, true);
-            next.delete("docente");
+            const next = patchSearchParams(prev, { docente: value }, true);
             next.delete("docenteNombre");
             next.delete("docenteCodigo");
             return next;
         }, { replace: true });
-    }, [setSearchParams]);
+    }, [docenteBorrador, setSearchParams]);
+
+    const limpiarBusquedaDocente = useCallback(() => {
+        setDocenteBorrador("");
+        quitarFiltroDocente();
+    }, [quitarFiltroDocente]);
+
+    const limpiarBusqueda = useCallback(() => {
+        setBusquedaBorrador("");
+        handleBusqueda("");
+    }, [handleBusqueda]);
     const handleFiltroTipo = useCallback((v) => updateParams({ tipo: v }, true), [updateParams]);
     const handleFechaDesde = useCallback((v) => updateParams({ desde: v }, true), [updateParams]);
     const handleFechaHasta = useCallback((v) => updateParams({ hasta: v }, true), [updateParams]);
 
     const limpiarFiltros = useCallback(() => {
+        setBusquedaBorrador("");
+        setDocenteBorrador("");
         setSearchParams({}, { replace: true });
     }, [setSearchParams]);
 
     const refetch = useCallback(() => {
         fetchProductos(buildQueryParams({
             busqueda,
-            docenteQuery,
+            docente: docenteApi,
             filtroCategoria,
             filtroSubcategoria,
             filtroTipo,
@@ -359,7 +391,7 @@ export const usePublicProductos = () => {
     }, [
         fetchProductos,
         busqueda,
-        docenteQuery,
+        docenteApi,
         filtroCategoria,
         filtroSubcategoria,
         filtroTipo,
@@ -399,7 +431,14 @@ export const usePublicProductos = () => {
         error,
         refetch,
         busqueda,
-        setBusqueda: handleBusqueda,
+        busquedaBorrador,
+        setBusquedaBorrador,
+        aplicarBusqueda,
+        limpiarBusqueda,
+        docenteBorrador,
+        setDocenteBorrador,
+        aplicarBusquedaDocente,
+        limpiarBusquedaDocente,
         docenteFiltro,
         filtrarPorDocente,
         quitarFiltroDocente,

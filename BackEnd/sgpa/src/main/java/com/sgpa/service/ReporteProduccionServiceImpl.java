@@ -61,6 +61,7 @@ public class ReporteProduccionServiceImpl implements ReporteProduccionService {
     private static final String ESTADO_SIN_PUBLICAR = "SIN_PUBLICAR";
     private static final String CATEGORIA_TODAS = "TODAS";
     private static final String SUBCATEGORIA_TODAS = "TODAS";
+    private static final String FILTRO_TIPO_TODOS = "TODOS";
     private static final String CAMPO_FECHA_REGISTRO = "fechaRegistroSgpa";
     private static final String CAMPO_FECHA_PUBLICACION = "fechaPublicacionSgpa";
     private static final int DIAS_RECIENTES = 30;
@@ -94,6 +95,7 @@ public class ReporteProduccionServiceImpl implements ReporteProduccionService {
             String estado,
             String categoria,
             String subcategoria,
+            String tipo,
             Long facultadId,
             Long programaId,
             LocalDate fechaDesde,
@@ -102,7 +104,7 @@ public class ReporteProduccionServiceImpl implements ReporteProduccionService {
             String busqueda) {
 
         ContextoReporte ctx = prepararContexto(
-                estado, categoria, subcategoria, facultadId, programaId,
+                estado, categoria, subcategoria, tipo, facultadId, programaId,
                 fechaDesde, fechaHasta, campoFecha, busqueda);
 
         ReporteProduccionGraficosResponse graficos = ReporteProduccionGraficosResponse.builder()
@@ -136,6 +138,7 @@ public class ReporteProduccionServiceImpl implements ReporteProduccionService {
             String estado,
             String categoria,
             String subcategoria,
+            String tipo,
             Long facultadId,
             Long programaId,
             LocalDate fechaDesde,
@@ -144,7 +147,7 @@ public class ReporteProduccionServiceImpl implements ReporteProduccionService {
             String busqueda) {
 
         ContextoReporte ctx = prepararContexto(
-                estado, categoria, subcategoria, facultadId, programaId,
+                estado, categoria, subcategoria, tipo, facultadId, programaId,
                 fechaDesde, fechaHasta, campoFecha, busqueda);
 
         return ReporteProduccionProductosResponse.builder()
@@ -163,6 +166,7 @@ public class ReporteProduccionServiceImpl implements ReporteProduccionService {
             String estado,
             String categoria,
             String subcategoria,
+            String tipo,
             Long facultadId,
             Long programaId,
             LocalDate fechaDesde,
@@ -171,7 +175,7 @@ public class ReporteProduccionServiceImpl implements ReporteProduccionService {
             String busqueda) {
 
         ContextoReporte ctx = prepararContexto(
-                estado, categoria, subcategoria, facultadId, programaId,
+                estado, categoria, subcategoria, tipo, facultadId, programaId,
                 fechaDesde, fechaHasta, campoFecha, busqueda);
 
         return ReporteProduccionDocentesResponse.builder()
@@ -204,6 +208,7 @@ public class ReporteProduccionServiceImpl implements ReporteProduccionService {
             String estado,
             String categoria,
             String subcategoria,
+            String tipo,
             Long facultadId,
             Long programaId,
             LocalDate fechaDesde,
@@ -214,6 +219,7 @@ public class ReporteProduccionServiceImpl implements ReporteProduccionService {
         String estadoNorm = normalizar(estado, ESTADO_TODOS);
         String categoriaNorm = normalizar(categoria, CATEGORIA_TODAS);
         String subcategoriaNorm = normalizar(subcategoria, SUBCATEGORIA_TODAS);
+        String tipoNorm = normalizar(tipo, FILTRO_TIPO_TODOS);
         String campoFechaNorm = normalizarCampoFecha(campoFecha);
         String busquedaNorm = busqueda != null ? busqueda.trim() : "";
 
@@ -229,6 +235,7 @@ public class ReporteProduccionServiceImpl implements ReporteProduccionService {
                 .estado(estadoNorm)
                 .categoria(categoriaNorm)
                 .subcategoria(subcategoriaNorm)
+                .tipo(tipoNorm)
                 .facultadId(facultadId)
                 .programaId(programaId)
                 .fechaDesde(fechaDesde)
@@ -272,13 +279,14 @@ public class ReporteProduccionServiceImpl implements ReporteProduccionService {
                 .porAnio(agruparPorAnio(productosFiltrados, campoFechaNorm))
                 .porCategoria(agruparConteo(productosFiltrados, ReporteProduccionProductoLineaResponse::getCategoria))
                 .porSubcategoria(agruparConteo(productosFiltrados, ReporteProduccionProductoLineaResponse::getSubcategoria))
-                .porTipo(agruparConteo(productosFiltrados, ReporteProduccionProductoLineaResponse::getTipo))
+                .porTipo(agruparPorTipoConEstado(productosFiltrados))
                 .productosRecientes(productosRecientes(productosFiltrados))
                 .build();
 
         ReporteProduccionOpcionesResponse opciones = ReporteProduccionOpcionesResponse.builder()
                 .categoriasDisponibles(categoriasDisponibles(productosEnriquecidos))
                 .subcategoriasDisponibles(subcategoriasDisponibles(productosEnriquecidos, categoriaNorm))
+                .tiposDisponibles(tiposDisponibles(productosEnriquecidos, categoriaNorm, subcategoriaNorm))
                 .build();
 
         return new ContextoReporte(
@@ -409,6 +417,10 @@ public class ReporteProduccionServiceImpl implements ReporteProduccionService {
         }
         if (!SUBCATEGORIA_TODAS.equals(filtros.getSubcategoria())
                 && !Objects.equals(filtros.getSubcategoria(), producto.getSubcategoria())) {
+            return false;
+        }
+        if (!FILTRO_TIPO_TODOS.equals(filtros.getTipo())
+                && !Objects.equals(filtros.getTipo(), producto.getTipo())) {
             return false;
         }
         if (filtros.getFacultadId() != null
@@ -710,6 +722,33 @@ public class ReporteProduccionServiceImpl implements ReporteProduccionService {
                 .toList();
     }
 
+    private List<ReporteConteoItemResponse> agruparPorTipoConEstado(
+            List<ReporteProduccionProductoLineaResponse> productos) {
+
+        Map<String, int[]> mapa = new HashMap<>();
+        for (ReporteProduccionProductoLineaResponse producto : productos) {
+            String key = producto.getTipo();
+            if (key == null || key.isBlank()) key = "SIN_DATOS";
+            int[] acum = mapa.computeIfAbsent(key, k -> new int[3]);
+            acum[0] += 1;
+            if (Boolean.TRUE.equals(producto.getPublicado())) {
+                acum[1] += 1;
+            } else {
+                acum[2] += 1;
+            }
+        }
+
+        return mapa.entrySet().stream()
+                .sorted((a, b) -> Integer.compare(b.getValue()[0], a.getValue()[0]))
+                .map(e -> ReporteConteoItemResponse.builder()
+                        .key(e.getKey())
+                        .count(e.getValue()[0])
+                        .publicados(e.getValue()[1])
+                        .sinPublicar(e.getValue()[2])
+                        .build())
+                .toList();
+    }
+
     private List<ReporteConteoItemResponse> agruparConteo(
             List<ReporteProduccionProductoLineaResponse> productos,
             java.util.function.Function<ReporteProduccionProductoLineaResponse, String> keyFn) {
@@ -766,6 +805,24 @@ public class ReporteProduccionServiceImpl implements ReporteProduccionService {
                 .toList();
     }
 
+    private List<String> tiposDisponibles(
+            List<ReporteProduccionProductoLineaResponse> productos,
+            String categoriaFiltro,
+            String subcategoriaFiltro) {
+
+        return productos.stream()
+                .filter(p -> CATEGORIA_TODAS.equals(categoriaFiltro)
+                        || Objects.equals(categoriaFiltro, p.getCategoria()))
+                .filter(p -> SUBCATEGORIA_TODAS.equals(subcategoriaFiltro)
+                        || Objects.equals(subcategoriaFiltro, p.getSubcategoria()))
+                .map(ReporteProduccionProductoLineaResponse::getTipo)
+                .filter(Objects::nonNull)
+                .filter(s -> !s.isBlank())
+                .distinct()
+                .sorted()
+                .toList();
+    }
+
     private ReporteProduccionFiltrosEtiquetasResponse construirEtiquetasFiltros(
             ReporteProduccionFiltrosResponse filtros,
             List<FacultadResponse> facultades,
@@ -805,6 +862,8 @@ public class ReporteProduccionServiceImpl implements ReporteProduccionService {
                         ? "Todas" : filtros.getCategoria())
                 .subcategoria(SUBCATEGORIA_TODAS.equals(filtros.getSubcategoria())
                         ? "Todas" : filtros.getSubcategoria())
+                .tipo(FILTRO_TIPO_TODOS.equals(filtros.getTipo())
+                        ? "Todos" : filtros.getTipo())
                 .facultad(facultadLabel)
                 .programa(programaLabel)
                 .fecha(fechaLabel)

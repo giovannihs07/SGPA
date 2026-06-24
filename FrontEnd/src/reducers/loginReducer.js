@@ -17,6 +17,11 @@ export const loginReducer = (state = {}, action) => {
                 isDocente: false,
                 user: undefined,
             };
+        case 'updateUser':
+            return {
+                ...state,
+                user: action.payload.user,
+            };
         default:
             return state;
     }

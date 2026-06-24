@@ -30,6 +30,7 @@ public final class ProductoPublicoSpecifications {
 
     public static Specification<ProductoDocente> publicadosConFiltros(
             String q,
+            String docente,
             String categoria,
             String subcategoria,
             String tipo,
@@ -44,17 +45,22 @@ public final class ProductoPublicoSpecifications {
             predicates.add(cb.isTrue(root.get("publicado")));
 
             if (q != null && !q.isBlank()) {
-                Join<ProductoDocente, Docente> docente = root.join("docente", JoinType.INNER);
-                Join<Docente, Persona> persona = docente.join("persona", JoinType.INNER);
                 String term = "%" + q.toLowerCase().trim() + "%";
+                predicates.add(cb.or(
+                        cb.like(cb.lower(root.get("nombre")), term),
+                        cb.like(cb.lower(root.get("descripcion")), term)));
+            }
+
+            if (docente != null && !docente.isBlank()) {
+                Join<ProductoDocente, Docente> docenteJoin = root.join("docente", JoinType.INNER);
+                Join<Docente, Persona> persona = docenteJoin.join("persona", JoinType.INNER);
+                String term = "%" + docente.toLowerCase().trim() + "%";
                 Expression<String> nombrePersona = cb.coalesce(persona.get("nombre"), "");
                 Expression<String> apellidoPersona = cb.coalesce(persona.get("apellido"), "");
                 Expression<String> nombreCompleto = cb.lower(
                         cb.concat(cb.concat(nombrePersona, " "), apellidoPersona));
                 predicates.add(cb.or(
-                        cb.like(cb.lower(root.get("nombre")), term),
-                        cb.like(cb.lower(root.get("descripcion")), term),
-                        cb.like(cb.lower(docente.get("codigoDocente")), term),
+                        cb.like(cb.lower(docenteJoin.get("codigoDocente")), term),
                         cb.like(cb.lower(nombrePersona), term),
                         cb.like(cb.lower(apellidoPersona), term),
                         cb.like(nombreCompleto, term)));

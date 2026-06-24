@@ -9,14 +9,14 @@ import {
 import { ReporteChartCard } from "./ReporteChartCard";
 import { CHART_COLORS } from "./chartTheme";
 
-const TooltipPie = ({ active, payload }) => {
+const TooltipPie = ({ active, payload, valorLabel = "Productos" }) => {
     if (!active || !payload?.length) return null;
     const { nombre, total, porcentaje } = payload[0].payload;
     return (
         <div className="rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 shadow-md text-xs">
             <p className="font-semibold text-gray-900 dark:text-white">{nombre}</p>
             <p className="text-gray-600 dark:text-gray-300">
-                Productos: <span className="font-medium">{total}</span> ({porcentaje}%)
+                {valorLabel}: <span className="font-medium">{total}</span> ({porcentaje}%)
             </p>
         </div>
     );
@@ -28,6 +28,7 @@ export const DistribucionPieChart = ({
     datos = [],
     loading = false,
     mensajeVacio = "Sin datos para mostrar",
+    valorLabel = "Productos",
     altura = 280,
     compact = false,
 }) => {
@@ -65,7 +66,7 @@ export const DistribucionPieChart = ({
                             <Cell key={d.key} fill={d.color} />
                         ))}
                     </Pie>
-                    <Tooltip content={<TooltipPie />} />
+                    <Tooltip content={(props) => <TooltipPie {...props} valorLabel={valorLabel} />} />
                     <Legend
                         verticalAlign="bottom"
                         iconType="circle"

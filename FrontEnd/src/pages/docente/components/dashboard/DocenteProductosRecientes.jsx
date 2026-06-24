@@ -7,7 +7,7 @@ import {
 import { CATEGORIA_LABELS, TIPO_LABELS, formatFecha, truncar } from "../productoHelpers";
 import { EstadoBadge } from "../misProductos/EstadoBadge";
 
-export const DocenteProductosRecientes = ({ productos, loading }) => (
+export const DocenteProductosRecientes = ({ productos, loading, onVer }) => (
     <div className="space-y-3">
         <div className="flex items-center justify-between gap-3">
             <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100">
@@ -44,7 +44,20 @@ export const DocenteProductosRecientes = ({ productos, loading }) => (
                         </thead>
                         <tbody className={tableBody}>
                             {productos.map((p) => (
-                                <tr key={p.id} className={tableRow}>
+                                <tr
+                                    key={p.id}
+                                    className={`${tableRow}${onVer ? " cursor-pointer" : ""}`}
+                                    onClick={onVer ? () => onVer(p) : undefined}
+                                    onKeyDown={onVer ? (e) => {
+                                        if (e.key === "Enter" || e.key === " ") {
+                                            e.preventDefault();
+                                            onVer(p);
+                                        }
+                                    } : undefined}
+                                    tabIndex={onVer ? 0 : undefined}
+                                    role={onVer ? "button" : undefined}
+                                    title={onVer ? "Ver detalle" : undefined}
+                                >
                                     <td className="px-4 py-3 max-w-55">
                                         <p className={`${tableCellPrimary} line-clamp-2`}>
                                             {truncar(p.nombre, 50)}

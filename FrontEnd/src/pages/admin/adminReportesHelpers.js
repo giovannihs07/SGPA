@@ -47,6 +47,22 @@ export const agruparConteo = (items, keyFn) => {
         .sort((a, b) => b.count - a.count);
 };
 
+/** Agrupa por tipo con desglose publicado / sin publicar. */
+export const agruparPorTipoDetalle = (items, keyFn = (p) => p.tipo) => {
+    const map = new Map();
+    for (const item of items) {
+        const key = keyFn(item) ?? "SIN_DATOS";
+        if (!map.has(key)) {
+            map.set(key, { key, count: 0, publicados: 0, sinPublicar: 0 });
+        }
+        const entry = map.get(key);
+        entry.count += 1;
+        if (item.publicado) entry.publicados += 1;
+        else entry.sinPublicar += 1;
+    }
+    return [...map.values()].sort((a, b) => b.count - a.count);
+};
+
 export const agruparPorDocente = (productos) => {
     const map = new Map();
 
@@ -199,6 +215,7 @@ export const filtrarProductosReporte = (productos, filtros) => {
         filtroEstado,
         filtroCategoria,
         filtroSubcategoria,
+        filtroTipo,
         filtroFacultad,
         filtroPrograma,
         fechaDesde,
@@ -219,6 +236,9 @@ export const filtrarProductosReporte = (productos, filtros) => {
         const matchSubcategoria =
             filtroSubcategoria === "TODAS" || p.subcategoria === filtroSubcategoria;
 
+        const matchTipo =
+            filtroTipo === "TODOS" || p.tipo === filtroTipo;
+
         const matchFacultad = matchIdEnSet(filtroFacultad, p.facultadIds ?? []);
 
         const matchPrograma = matchIdEnSet(filtroPrograma, p.programaIds ?? []);
@@ -238,7 +258,7 @@ export const filtrarProductosReporte = (productos, filtros) => {
             p.facultadesLabel?.toLowerCase().includes(q) ||
             p.programasLabel?.toLowerCase().includes(q);
 
-        return matchEstado && matchCategoria && matchSubcategoria
+        return matchEstado && matchCategoria && matchSubcategoria && matchTipo
             && matchFacultad && matchPrograma && matchFecha && matchBusqueda;
     });
 };
@@ -251,6 +271,7 @@ export const etiquetasFiltrosActivos = (filtros, { facultades, programas, labels
         estado: { TODOS: "Todos", PUBLICADO: "Publicados", SIN_PUBLICAR: "Sin publicar" }[filtros.filtroEstado] ?? filtros.filtroEstado,
         categoria: filtros.filtroCategoria === "TODAS" ? "Todas" : (labels.categoria?.[filtros.filtroCategoria] ?? filtros.filtroCategoria),
         subcategoria: filtros.filtroSubcategoria === "TODAS" ? "Todas" : (labels.subcategoria?.[filtros.filtroSubcategoria] ?? filtros.filtroSubcategoria),
+        tipo: filtros.filtroTipo === "TODOS" ? "Todos" : (labels.tipo?.[filtros.filtroTipo] ?? filtros.filtroTipo),
         facultad: filtros.filtroFacultad === "TODAS" ? "Todas" : (facultad?.nombre ?? filtros.filtroFacultad),
         programa: filtros.filtroPrograma === "TODOS" ? "Todos" : (programa?.nombre ?? filtros.filtroPrograma),
         fecha: filtros.fechaDesde || filtros.fechaHasta
@@ -264,6 +285,7 @@ export const filasFiltrosReporteAdmin = (filtrosLabel) => [
     ["Estado", filtrosLabel.estado],
     ["Categoría", filtrosLabel.categoria],
     ["Subcategoría", filtrosLabel.subcategoria],
+    ["Tipo de producto", filtrosLabel.tipo],
     ["Facultad", filtrosLabel.facultad],
     ["Programa", filtrosLabel.programa],
     ["Rango de fechas", filtrosLabel.fecha],

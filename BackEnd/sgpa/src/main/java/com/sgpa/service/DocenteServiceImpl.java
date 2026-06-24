@@ -15,6 +15,7 @@ import com.sgpa.dto.request.TituloAcademicoRequest;
 import com.sgpa.dto.response.AdministrativoResponse;
 import com.sgpa.dto.response.DocenteAdministrativoResponse;
 import com.sgpa.dto.response.DocenteResponse;
+import com.sgpa.exception.DocenteNotFoundException;
 import com.sgpa.exception.UniversidadValidationException;
 import com.sgpa.mapper.AdministrativoMapper;
 import com.sgpa.mapper.DocenteMapper;
@@ -228,8 +229,8 @@ public class DocenteServiceImpl implements DocenteService {
     @PreAuthorize("hasRole('DOCENTE')")
     public DocenteResponse buscarPorEmail(String email) {
         return docenteMapper.toDTO(docenteRepository.findByUserEmail(email)
-                .orElseThrow(() -> new RuntimeException(
-                        "Docente no encontrado con email: " + email)));
+                .orElseThrow(() -> new DocenteNotFoundException(
+                        "Docente no encontrado para el usuario autenticado")));
     }
 
     @Override
@@ -294,14 +295,12 @@ public class DocenteServiceImpl implements DocenteService {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public void eliminarTitulo(Long tituloId) {
         if (!tituloRepository.existsById(tituloId))
-            throw new RuntimeException(
-                    "Título no encontrado con id: " + tituloId);
+            throw new IllegalArgumentException("Título académico no encontrado");
         tituloRepository.deleteById(tituloId);
     }
 
     private Docente buscarEntidad(Long id) {
         return docenteRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException(
-                        "Docente no encontrado con id: " + id));
+                .orElseThrow(() -> new DocenteNotFoundException(id));
     }
 }

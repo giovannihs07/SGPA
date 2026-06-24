@@ -16,6 +16,7 @@ public class ReporteProduccionFiltrosEtiquetasResponse {
     private String estado;
     private String categoria;
     private String subcategoria;
+    private String tipo;
     private String facultad;
     private String programa;
     private String fecha;

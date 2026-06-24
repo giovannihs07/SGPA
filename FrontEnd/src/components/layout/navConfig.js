@@ -16,7 +16,7 @@ export const NAV_ITEMS = {
         {
             section: "Principal",
             items: [
-                { label: "Dashboard",          icon: LayoutDashboard, path: "/dashboard/docente" },
+                { label: "Dashboard",          icon: LayoutDashboard, path: "/dashboard/docente", end: true },
                 { label: "Registrar producto", icon: FilePlus,         path: "/dashboard/docente/registrar" },
                 { label: "Mis productos",      icon: BookOpen,         path: "/dashboard/docente/productos" },
             ],
@@ -33,7 +33,7 @@ export const NAV_ITEMS = {
         {
             section: "Mi producción",
             items: [
-                { label: "Dashboard",          icon: LayoutDashboard, path: "/dashboard/docente-admin" },
+                { label: "Dashboard",          icon: LayoutDashboard, path: "/dashboard/docente-admin", end: true },
                 { label: "Registrar producto", icon: FilePlus,         path: "/dashboard/docente/registrar" },
                 { label: "Mis productos",      icon: BookOpen,         path: "/dashboard/docente/productos" },
             ],
@@ -58,7 +58,7 @@ export const NAV_ITEMS = {
         {
             section: "Principal",
             items: [
-                { label: "Dashboard",      icon: LayoutDashboard, path: "/dashboard/admin" },
+                { label: "Dashboard",      icon: LayoutDashboard, path: "/dashboard/admin", end: true },
                 { label: "Usuarios",       icon: Users,           path: "/dashboard/admin/usuarios" },
                 { label: "Todos los productos", icon: BookOpen,   path: "/dashboard/admin/productos" },
             ],
@@ -75,7 +75,7 @@ export const NAV_ITEMS = {
         {
             section: "Principal",
             items: [
-                { label: "Dashboard",           icon: LayoutDashboard, path: "/dashboard/superadmin" },
+                { label: "Dashboard",           icon: LayoutDashboard, path: "/dashboard/superadmin", end: true },
                 { label: "Usuarios",            icon: Users,           path: "/dashboard/superadmin/usuarios" },
                 { label: "Todos los productos", icon: BookOpen,        path: "/dashboard/superadmin/productos" },
             ],

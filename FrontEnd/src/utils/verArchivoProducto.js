@@ -1,20 +1,12 @@
 import {
     fetchArchivoInlineDocente,
-    fetchArchivoInlinePrincipalPublico,
-    fetchArchivoInlinePublico,
+    urlArchivoPublicoInline,
 } from "../services/productoServices";
 import { esArchivoPdf } from "../config/productoArchivo";
 import { obtenerArchivosProducto, puedeDescargarArchivo } from "../pages/docente/components/productoHelpers";
 import { notifyError } from "./notify";
 
-const cargarPdfPublico = async (producto, archivo) => {
-    if (archivo?.id) {
-        return fetchArchivoInlinePublico(producto.id, archivo.id);
-    }
-    return fetchArchivoInlinePrincipalPublico(producto.id);
-};
-
-export const verArchivoPublico = async (producto, archivo, abrirPdf) => {
+export const verArchivoPublico = (producto, archivo) => {
     const target = archivo
         ?? obtenerArchivosProducto(producto).find((a) => a.accesoPublico !== false);
     if (!target) {
@@ -29,11 +21,14 @@ export const verArchivoPublico = async (producto, archivo, abrirPdf) => {
         notifyError("Acceso restringido", "Este archivo no está disponible para consulta pública.");
         return;
     }
-    try {
-        const blob = await cargarPdfPublico(producto, target);
-        abrirPdf(blob, target.nombreOriginal);
-    } catch (e) {
-        notifyError("Error", e.message ?? "No se pudo abrir el archivo");
+
+    const url = urlArchivoPublicoInline(producto.id, target.id);
+    const ventana = window.open(url, "_blank", "noopener,noreferrer");
+    if (!ventana) {
+        notifyError(
+            "Ventana bloqueada",
+            "Permite ventanas emergentes en el navegador para ver el PDF.",
+        );
     }
 };
 

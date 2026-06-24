@@ -29,6 +29,7 @@ public class ReporteProduccionController {
             @RequestParam(defaultValue = "TODOS") String estado,
             @RequestParam(defaultValue = "TODAS") String categoria,
             @RequestParam(defaultValue = "TODAS") String subcategoria,
+            @RequestParam(defaultValue = "TODOS") String tipo,
             @RequestParam(required = false) Long facultadId,
             @RequestParam(required = false) Long programaId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaDesde,
@@ -37,7 +38,7 @@ public class ReporteProduccionController {
             @RequestParam(required = false) String busqueda) {
 
         return ResponseEntity.ok(reporteProduccionService.generarEjecutivo(
-                estado, categoria, subcategoria, facultadId, programaId,
+                estado, categoria, subcategoria, tipo, facultadId, programaId,
                 fechaDesde, fechaHasta, campoFecha, busqueda));
     }
 
@@ -47,6 +48,7 @@ public class ReporteProduccionController {
             @RequestParam(defaultValue = "TODOS") String estado,
             @RequestParam(defaultValue = "TODAS") String categoria,
             @RequestParam(defaultValue = "TODAS") String subcategoria,
+            @RequestParam(defaultValue = "TODOS") String tipo,
             @RequestParam(required = false) Long facultadId,
             @RequestParam(required = false) Long programaId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaDesde,
@@ -55,7 +57,7 @@ public class ReporteProduccionController {
             @RequestParam(required = false) String busqueda) {
 
         return ResponseEntity.ok(reporteProduccionService.generarProductos(
-                estado, categoria, subcategoria, facultadId, programaId,
+                estado, categoria, subcategoria, tipo, facultadId, programaId,
                 fechaDesde, fechaHasta, campoFecha, busqueda));
     }
 
@@ -65,6 +67,7 @@ public class ReporteProduccionController {
             @RequestParam(defaultValue = "TODOS") String estado,
             @RequestParam(defaultValue = "TODAS") String categoria,
             @RequestParam(defaultValue = "TODAS") String subcategoria,
+            @RequestParam(defaultValue = "TODOS") String tipo,
             @RequestParam(required = false) Long facultadId,
             @RequestParam(required = false) Long programaId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaDesde,
@@ -73,7 +76,7 @@ public class ReporteProduccionController {
             @RequestParam(required = false) String busqueda) {
 
         return ResponseEntity.ok(reporteProduccionService.generarDocentes(
-                estado, categoria, subcategoria, facultadId, programaId,
+                estado, categoria, subcategoria, tipo, facultadId, programaId,
                 fechaDesde, fechaHasta, campoFecha, busqueda));
     }
 }

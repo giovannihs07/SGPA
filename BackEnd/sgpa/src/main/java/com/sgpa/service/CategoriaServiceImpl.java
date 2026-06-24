@@ -94,9 +94,17 @@ public class CategoriaServiceImpl implements CategoriaService {
     @Override
     @Transactional
     public void eliminar(Long id) {
-        buscarEntidad(id);
+        CategoriaProducto categoria = buscarEntidad(id);
+        validarTaxonomiaInactivaParaEliminar(categoria.getActivo(), "categorías");
         eliminacionHelper.eliminarCategoria(id);
         repository.deleteById(id);
+    }
+
+    private void validarTaxonomiaInactivaParaEliminar(Boolean activo, String etiqueta) {
+        if (Boolean.TRUE.equals(activo)) {
+            throw new IllegalStateException(
+                    "Solo se pueden eliminar " + etiqueta + " desactivadas. Desactívala primero.");
+        }
     }
 
     private CategoriaProducto buscarEntidad(Long id) {

@@ -8,8 +8,10 @@ export const ArchivoAccionesPdf = ({
     onVer,
     onDescargar,
     verLabel = "Ver",
+    verTitle = "Ver PDF",
+    ocultarDescarga = false,
 }) => {
-    if (!descargable) return null;
+    if (!descargable && !onVer) return null;
 
     const puedeVer = esArchivoPdf(archivo) && onVer;
 
@@ -19,6 +21,7 @@ export const ArchivoAccionesPdf = ({
                 <button
                     type="button"
                     onClick={() => onVer(producto, archivo)}
+                    title={verTitle}
                     className="inline-flex items-center gap-1.5 text-xs font-bold text-[#EC7A21]
                         bg-white dark:bg-gray-800 border border-orange-200 dark:border-orange-800
                         hover:bg-orange-50 dark:hover:bg-orange-900/20 px-3.5 py-2 rounded-lg transition"
@@ -26,6 +29,7 @@ export const ArchivoAccionesPdf = ({
                     <Eye size={14} /> {verLabel}
                 </button>
             )}
+            {!ocultarDescarga && descargable && (
             <button
                 type="button"
                 onClick={() => onDescargar(producto, archivo)}
@@ -34,6 +38,7 @@ export const ArchivoAccionesPdf = ({
             >
                 <Download size={14} /> Descargar
             </button>
+            )}
         </div>
     );
 };

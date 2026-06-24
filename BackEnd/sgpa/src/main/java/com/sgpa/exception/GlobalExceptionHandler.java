@@ -3,6 +3,8 @@ package com.sgpa.exception;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -15,8 +17,16 @@ import org.springframework.web.multipart.MultipartException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    private static final String MENSAJE_ERROR_INTERNO =
+        "Ocurrió un error interno. Intente más tarde.";
+
     private static final String MENSAJE_ARCHIVO_DEMASIADO_GRANDE =
-        "El archivo adjunto supera el tamaño máximo permitido de 10 MB.";
+        "El archivo adjunto supera el tamaño máximo permitido de 100 MB.";
+
+    private static final String MENSAJE_ARCHIVO_NO_PROCESABLE =
+        "No se pudo procesar el archivo adjunto.";
 
     // ==================== 404 Not Found Exceptions ====================
 
@@ -130,6 +140,19 @@ public class GlobalExceptionHandler {
             .body(Map.of("error", ex.getMessage()));
     }
 
+    @ExceptionHandler(UniversidadValidationException.class)
+    public ResponseEntity<Map<String, String>> handleUniversidadValidation(UniversidadValidationException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(FileStorageException.class)
+    public ResponseEntity<Map<String, String>> handleFileStorage(FileStorageException ex) {
+        log.error("Error al almacenar o eliminar archivo", ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(Map.of("error", MENSAJE_ARCHIVO_NO_PROCESABLE));
+    }
+
     // ==================== Upload / multipart ====================
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
@@ -172,9 +195,17 @@ public class GlobalExceptionHandler {
 
     // ==================== Generic Exception ====================
 
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException ex) {
+        log.error("Error no controlado", ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(Map.of("error", MENSAJE_ERROR_INTERNO));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGenericException(Exception ex) {
+        log.error("Error no controlado", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(Map.of("error", "Error interno del servidor: " + ex.getMessage()));
+            .body(Map.of("error", MENSAJE_ERROR_INTERNO));
     }
 }

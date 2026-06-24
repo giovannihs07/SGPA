@@ -9,6 +9,9 @@ import {
     registerAdministrativo,
     registerDocenteAdmin,
 } from "../../../services/authService";
+import { onlyDigits } from "../../../utils/inputFilters";
+
+const NUMERIC_FIELDS = new Set(["documentId", "phone"]);
 
 const toDocenteDTO = (form) => ({
     nombre:        form.firstName.trim(),
@@ -20,13 +23,6 @@ const toDocenteDTO = (form) => ({
     codigoDocente: form.codigoDocente.trim(),
     tipoContrato:  form.tipoContrato,
     programaIds:   form.programas.map(p => p.programaId),
-    titulos:       form.titulos.map(t => ({
-        titulo:         t.titulo.trim(),
-        nivel:          t.nivel,
-        institucion:    t.institucion.trim(),
-        fechaObtencion: t.fechaObtencion,
-        pais:           t.pais.trim(),
-    })),
 });
 
 const toAdministrativoDTO = (form) => ({
@@ -69,7 +65,8 @@ export const useRegisterForm = () => {
     const isAmbos          = isDocente && isAdministrativo;
 
     const onInputChange = ({ target: { name, value } }) => {
-        setForm(prev => ({ ...prev, [name]: value }));
+        const nextValue = NUMERIC_FIELDS.has(name) ? onlyDigits(value) : value;
+        setForm(prev => ({ ...prev, [name]: nextValue }));
         setFieldErrors(prev => clearNestedFieldError(prev, name));
         if (formError) setFormError("");
     };
@@ -87,7 +84,6 @@ export const useRegisterForm = () => {
                 codigoDocente: nd ? prev.codigoDocente : "",
                 tipoContrato:  nd ? prev.tipoContrato : "",
                 programas:     nd ? prev.programas     : [{ facultadId: "", programaId: "", facultadNombre: "", programaNombre: "" }],
-                titulos:       nd ? prev.titulos        : [{ titulo: "", nivel: "", institucion: "", fechaObtencion: "", pais: "" }],
                 cargo:         na ? prev.cargo          : "",
                 dependencia:   na ? prev.dependencia    : "",
             };
@@ -126,28 +122,6 @@ export const useRegisterForm = () => {
         setForm(prev => ({
             ...prev,
             programas: prev.programas.filter((_, idx) => idx !== i),
-        }));
-
-    const onTituloChange = (i, field, value) => {
-        setForm(prev => {
-            const next = [...prev.titulos];
-            next[i] = { ...next[i], [field]: value };
-            return { ...prev, titulos: next };
-        });
-        setFieldErrors(prev => clearNestedFieldError(prev, `titulos.${i}.${field}`));
-        if (formError) setFormError("");
-    };
-
-    const addTitulo = () =>
-        setForm(prev => ({
-            ...prev,
-            titulos: [...prev.titulos, { titulo: "", nivel: "", institucion: "", fechaObtencion: "", pais: "" }],
-        }));
-
-    const removeTitulo = (i) =>
-        setForm(prev => ({
-            ...prev,
-            titulos: prev.titulos.filter((_, idx) => idx !== i),
         }));
 
     const goNext = () => {
@@ -217,7 +191,6 @@ export const useRegisterForm = () => {
         onInputChange,
         toggleUserType,
         onProgramaChange, addPrograma, removePrograma,
-        onTituloChange,   addTitulo,   removeTitulo,
         goNext,
         goBack,
         onSubmit,

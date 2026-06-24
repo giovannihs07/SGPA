@@ -17,4 +17,5 @@ public class ReporteProduccionOpcionesResponse {
 
     private List<String> categoriasDisponibles;
     private List<String> subcategoriasDisponibles;
+    private List<String> tiposDisponibles;
 }

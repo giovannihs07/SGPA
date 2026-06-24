@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Search, ChevronDown, ChevronUp } from "lucide-react";
+import { Search, ChevronDown, ChevronUp, UserRound } from "lucide-react";
 import { SelectFilter } from "../../docente/components/misProductos/SelectFilter";
-import { TIPO_LABELS, CATEGORIA_LABELS, SUBCATEGORIA_LABELS } from "../../docente/components/productoHelpers";
+import { TIPO_LABELS, SUBCATEGORIA_LABELS } from "../../docente/components/productoHelpers";
 import { FiltroFechaRango } from "../../../components/ui/FiltroFechaRango";
 import { filterBar, inputXs, inputIcon, focusRing } from "../../../components/ui/themeTokens";
 import { categoriaBadgeClass, etiquetaCategoria } from "./publicProductoUi";
@@ -21,7 +21,11 @@ const ChipCategoria = ({ nombre, activa, onClick }) => (
 
 export const PublicFiltros = ({
     busqueda,
-    setBusqueda,
+    onBusquedaChange,
+    onBuscar,
+    docenteBusqueda = "",
+    onDocenteBusquedaChange,
+    onBuscarDocente,
     docenteFiltro = "",
     filtroCategoria,
     handleFiltroCategoria,
@@ -42,27 +46,46 @@ export const PublicFiltros = ({
     fechaHasta,
     setFechaDesde,
     setFechaHasta,
-    placeholderBusqueda = "Buscar por nombre, descripción o docente…",
+    placeholderBusqueda = "Buscar por nombre o descripción del producto",
 }) => {
     const [avanzadosAbiertos, setAvanzadosAbiertos] = useState(false);
 
+    const handleSubmitBusqueda = (e) => {
+        e.preventDefault();
+        onBuscar?.();
+    };
+
+    const handleSubmitDocente = (e) => {
+        e.preventDefault();
+        onBuscarDocente?.();
+    };
+
     const categorias = categoriasDisponibles.filter((c) => c !== "TODAS");
-    const hayFiltrosAvanzados = filtroFacultad !== "TODAS" || filtroPrograma !== "TODOS"
+    const hayFiltrosAvanzados = Boolean(docenteFiltro) || filtroFacultad !== "TODAS" || filtroPrograma !== "TODOS"
         || filtroSubcategoria !== "TODAS" || filtroTipo !== "TODOS" || fechaDesde || fechaHasta;
 
     return (
         <div className={`${filterBar} flex-col items-stretch gap-3`}>
-            <div className="relative w-full">
-                <Search size={13} className={inputIcon} aria-hidden="true" />
-                <input
-                    type="search"
-                    value={busqueda}
-                    onChange={(e) => setBusqueda(e.target.value)}
-                    placeholder={placeholderBusqueda}
-                    aria-label="Buscar productos"
-                    className={`${inputXs} pl-8 w-full`}
-                />
-            </div>
+            <form onSubmit={handleSubmitBusqueda} className="flex gap-2 w-full">
+                <div className="relative flex-1 min-w-0">
+                    <Search size={13} className={inputIcon} aria-hidden="true" />
+                    <input
+                        type="search"
+                        value={busqueda}
+                        onChange={(e) => onBusquedaChange(e.target.value)}
+                        placeholder={placeholderBusqueda}
+                        aria-label="Buscar productos"
+                        className={`${inputXs} pl-8 w-full`}
+                    />
+                </div>
+                <button
+                    type="submit"
+                    className={`shrink-0 px-4 py-2 rounded-lg text-xs font-semibold
+                        bg-[#EC7A21] text-white hover:bg-[#d96a15] transition ${focusRing}`}
+                >
+                    Buscar
+                </button>
+            </form>
 
             {categorias.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2">
@@ -107,6 +130,30 @@ export const PublicFiltros = ({
 
                 {avanzadosAbiertos && (
                     <div className="mt-3 flex flex-wrap items-center gap-2 pt-3 border-t border-gray-100 dark:border-gray-700">
+                        <form
+                            onSubmit={handleSubmitDocente}
+                            className="flex gap-2 w-full basis-full"
+                        >
+                            <div className="relative flex-1 min-w-[12rem]">
+                                <UserRound size={13} className={inputIcon} aria-hidden="true" />
+                                <input
+                                    type="search"
+                                    value={docenteBusqueda}
+                                    onChange={(e) => onDocenteBusquedaChange?.(e.target.value)}
+                                    placeholder="Buscar por nombre o apellido del docente…"
+                                    aria-label="Buscar por docente"
+                                    className={`${inputXs} pl-8 w-full`}
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                className={`shrink-0 px-4 py-2 rounded-lg text-xs font-semibold
+                                    bg-[#EC7A21] text-white hover:bg-[#d96a15] transition ${focusRing}`}
+                            >
+                                Buscar
+                            </button>
+                        </form>
+
                         <SelectFilter
                             value={filtroFacultad}
                             onChange={handleFiltroFacultad}
@@ -145,18 +192,6 @@ export const PublicFiltros = ({
                             {tiposDisponibles.map((t) => (
                                 <option key={t} value={t}>
                                     {t === "TODOS" ? "Todos los tipos" : (TIPO_LABELS[t] ?? t)}
-                                </option>
-                            ))}
-                        </SelectFilter>
-
-                        <SelectFilter
-                            value={filtroCategoria}
-                            onChange={handleFiltroCategoria}
-                            aria-label="Filtrar por categoría (lista)"
-                        >
-                            {categoriasDisponibles.map((c) => (
-                                <option key={c} value={c}>
-                                    {c === "TODAS" ? "Todas las categorías" : (CATEGORIA_LABELS[c] ?? c)}
                                 </option>
                             ))}
                         </SelectFilter>

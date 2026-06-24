@@ -41,6 +41,10 @@ export const normalizarRoles = (roles) => {
     return Array.isArray(roles) ? roles : [...roles];
 };
 
+/** Roles asignables desde paneles de usuarios (docente y/o administrativo). */
+export const ROLES_ASIGNABLES_USUARIO = (roles) =>
+    (roles ?? []).filter((r) => r === "ROLE_DOCENTE" || r === "ROLE_ADMIN");
+
 export const PERFILES_USUARIO_FILTRO = [
     { value: "TODOS",                 label: "Todos los perfiles" },
     { value: "DOCENTE",               label: "Docente" },

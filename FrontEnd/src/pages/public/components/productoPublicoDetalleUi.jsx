@@ -57,6 +57,8 @@ export const FilaArchivoPublico = ({ archivo, producto, onVer, onDescargar }) =>
                     descargable={descargable}
                     onVer={onVer}
                     onDescargar={onDescargar}
+                    verLabel="Ver"
+                    verTitle="Abrir PDF en nueva pestaña"
                 />
             )}
         </div>

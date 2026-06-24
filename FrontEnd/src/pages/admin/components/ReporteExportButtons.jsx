@@ -195,7 +195,7 @@ export const ReporteExportButtons = ({ disabled, reporte, reporteParams }) => {
                         {cargandoProductos
                             ? <Loader2 size={15} className="animate-spin shrink-0" />
                             : <FileSpreadsheet size={15} className={iconoExcel} />}
-                        Excel — listado completo
+                        Excel — Listado completo
                     </button>
                     <button
                         type="button"
@@ -207,7 +207,7 @@ export const ReporteExportButtons = ({ disabled, reporte, reporteParams }) => {
                         {cargandoProductos
                             ? <Loader2 size={15} className="animate-spin shrink-0" />
                             : <FileText size={15} className={iconoPdf} />}
-                        PDF — listado completo
+                        PDF — Listado completo
                     </button>
 
                     <div className="my-1 border-t border-gray-100 dark:border-gray-700" />
@@ -223,7 +223,7 @@ export const ReporteExportButtons = ({ disabled, reporte, reporteParams }) => {
                         {cargandoDocentes
                             ? <Loader2 size={15} className="animate-spin shrink-0" />
                             : <FileSpreadsheet size={15} className={iconoExcel} />}
-                        Excel — ranking completo
+                        Excel — Ranking completo
                     </button>
                     <button
                         type="button"
@@ -235,7 +235,7 @@ export const ReporteExportButtons = ({ disabled, reporte, reporteParams }) => {
                         {cargandoDocentes
                             ? <Loader2 size={15} className="animate-spin shrink-0" />
                             : <FileText size={15} className={iconoPdf} />}
-                        PDF — ranking completo
+                        PDF — Ranking completo
                     </button>
                 </div>
             )}

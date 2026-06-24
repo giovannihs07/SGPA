@@ -118,8 +118,16 @@ public class SubcategoriaServiceImpl implements SubcategoriaService {
     @Override
     @Transactional
     public void eliminar(Long id) {
-        buscarEntidad(id);
+        SubcategoriaProducto sub = buscarEntidad(id);
+        validarTaxonomiaInactivaParaEliminar(sub.getActivo(), "subcategorías");
         eliminacionHelper.eliminarSubcategoria(id);
+    }
+
+    private void validarTaxonomiaInactivaParaEliminar(Boolean activo, String etiqueta) {
+        if (Boolean.TRUE.equals(activo)) {
+            throw new IllegalStateException(
+                    "Solo se pueden eliminar " + etiqueta + " desactivadas. Desactívala primero.");
+        }
     }
 
     private SubcategoriaProducto buscarEntidad(Long id) {

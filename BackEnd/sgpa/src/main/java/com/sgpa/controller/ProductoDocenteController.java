@@ -102,6 +102,7 @@ public class ProductoDocenteController {
     @GetMapping("/publicos")
     public ResponseEntity<ProductoPublicoPageResponse> buscarPublicosPortal(
             @RequestParam(required = false) String q,
+            @RequestParam(required = false) String docente,
             @RequestParam(required = false) String categoria,
             @RequestParam(required = false) String subcategoria,
             @RequestParam(required = false) String tipo,
@@ -115,7 +116,7 @@ public class ProductoDocenteController {
             @RequestParam(defaultValue = "fechaPublicacionSgpa,desc") String sort) {
         Pageable pageable = PageRequest.of(page, size, parsearOrden(sort));
         return ResponseEntity.ok(service.buscarPublicadosPortal(
-                q, categoria, subcategoria, tipo, facultad, programa, desde, hasta, campoFecha, pageable));
+                q, docente, categoria, subcategoria, tipo, facultad, programa, desde, hasta, campoFecha, pageable));
     }
 
     @GetMapping("/publicos/resumen")

@@ -53,19 +53,19 @@ const confirmarDesactivacionTaxonomia = (nivel, item) => {
     const configs = {
         categoria: {
             title: `¿Desactivar la categoría "${nombre}"?`,
-            visibilidad: "Los productos de esta categoría ya no serán visibles.",
+            visibilidad: "Los productos ya registrados de esta categoría seguirán siendo visibles.",
             registro: "Los docentes no podrán registrar nuevos productos de esta categoría.",
             reactivar: "Puedes reactivarla más adelante.",
         },
         subcategoria: {
             title: `¿Desactivar la subcategoría "${nombre}"?`,
-            visibilidad: "Los productos de esta subcategoría ya no serán visibles.",
+            visibilidad: "Los productos ya registrados de esta subcategoría seguirán siendo visibles.",
             registro: "Los docentes no podrán registrar nuevos productos de esta subcategoría.",
             reactivar: "Puedes reactivarla más adelante.",
         },
         tipo: {
             title: `¿Desactivar el tipo de producto "${nombre}"?`,
-            visibilidad: "Los productos de este tipo ya no serán visibles.",
+            visibilidad: "Los productos ya registrados de este tipo seguirán siendo visibles.",
             registro: "Los docentes no podrán registrar nuevos productos de este tipo.",
             reactivar: "Puedes reactivarlo más adelante.",
         },
@@ -76,7 +76,7 @@ const confirmarDesactivacionTaxonomia = (nivel, item) => {
 
     if (count > 0) {
         lineas.push(
-            `Hay <strong>${count}</strong> producto(s) registrado(s) que dejarán de ser visibles.`,
+            `Hay <strong>${count}</strong> producto(s) registrado(s).`,
         );
     }
 
@@ -480,6 +480,12 @@ export const useConfiguracionProductos = () => {
     };
 
     const eliminarCategoriaHandler = async (cat) => {
+        if (cat.activo) {
+            return notifyError(
+                "No se puede eliminar",
+                "Debes desactivar la categoría antes de eliminarla.",
+            );
+        }
         if (!cat.eliminable) {
             return notifyError(
                 "No se puede eliminar",
@@ -505,6 +511,12 @@ export const useConfiguracionProductos = () => {
     };
 
     const eliminarSubcategoriaHandler = async (sub) => {
+        if (sub.activo) {
+            return notifyError(
+                "No se puede eliminar",
+                "Debes desactivar la subcategoría antes de eliminarla.",
+            );
+        }
         if (!sub.eliminable) {
             return notifyError(
                 "No se puede eliminar",
@@ -529,6 +541,12 @@ export const useConfiguracionProductos = () => {
     };
 
     const eliminarTipoHandler = async (tipo) => {
+        if (tipo.activo) {
+            return notifyError(
+                "No se puede eliminar",
+                "Debes desactivar el tipo de producto antes de eliminarlo.",
+            );
+        }
         if (!tipo.eliminable) {
             return notifyError(
                 "No se puede eliminar",

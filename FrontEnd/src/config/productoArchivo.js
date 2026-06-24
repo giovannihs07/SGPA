@@ -1,5 +1,5 @@
-/** Límite por archivo — debe coincidir con application.properties (10MB). */
-export const MAX_ARCHIVO_MB = 10;
+/** Límite por archivo — debe coincidir con application.properties (100MB). */
+export const MAX_ARCHIVO_MB = 100;
 export const MAX_ARCHIVO_BYTES = MAX_ARCHIVO_MB * 1024 * 1024;
 export const MAX_ARCHIVOS = 5;
 

@@ -29,6 +29,8 @@ public class AuthServiceImpl implements AuthService {
 
         Persona persona = user.getPersona();
         Long personaId = persona != null ? persona.getId() : null;
+        String nombre = persona != null ? persona.getNombre() : null;
+        String apellido = persona != null ? persona.getApellido() : null;
 
         String token = jwtTokenService.generarToken(email, roles);
 
@@ -37,6 +39,8 @@ public class AuthServiceImpl implements AuthService {
             .userId(user.getId())
             .personaId(personaId)
             .email(email)
+            .nombre(nombre)
+            .apellido(apellido)
             .roles(roles)
             .message(String.format("¡Hola %s, has iniciado sesión con éxito!", email))
             .build();

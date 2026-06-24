@@ -1,5 +1,6 @@
 export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const INSTITUTIONAL_EMAIL_SUFFIX = "@unicartagena.edu.co";
+const DIGITS_ONLY = /^\d+$/;
 
 export const validateStep1 = (form) => {
     const errors = {};
@@ -9,8 +10,16 @@ export const validateStep1 = (form) => {
     }
     if (!form.firstName.trim()) errors.firstName = "Los nombres son obligatorios";
     if (!form.lastName.trim()) errors.lastName = "Los apellidos son obligatorios";
-    if (!form.documentId.trim()) errors.documentId = "La cédula es obligatoria";
-    if (!form.phone.trim()) errors.phone = "El teléfono es obligatorio";
+    if (!form.documentId.trim()) {
+        errors.documentId = "La cédula es obligatoria";
+    } else if (!DIGITS_ONLY.test(form.documentId.trim())) {
+        errors.documentId = "La cédula solo puede contener números";
+    }
+    if (!form.phone.trim()) {
+        errors.phone = "El teléfono es obligatorio";
+    } else if (!DIGITS_ONLY.test(form.phone.trim())) {
+        errors.phone = "El teléfono solo puede contener números";
+    }
 
     return errors;
 };
@@ -27,14 +36,6 @@ export const validateStep2 = (form) => {
         form.programas.forEach((p, i) => {
             if (!p.facultadId) errors[`programas.${i}.facultadId`] = "Selecciona una facultad";
             if (!p.programaId) errors[`programas.${i}.programaId`] = "Selecciona un programa";
-        });
-
-        form.titulos.forEach((t, i) => {
-            if (!t.titulo.trim()) errors[`titulos.${i}.titulo`] = "El título es obligatorio";
-            if (!t.nivel) errors[`titulos.${i}.nivel`] = "Selecciona un nivel";
-            if (!t.institucion.trim()) errors[`titulos.${i}.institucion`] = "La institución es obligatoria";
-            if (!t.fechaObtencion) errors[`titulos.${i}.fechaObtencion`] = "La fecha es obligatoria";
-            if (!t.pais.trim()) errors[`titulos.${i}.pais`] = "El país es obligatorio";
         });
     }
 

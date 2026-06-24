@@ -43,10 +43,11 @@ export const Sidebar = ({ isCollapsed, onToggle, onLogout }) => {
                         )}
                         {isCollapsed && <div className="my-2 mx-3 border-t border-white/10" />}
 
-                        {items.map(({ label, icon: Icon, path }) => (
+                        {items.map(({ label, icon: Icon, path, end }) => (
                             <NavLink
                                 key={path}
                                 to={path}
+                                end={end}
                                 title={isCollapsed ? label : undefined}
                                 className={({ isActive }) => `
                                     flex items-center gap-3 px-5 py-2.5 text-sm transition-colors duration-150

@@ -4,7 +4,7 @@ import { UsuariosTabla } from "./components/UsuariosTabla";
 import { CambiarRolesModal } from "./components/CambiarRolesModal";
 import { AdminFiltrosBar } from "./components/ProductosAdminTabla";
 import { UsuariosFiltrosContextuales } from "./components/UsuariosFiltrosContextuales";
-import { PERFILES_USUARIO_FILTRO } from "./superAdminHelpers";
+import { PERFILES_USUARIO_FILTRO, ROLES_ASIGNABLES_USUARIO } from "./superAdminHelpers";
 
 const ESTADOS = [
     { value: "TODOS",    label: "Todos los estados" },
@@ -26,6 +26,8 @@ export const SuperAdminUsuariosPage = () => {
         handleActivar, handleDesactivar,
     } = useUsuariosAdmin();
 
+    const rolesAsignables = ROLES_ASIGNABLES_USUARIO(rolesDisponibles);
+
     if (loading) {
         return (
             <div className="flex items-center justify-center py-20 text-gray-400 text-sm gap-2">
@@ -46,6 +48,14 @@ export const SuperAdminUsuariosPage = () => {
 
     return (
         <div className="space-y-4 max-w-7xl mx-auto">
+            <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                <p className="text-sm text-amber-900 dark:text-amber-200">
+                    Desde este panel solo puedes asignar los roles <strong>Docente</strong> y{" "}
+                    <strong>Administrativo</strong> (uno o ambos). Las cuentas{" "}
+                    <strong>Super Admin</strong> no son editables aquí.
+                </p>
+            </div>
+
             <div className="flex items-center justify-between gap-3">
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                     {usuarios.length} usuario{usuarios.length !== 1 ? "s" : ""}
@@ -95,7 +105,7 @@ export const SuperAdminUsuariosPage = () => {
 
             <CambiarRolesModal
                 usuario={usuarioRoles}
-                rolesDisponibles={rolesDisponibles}
+                rolesDisponibles={rolesAsignables}
                 onClose={() => setUsuarioRoles(null)}
                 onGuardar={handleGuardarRoles}
                 saving={savingRoles}

@@ -1,21 +1,34 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { useDocenteDashboard } from "../../hooks/useDocenteDashboard";
 import { MisProductosKpiGrid } from "./components/misProductos/MisProductosKpiGrid";
 import {
     DocenteProductosRecientes,
-    DocenteDistribucionCategorias,
 } from "./components/dashboard/DocenteProductosRecientes";
+import { ProductoDetalleModal } from "./components/misProductos/ProductoDetalleModal";
+import { intentarEditarProducto } from "./components/misProductos/productoSwal";
 
 export const DashboardDocentePage = () => {
+    const navigate = useNavigate();
+    const onEditar = (producto) =>
+        intentarEditarProducto(producto, (p) =>
+            navigate(`/dashboard/docente/productos/${p.id}/editar`),
+        );
+
     const {
         nombreDocente,
         resumen,
         recientes,
-        porCategoria,
         loading,
         error,
         refetch,
+        productoDetalle,
+        abrirDetalle,
+        cerrarDetalle,
+        toggling,
+        toggleFromDetalle,
+        eliminarFromDetalle,
+        handleDescargar,
     } = useDocenteDashboard();
 
     if (error) {
@@ -107,18 +120,21 @@ export const DashboardDocentePage = () => {
                 </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                <div className="lg:col-span-2">
-                    <DocenteProductosRecientes productos={recientes} loading={loading} />
-                </div>
-                <div>
-                    <DocenteDistribucionCategorias
-                        items={porCategoria}
-                        loading={loading}
-                        total={resumen.total}
-                    />
-                </div>
-            </div>
+            <DocenteProductosRecientes
+                productos={recientes}
+                loading={loading}
+                onVer={abrirDetalle}
+            />
+
+            <ProductoDetalleModal
+                producto={productoDetalle}
+                toggling={toggling}
+                onClose={cerrarDetalle}
+                onToggle={toggleFromDetalle}
+                onEliminar={eliminarFromDetalle}
+                onEditar={onEditar}
+                onDescargar={handleDescargar}
+            />
         </div>
     );
 };

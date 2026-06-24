@@ -16,6 +16,7 @@ export const UsuariosPorRolChart = ({ items, loading, compact = false }) => {
             datos={datos}
             loading={loading}
             compact={compact}
+            valorLabel="Total"
             mensajeVacio="No hay usuarios con roles registrados."
         />
     );

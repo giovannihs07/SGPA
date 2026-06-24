@@ -45,6 +45,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
+    private static final Set<RoleName> ROLES_ASIGNABLES_PANEL = Set.of(
+            RoleName.ROLE_DOCENTE,
+            RoleName.ROLE_ADMIN);
+
     private final UserRepository userRepository;
     private final DocenteRepository docenteRepository;
     private final AdministrativoRepository administrativoRepository;
@@ -71,10 +75,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     @PreAuthorize("isAuthenticated()")
     public UserDetalleResponse obtenerPerfil(String email) {
-        return detalleMapper.toDTO(buscarPorEmail(email));
+        User user = buscarPorEmail(email);
+        sincronizarPerfilesConRoles(user, nombresRoles(user));
+        return detalleMapper.toDTO(user);
     }
 
     @Override
@@ -101,6 +107,7 @@ public class UserServiceImpl implements UserService {
     public UserDetalleResponse actualizarPerfilDocente(String email, ActualizarPerfilDocenteRequest dto) {
         Docente docente = buscarDocentePorEmail(email);
         docente.setTipoContrato(dto.getTipoContrato().trim());
+        asignarCodigoDocenteSiPendiente(docente, dto.getCodigoDocente());
         docenteRepository.save(docente);
         return detalleMapper.toDTO(buscarPorEmail(email));
     }
@@ -204,10 +211,19 @@ public class UserServiceImpl implements UserService {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public void cambiarRoles(Long userId, Set<String> nuevosRoles) {
         User user = buscarEntidad(userId);
+
+        if (user.getRoles().stream().anyMatch(r -> r.getName() == RoleName.ROLE_SUPER_ADMIN)) {
+            throw new IllegalArgumentException(
+                    "No se pueden modificar los roles de una cuenta Super Admin");
+        }
+
+        validarRolesAsignables(nuevosRoles);
+
         Set<String> rolesAnteriores = user.getRoles().stream()
                 .map(r -> r.getName().name())
                 .collect(Collectors.toSet());
         asignarRoles(user, nuevosRoles);
+        sincronizarPerfilesConRoles(user, nuevosRoles);
         userRepository.save(user);
         auditService.registrar(ModuloAuditoria.USUARIOS, "CAMBIAR_ROLES",
                 "Cambió roles de " + user.getEmail(),
@@ -216,13 +232,64 @@ public class UserServiceImpl implements UserService {
                 ResultadoAuditoria.CRITICO);
     }
 
+    private void validarRolesAsignables(Set<String> nuevosRoles) {
+        if (nuevosRoles == null || nuevosRoles.isEmpty()) {
+            throw new IllegalArgumentException("Debe asignar al menos un rol");
+        }
+
+        for (String rol : nuevosRoles) {
+            final RoleName roleName;
+            try {
+                roleName = RoleName.valueOf(rol);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Rol inválido: " + rol);
+            }
+            if (!ROLES_ASIGNABLES_PANEL.contains(roleName)) {
+                throw new IllegalArgumentException(
+                        "Solo se pueden asignar los roles Docente y Administrativo");
+            }
+        }
+    }
+
     private void asignarRoles(User user, Set<String> nuevosRoles) {
         Set<Role> roles = nuevosRoles.stream()
                 .map(nombre -> roleRepository.findByName(RoleName.valueOf(nombre))
-                        .orElseThrow(() -> new RuntimeException(
-                                "Rol no encontrado: " + nombre)))
+                        .orElseThrow(() -> new IllegalArgumentException(
+                                "Rol no válido: " + nombre)))
                 .collect(Collectors.toSet());
         user.setRoles(roles);
+    }
+
+    private void sincronizarPerfilesConRoles(User user, Set<String> nuevosRoles) {
+        Persona persona = user.getPersona();
+        if (persona == null) {
+            throw new IllegalStateException("El usuario no tiene datos de persona asociados");
+        }
+
+        Set<RoleName> roles = nuevosRoles.stream()
+                .map(RoleName::valueOf)
+                .collect(Collectors.toSet());
+
+        if (roles.contains(RoleName.ROLE_ADMIN)
+                && administrativoRepository.findById(persona.getId()).isEmpty()) {
+            Administrativo administrativo = new Administrativo();
+            administrativo.setPersona(persona);
+            administrativoRepository.save(administrativo);
+        }
+
+        if (roles.contains(RoleName.ROLE_DOCENTE)
+                && docenteRepository.findById(persona.getId()).isEmpty()) {
+            Docente docente = new Docente();
+            docente.setPersona(persona);
+            docente.setProgramas(new HashSet<>());
+            docenteRepository.save(docente);
+        }
+    }
+
+    private Set<String> nombresRoles(User user) {
+        return user.getRoles().stream()
+                .map(r -> r.getName().name())
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -250,7 +317,7 @@ public class UserServiceImpl implements UserService {
     public void cambiarPassword(String email, String passwordActual, String passwordNuevo) {
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new UserNotFoundException(email));
 
         if (!passwordEncoder.matches(passwordActual, user.getPassword()))
             throw new IllegalArgumentException(
@@ -262,8 +329,7 @@ public class UserServiceImpl implements UserService {
 
     private User buscarEntidad(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException(
-                        "Usuario no encontrado con id: " + id));
+                .orElseThrow(() -> new UserNotFoundException(id));
     }
 
     private User buscarPorEmail(String email) {
@@ -279,6 +345,23 @@ public class UserServiceImpl implements UserService {
         }
         return docenteRepository.findById(persona.getId())
                 .orElseThrow(() -> new IllegalStateException("El usuario no tiene perfil docente"));
+    }
+
+    private void asignarCodigoDocenteSiPendiente(Docente docente, String codigoNuevo) {
+        String actual = docente.getCodigoDocente();
+        if (actual != null && !actual.isBlank()) {
+            return;
+        }
+        if (codigoNuevo == null || codigoNuevo.isBlank()) {
+            throw new IllegalArgumentException("El código docente es obligatorio");
+        }
+        String codigo = codigoNuevo.trim();
+        docenteRepository.findByCodigoDocente(codigo)
+                .filter(otro -> !otro.getId().equals(docente.getId()))
+                .ifPresent(otro -> {
+                    throw new IllegalStateException("Ya existe un docente con ese código");
+                });
+        docente.setCodigoDocente(codigo);
     }
 
     private Administrativo buscarAdministrativoPorEmail(String email) {

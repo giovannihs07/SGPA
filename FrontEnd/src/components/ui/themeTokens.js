@@ -81,6 +81,17 @@ export const filtroCampoIgual = "flex-1 min-w-0 basis-0";
 
 export const filterBar = `${card} p-4 flex flex-wrap items-center gap-3`;
 
+/** Barra de filtros con acento institucional (reportes, catálogos) */
+export const filterBarAccent =
+    `${card} p-4 flex flex-wrap items-center gap-3 ` +
+    `bg-orange-50/95 dark:bg-[#EC7A21]/10 ` +
+    `border-[#ffc20e]/35 dark:border-[#EC7A21]/35`;
+
+/** Contenedor agrupado para filtros relacionados (fechas, facultad/programa, etc.) */
+export const filtroGrupo =
+    "w-fit max-w-full rounded-lg border border-gray-200/90 dark:border-gray-600 " +
+    "bg-white/90 dark:bg-gray-900/50 px-3 py-2.5 min-w-0 shrink-0";
+
 export const btnPrimary =
     `px-4 py-2 text-sm font-semibold text-white bg-[#EC7A21] hover:bg-[#d96a15] ` +
     `rounded-lg disabled:opacity-50 disabled:cursor-not-allowed ${focusRing}`;

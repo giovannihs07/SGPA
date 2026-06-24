@@ -14,7 +14,7 @@ import { EstadoBadge } from "./EstadoBadge";
 import { ArchivoAccionesPdf } from "../../../../components/ui/ArchivoAccionesPdf";
 import { ArchivoPdfViewer } from "../../../../components/ui/ArchivoPdfViewer";
 import { useArchivoPdfViewer } from "../../../../hooks/useArchivoPdfViewer";
-import { verArchivoDocente } from "../../../../utils/verArchivoProducto";
+import { verArchivoDocente, verArchivoPublico } from "../../../../utils/verArchivoProducto";
 
 const DetallePill = ({ label, value, accent = "border-[#EC7A21]" }) => (
     <div className={`bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700
@@ -28,7 +28,7 @@ const DetallePill = ({ label, value, accent = "border-[#EC7A21]" }) => (
     </div>
 );
 
-const FilaArchivoDetalle = ({ archivo, producto, onVer, onDescargar }) => {
+const FilaArchivoDetalle = ({ archivo, producto, onVer, onDescargar, soloLectura = false }) => {
     const ext = archivo.extensionArchivo
         ?? (archivo.nombreOriginal?.includes(".")
             ? archivo.nombreOriginal.split(".").pop().toUpperCase()
@@ -74,6 +74,7 @@ const FilaArchivoDetalle = ({ archivo, producto, onVer, onDescargar }) => {
                     descargable={descargable}
                     onVer={onVer}
                     onDescargar={onDescargar}
+                    ocultarDescarga={soloLectura}
                 />
             )}
         </div>
@@ -98,13 +99,20 @@ export const ProductoDetalleModal = ({
     onEditar,
     onDescargar,
     permitirEditar = true,
+    soloLectura = false,
+    visorArchivos = "docente",
 }) => {
     const [etiquetasAtributos, setEtiquetasAtributos] = useState({});
     const { visor, abrirPdf, cerrarVisor } = useArchivoPdfViewer();
 
     const handleVerArchivo = useCallback(
-        (p, archivo) => verArchivoDocente(p, archivo, abrirPdf),
-        [abrirPdf],
+        (p, archivo) => {
+            if (visorArchivos === "publico") {
+                return verArchivoPublico(p, archivo);
+            }
+            return verArchivoDocente(p, archivo, abrirPdf);
+        },
+        [abrirPdf, visorArchivos],
     );
 
     useEffect(() => {
@@ -294,6 +302,7 @@ export const ProductoDetalleModal = ({
                                                     producto={producto}
                                                     onVer={handleVerArchivo}
                                                     onDescargar={onDescargar}
+                                                    soloLectura={soloLectura}
                                                 />
                                             ))}
                                         </div>
@@ -310,6 +319,7 @@ export const ProductoDetalleModal = ({
                                                     producto={producto}
                                                     onVer={handleVerArchivo}
                                                     onDescargar={onDescargar}
+                                                    soloLectura={soloLectura}
                                                 />
                                             ))}
                                         </div>
@@ -327,6 +337,7 @@ export const ProductoDetalleModal = ({
                                             producto={producto}
                                             onVer={handleVerArchivo}
                                             onDescargar={onDescargar}
+                                            soloLectura={soloLectura}
                                         />
                                     ))}
                                 </>
@@ -375,7 +386,7 @@ export const ProductoDetalleModal = ({
                         Cerrar
                     </button>
 
-                    {eliminable && (
+                    {eliminable && !soloLectura && (
                         <button
                             type="button"
                             onClick={onEliminar}
@@ -386,6 +397,7 @@ export const ProductoDetalleModal = ({
                         </button>
                     )}
 
+                    {!soloLectura && (
                     <button
                         type="button"
                         onClick={onToggle}
@@ -402,6 +414,7 @@ export const ProductoDetalleModal = ({
                             : producto.publicado ? "Despublicar" : "Publicar"
                         }
                     </button>
+                    )}
                 </div>
             </div>
         </div>

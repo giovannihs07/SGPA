@@ -17,6 +17,7 @@ export const filtrarMisProductosReporte = (productos, filtros) => {
         filtroEstado,
         filtroCategoria,
         filtroSubcategoria,
+        filtroTipo,
         fechaDesde,
         fechaHasta,
         filtroCampoFecha,
@@ -35,6 +36,9 @@ export const filtrarMisProductosReporte = (productos, filtros) => {
         const matchSubcategoria =
             filtroSubcategoria === "TODAS" || p.subcategoria === filtroSubcategoria;
 
+        const matchTipo =
+            !filtroTipo || filtroTipo === "TODOS" || p.tipo === filtroTipo;
+
         const matchFecha = matchRangoFecha(p, {
             fechaDesde,
             fechaHasta,
@@ -46,7 +50,7 @@ export const filtrarMisProductosReporte = (productos, filtros) => {
             p.nombre?.toLowerCase().includes(q) ||
             p.descripcion?.toLowerCase().includes(q);
 
-        return matchEstado && matchCategoria && matchSubcategoria && matchFecha && matchBusqueda;
+        return matchEstado && matchCategoria && matchSubcategoria && matchTipo && matchFecha && matchBusqueda;
     });
 };
 
@@ -54,6 +58,7 @@ export const etiquetasFiltrosDocente = (filtros, labels) => ({
     estado: { TODOS: "Todos", PUBLICADO: "Publicados", SIN_PUBLICAR: "Sin publicar" }[filtros.filtroEstado] ?? filtros.filtroEstado,
     categoria: filtros.filtroCategoria === "TODAS" ? "Todas" : (labels.categoria?.[filtros.filtroCategoria] ?? filtros.filtroCategoria),
     subcategoria: filtros.filtroSubcategoria === "TODAS" ? "Todas" : (labels.subcategoria?.[filtros.filtroSubcategoria] ?? filtros.filtroSubcategoria),
+    tipo: !filtros.filtroTipo || filtros.filtroTipo === "TODOS" ? "Todos" : (labels.tipo?.[filtros.filtroTipo] ?? filtros.filtroTipo),
     fecha: filtros.fechaDesde || filtros.fechaHasta
         ? `${filtros.fechaDesde || "…"} — ${filtros.fechaHasta || "…"} (${filtros.filtroCampoFecha === CAMPO_FECHA_PUBLICACION_SGPA ? "publicado en SGPA" : "registrado en SGPA"})`
         : "Todas",
@@ -64,6 +69,7 @@ export const filasFiltrosReporteDocente = (filtrosLabel) => [
     ["Estado", filtrosLabel.estado],
     ["Categoría", filtrosLabel.categoria],
     ["Subcategoría", filtrosLabel.subcategoria],
+    ["Tipo", filtrosLabel.tipo],
     ["Rango de fechas", filtrosLabel.fecha],
     ["Búsqueda", filtrosLabel.busqueda],
 ];

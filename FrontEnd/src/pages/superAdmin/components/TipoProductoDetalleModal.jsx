@@ -109,7 +109,7 @@ export const TipoProductoDetalleModal = ({ tipo, onClose, onEditar }) => {
                             border border-amber-200 dark:border-amber-800">
                             <p className="text-xs text-amber-800 dark:text-amber-300">
                                 Este tipo está inactivo. Los docentes no pueden registrar productos
-                                nuevos con él y los existentes no son visibles en el sistema.
+                                nuevos con él.
                             </p>
                         </div>
                     )}

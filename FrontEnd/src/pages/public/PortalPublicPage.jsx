@@ -24,7 +24,14 @@ export const PortalPublicPage = () => {
         productos, productosFiltrados,
         resumen, resumenGlobal, hayFiltrosActivos,
         loading, refrescando, error, refetch,
-        busqueda, setBusqueda,
+        busqueda,
+        busquedaBorrador,
+        setBusquedaBorrador,
+        aplicarBusqueda,
+        limpiarBusqueda,
+        docenteBorrador,
+        setDocenteBorrador,
+        aplicarBusquedaDocente,
         docenteFiltro, quitarFiltroDocente,
         filtroCategoria, handleFiltroCategoria,
         filtroSubcategoria, handleFiltroSubcategoria,
@@ -48,6 +55,11 @@ export const PortalPublicPage = () => {
         abrirDetalle,
         cerrarDetalle,
     } = usePublicProductoDetalle(productos);
+
+    const buscarEnCatalogo = useCallback(() => {
+        aplicarBusqueda();
+        scrollACatalogo();
+    }, [aplicarBusqueda]);
 
     const seleccionarCategoria = useCallback((nombre) => {
         handleFiltroCategoria(filtroCategoria === nombre ? "TODAS" : nombre);
@@ -81,10 +93,11 @@ export const PortalPublicPage = () => {
         <>
             <PublicHero
                 resumenGlobal={resumenGlobal}
-                busqueda={busqueda}
-                onBusquedaChange={setBusqueda}
+                categoriasActivas={schema.length}
+                busqueda={busquedaBorrador}
+                onBusquedaChange={setBusquedaBorrador}
                 onExplorar={scrollACatalogo}
-                onBuscar={scrollACatalogo}
+                onBuscar={buscarEnCatalogo}
             />
 
             <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
@@ -123,7 +136,7 @@ export const PortalPublicPage = () => {
 
                     <PublicFiltrosChips
                         busqueda={busqueda}
-                        setBusqueda={setBusqueda}
+                        limpiarBusqueda={limpiarBusqueda}
                         docenteFiltro={docenteFiltro}
                         quitarFiltroDocente={quitarFiltroDocente}
                         filtroCategoria={filtroCategoria}
@@ -147,8 +160,12 @@ export const PortalPublicPage = () => {
                     />
 
                     <PublicFiltros
-                        busqueda={busqueda}
-                        setBusqueda={setBusqueda}
+                        busqueda={busquedaBorrador}
+                        onBusquedaChange={setBusquedaBorrador}
+                        onBuscar={aplicarBusqueda}
+                        docenteBusqueda={docenteBorrador}
+                        onDocenteBusquedaChange={setDocenteBorrador}
+                        onBuscarDocente={aplicarBusquedaDocente}
                         docenteFiltro={docenteFiltro}
                         filtroCategoria={filtroCategoria}
                         handleFiltroCategoria={handleFiltroCategoria}
@@ -173,8 +190,8 @@ export const PortalPublicPage = () => {
                         setFechaHasta={setFechaHasta}
                         placeholderBusqueda={
                             docenteFiltro
-                                ? "Refinar dentro de la producción de este docente…"
-                                : "Buscar por nombre, descripción o docente…"
+                                ? "Refinar por nombre o descripción del producto"
+                                : "Buscar por nombre o descripción del producto"
                         }
                     />
 
