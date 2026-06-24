@@ -39,7 +39,7 @@ export const exportarMiReporteExcel = ({
     porSubcategoria = [],
 }) => {
     const wb = XLSX.utils.book_new();
-    const labels = { categoria: CATEGORIA_LABELS, subcategoria: SUBCATEGORIA_LABELS };
+    const labels = { categoria: CATEGORIA_LABELS, subcategoria: SUBCATEGORIA_LABELS, tipo: TIPO_LABELS };
     const filtrosLabel = etiquetasFiltrosDocente(filtros, labels);
     const nombre = nombreDocentePerfil(docente);
     const labelCategoria = (k) => CATEGORIA_LABELS[k] ?? k;
@@ -90,7 +90,7 @@ export const exportarMiReportePdf = ({
     porSubcategoria = [],
 }) => {
     const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-    const labels = { categoria: CATEGORIA_LABELS, subcategoria: SUBCATEGORIA_LABELS };
+    const labels = { categoria: CATEGORIA_LABELS, subcategoria: SUBCATEGORIA_LABELS, tipo: TIPO_LABELS };
     const filtrosLabel = etiquetasFiltrosDocente(filtros, labels);
     const nombre = nombreDocentePerfil(docente);
     const labelCategoria = (k) => CATEGORIA_LABELS[k] ?? k;

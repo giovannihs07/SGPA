@@ -1,7 +1,7 @@
 import { AlertCircle, RefreshCw, BarChart2, Search, Filter } from "lucide-react";
 import { useAdminReportesProduccion } from "../../hooks/admin/useAdminReportesProduccion";
 import { SuperAdminKpiGrid } from "../superAdmin/components/SuperAdminKpiGrid";
-import { ProduccionBarrasPanel } from "./components/ProduccionBarrasPanel";
+import { ProduccionTipoTabla } from "./components/ProduccionTipoTabla";
 import { ProduccionDocentesTabla } from "./components/ProduccionDocentesTabla";
 import { ProduccionRecientesTabla } from "./components/ProduccionRecientesTabla";
 import { ReporteExportButtons } from "./components/ReporteExportButtons";
@@ -15,9 +15,10 @@ import { ProduccionPorAnioChart } from "./components/charts/ProduccionPorAnioCha
 import { CategoriaDistribucionChart } from "./components/charts/CategoriaDistribucionChart";
 import { EstadoDistribucionChart } from "./components/charts/EstadoDistribucionChart";
 import { FiltroFechaRango } from "../../components/ui/FiltroFechaRango";
+import { FiltroFacultadPrograma } from "../../components/ui/FiltroFacultadPrograma";
+import { FiltroTaxonomiaProducto } from "../../components/ui/FiltroTaxonomiaProducto";
 import { CATEGORIA_LABELS, SUBCATEGORIA_LABELS, TIPO_LABELS } from "../docente/components/productoHelpers";
-import { SelectFilter } from "../docente/components/misProductos/SelectFilter";
-import { filterBar, inputXs, inputIcon } from "../../components/ui/themeTokens";
+import { filterBarAccent, inputXs, inputIcon, focusRing } from "../../components/ui/themeTokens";
 
 export const AdminReportesPage = () => {
     const {
@@ -26,14 +27,16 @@ export const AdminReportesPage = () => {
         filtroEstado, setFiltroEstado,
         filtroCategoria, setFiltroCategoria,
         filtroSubcategoria, setFiltroSubcategoria,
+        filtroTipo, setFiltroTipo,
         filtroFacultad, setFiltroFacultad,
         filtroPrograma, setFiltroPrograma,
         fechaDesde, setFechaDesde,
         fechaHasta, setFechaHasta,
         filtroCampoFecha, setFiltroCampoFecha,
-        busqueda, setBusqueda,
+        busquedaBorrador, setBusquedaBorrador, aplicarBusqueda,
         categoriasDisponibles,
         subcategoriasDisponibles,
+        tiposDisponibles,
         facultades,
         programasFiltrados,
         resumen,
@@ -96,64 +99,68 @@ export const AdminReportesPage = () => {
                 </div>
             </div>
 
-            <div className={filterBar}>
-                <div className="relative flex-1 min-w-45">
-                    <Search size={13} className={inputIcon} aria-hidden="true" />
-                    <input
-                        type="search"
-                        value={busqueda}
-                        onChange={(e) => setBusqueda(e.target.value)}
-                        placeholder="Buscar por producto o docente…"
-                        aria-label="Buscar en reportes"
-                        className={`${inputXs} pl-8`}
-                    />
-                </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                    <Filter size={13} className="text-gray-500 dark:text-gray-400 shrink-0" aria-hidden="true" />
+            <div className={`${filterBarAccent} flex-col items-stretch gap-3`}>
+                <form
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        aplicarBusqueda();
+                    }}
+                    className="flex gap-2 w-full"
+                >
+                    <div className="relative flex-1 min-w-0">
+                        <Search size={13} className={inputIcon} aria-hidden="true" />
+                        <input
+                            type="search"
+                            value={busquedaBorrador}
+                            onChange={(e) => setBusquedaBorrador(e.target.value)}
+                            placeholder="Buscar por producto o docente"
+                            aria-label="Buscar en reportes"
+                            className={`${inputXs} pl-8 w-full`}
+                        />
+                    </div>
+                    <button
+                        type="submit"
+                        className={`shrink-0 px-4 py-2 rounded-lg text-xs font-semibold
+                            bg-[#EC7A21] text-white hover:bg-[#d96a15] transition ${focusRing}`}
+                    >
+                        Buscar
+                    </button>
+                </form>
+                <div className="flex items-center gap-2 flex-wrap pt-1 border-t border-[#ffc20e]/25 dark:border-[#EC7A21]/25">
+                    <Filter size={13} className="text-[#EC7A21] dark:text-[#EFB357] shrink-0" aria-hidden="true" />
 
-                    <SelectFilter value={filtroEstado} onChange={setFiltroEstado} aria-label="Filtrar por estado">
-                        <option value="TODOS">Todos los estados</option>
-                        <option value="PUBLICADO">Solo publicados</option>
-                        <option value="SIN_PUBLICAR">Sin publicar</option>
-                    </SelectFilter>
+                    <div className="flex flex-wrap items-start gap-2">
+                        <FiltroFacultadPrograma
+                            filtroFacultad={filtroFacultad}
+                            onFacultadChange={setFiltroFacultad}
+                            filtroPrograma={filtroPrograma}
+                            onProgramaChange={setFiltroPrograma}
+                            facultades={facultades}
+                            programasFiltrados={programasFiltrados}
+                        />
 
-                    <SelectFilter value={filtroFacultad} onChange={setFiltroFacultad} aria-label="Filtrar por facultad">
-                        <option value="TODAS">Todas las facultades</option>
-                        {facultades.map((f) => (
-                            <option key={f.id} value={f.id}>{f.nombre}</option>
-                        ))}
-                    </SelectFilter>
+                        <FiltroFechaRango
+                            fechaDesde={fechaDesde}
+                            fechaHasta={fechaHasta}
+                            onDesdeChange={setFechaDesde}
+                            onHastaChange={setFechaHasta}
+                            filtroCampo={filtroCampoFecha}
+                            onCampoChange={setFiltroCampoFecha}
+                        />
+                    </div>
 
-                    <SelectFilter value={filtroPrograma} onChange={setFiltroPrograma} aria-label="Filtrar por programa">
-                        <option value="TODOS">Todos los programas</option>
-                        {programasFiltrados.map((p) => (
-                            <option key={p.id} value={p.id}>{p.nombre}</option>
-                        ))}
-                    </SelectFilter>
-
-                    <SelectFilter value={filtroCategoria} onChange={setFiltroCategoria} aria-label="Filtrar por categoría">
-                        {categoriasDisponibles.map((c) => (
-                            <option key={c} value={c}>
-                                {c === "TODAS" ? "Todas las categorías" : (CATEGORIA_LABELS[c] ?? c)}
-                            </option>
-                        ))}
-                    </SelectFilter>
-
-                    <SelectFilter value={filtroSubcategoria} onChange={setFiltroSubcategoria} aria-label="Filtrar por subcategoría">
-                        {subcategoriasDisponibles.map((s) => (
-                            <option key={s} value={s}>
-                                {s === "TODAS" ? "Todas las subcategorías" : (SUBCATEGORIA_LABELS[s] ?? s)}
-                            </option>
-                        ))}
-                    </SelectFilter>
-
-                    <FiltroFechaRango
-                        fechaDesde={fechaDesde}
-                        fechaHasta={fechaHasta}
-                        onDesdeChange={setFechaDesde}
-                        onHastaChange={setFechaHasta}
-                        filtroCampo={filtroCampoFecha}
-                        onCampoChange={setFiltroCampoFecha}
+                    <FiltroTaxonomiaProducto
+                        filtroEstado={filtroEstado}
+                        onEstadoChange={setFiltroEstado}
+                        filtroCategoria={filtroCategoria}
+                        onCategoriaChange={setFiltroCategoria}
+                        filtroSubcategoria={filtroSubcategoria}
+                        onSubcategoriaChange={setFiltroSubcategoria}
+                        filtroTipo={filtroTipo}
+                        onTipoChange={setFiltroTipo}
+                        categoriasDisponibles={categoriasDisponibles}
+                        subcategoriasDisponibles={subcategoriasDisponibles}
+                        tiposDisponibles={tiposDisponibles}
                     />
                 </div>
             </div>
@@ -229,23 +236,13 @@ export const AdminReportesPage = () => {
                 />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <ProduccionBarrasPanel
-                    titulo="Por subcategoría"
-                    items={porSubcategoria}
-                    labelFn={(k) => SUBCATEGORIA_LABELS[k] ?? k}
-                    loading={loading}
-                    maxItems={10}
-                />
-                <ProduccionBarrasPanel
-                    titulo="Por tipo de producto"
-                    items={porTipo}
-                    labelFn={(k) => TIPO_LABELS[k] ?? k}
-                    loading={loading}
-                    maxItems={porTipo.length || 1}
-                    emptyMessage="Sin productos registrados por tipo"
-                />
-            </div>
+            <ProduccionTipoTabla
+                items={porTipo}
+                labelFn={(k) => TIPO_LABELS[k] ?? k}
+                loading={loading}
+                totalGeneral={resumen.total}
+                vacio="Sin productos registrados por tipo con los filtros actuales."
+            />
 
             <div>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">

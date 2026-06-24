@@ -5,7 +5,6 @@ import { useSuperAdminDashboard } from "../../hooks/superadmin/useSuperAdminDash
 import { MisProductosKpiGrid } from "../docente/components/misProductos/MisProductosKpiGrid";
 import {
     DocenteProductosRecientes,
-    DocenteDistribucionCategorias,
 } from "../docente/components/dashboard/DocenteProductosRecientes";
 import { SuperAdminKpiGrid } from "../superAdmin/components/SuperAdminKpiGrid";
 import { QuickLinkCard } from "../superAdmin/components/QuickLinkCard";
@@ -121,18 +120,7 @@ export const DashboardDocenteAdminPage = () => {
                     </div>
                 )}
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                    <div className="lg:col-span-2">
-                        <DocenteProductosRecientes productos={docente.recientes} loading={docente.loading} />
-                    </div>
-                    <div>
-                        <DocenteDistribucionCategorias
-                            items={docente.porCategoria}
-                            loading={docente.loading}
-                            total={docente.resumen.total}
-                        />
-                    </div>
-                </div>
+                <DocenteProductosRecientes productos={docente.recientes} loading={docente.loading} />
             </section>
 
             <section className="space-y-5 pt-2 border-t border-gray-100 dark:border-gray-800">

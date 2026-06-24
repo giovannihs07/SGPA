@@ -17,9 +17,17 @@ export const validarDatosPersonales = ({ nombre, apellido }) => {
     return errors;
 };
 
-export const tienePerfilDocente = (perfil) => perfil?.docenteId != null;
+const rolesPerfil = (perfil) => {
+    const roles = perfil?.roles;
+    if (!roles) return [];
+    return Array.isArray(roles) ? roles : [...roles];
+};
 
-export const tienePerfilAdministrativo = (perfil) => perfil?.administrativoId != null;
+export const tienePerfilDocente = (perfil) =>
+    rolesPerfil(perfil).includes("ROLE_DOCENTE");
+
+export const tienePerfilAdministrativo = (perfil) =>
+    rolesPerfil(perfil).includes("ROLE_ADMIN");
 
 export const validarPerfilAdministrativo = ({ cargo, dependencia }) => {
     const errors = {};
@@ -87,8 +95,11 @@ export const formatearProgramas = (programas) => {
     }));
 };
 
-export const validarPerfilDocente = ({ tipoContrato }) => {
+export const validarPerfilDocente = ({ tipoContrato, codigoDocente }, { requiereCodigo = false } = {}) => {
     const errors = {};
+    if (requiereCodigo && !codigoDocente?.trim()) {
+        errors.codigoDocente = "El código docente es obligatorio";
+    }
     if (!tipoContrato?.trim()) errors.tipoContrato = "El tipo de contrato es obligatorio";
     return errors;
 };

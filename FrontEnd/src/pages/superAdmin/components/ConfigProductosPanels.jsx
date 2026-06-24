@@ -17,26 +17,49 @@ const EstadoBadge = ({ activo }) => (
     </span>
 );
 
-const BotonEliminar = ({ item, onDelete, tituloBloqueo }) => {
-    const bloqueado = item.eliminable === false;
-    const title = bloqueado
-        ? (tituloBloqueo ?? `Hay ${item.productosAsociados ?? 0} producto(s) registrados`)
-        : "Eliminar";
+const mensajeTooltipEliminar = (item) => {
+    if (item.eliminable === true) {
+        return "Eliminar permanentemente";
+    }
+
+    const bloqueos = [];
+    if (item.activo) {
+        bloqueos.push("debe estar desactivado");
+    }
+    const productos = Number(item.productosAsociados ?? 0);
+    if (productos > 0) {
+        bloqueos.push(
+            `no debe tener productos asociados (${productos} registrado${productos !== 1 ? "s" : ""})`,
+        );
+    }
+
+    if (!bloqueos.length) {
+        return "No se puede eliminar";
+    }
+
+    return `No se puede eliminar: ${bloqueos.join("; ")}`;
+};
+
+const BotonEliminar = ({ item, onDelete }) => {
+    const puedeEliminar = item.eliminable === true;
+    const title = mensajeTooltipEliminar(item);
 
     return (
-        <button
-            type="button"
-            onClick={() => !bloqueado && onDelete(item)}
-            disabled={bloqueado}
-            title={title}
-            className={`w-7 h-7 flex items-center justify-center rounded-lg transition
-                ${bloqueado
-                    ? "text-gray-300 dark:text-gray-600 cursor-not-allowed"
-                    : "text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                }`}
-        >
-            <Trash2 size={14} />
-        </button>
+        <span title={title} className="inline-flex">
+            <button
+                type="button"
+                onClick={() => puedeEliminar && onDelete(item)}
+                disabled={!puedeEliminar}
+                aria-label={title}
+                className={`w-7 h-7 flex items-center justify-center rounded-lg transition
+                    ${!puedeEliminar
+                        ? "text-gray-300 dark:text-gray-600 cursor-not-allowed"
+                        : "text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    }`}
+            >
+                <Trash2 size={14} />
+            </button>
+        </span>
     );
 };
 

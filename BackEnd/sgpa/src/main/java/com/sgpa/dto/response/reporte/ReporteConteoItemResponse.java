@@ -15,4 +15,6 @@ public class ReporteConteoItemResponse {
 
     private String key;
     private int count;
+    private int publicados;
+    private int sinPublicar;
 }

@@ -84,7 +84,7 @@ public class AuthController {
 
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
                     "message", "Error en la autenticación, email o password incorrecto!",
-                    "error", ex.getMessage() != null ? ex.getMessage() : "Credenciales inválidas"));
+                    "error", "Credenciales inválidas"));
         }
     }
 

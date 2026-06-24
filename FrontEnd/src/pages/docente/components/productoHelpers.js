@@ -30,9 +30,19 @@ export const ESTADO_CONFIG = {
 export const getEstadoConfig = (publicado) =>
     publicado ? ESTADO_CONFIG.PUBLICADO : ESTADO_CONFIG.SIN_PUBLICAR;
 
+/** Convierte YYYY-MM-DD (API) a Date en medianoche local, sin desfase UTC. */
+export const parseFechaLocal = (fecha) => {
+    if (!fecha) return null;
+    const [y, m, d] = String(fecha).slice(0, 10).split("-").map(Number);
+    if (!y || !m || !d) return null;
+    const dt = new Date(y, m - 1, d);
+    return Number.isNaN(dt.getTime()) ? null : dt;
+};
+
 export const formatFecha = (fecha) => {
-    if (!fecha) return "—";
-    return new Date(fecha).toLocaleDateString("es-CO", {
+    const dt = parseFechaLocal(fecha);
+    if (!dt) return "—";
+    return dt.toLocaleDateString("es-CO", {
         day: "2-digit", month: "short", year: "numeric",
     });
 };
@@ -89,10 +99,12 @@ export const esVistaAdminArchivos = (archivos = []) =>
     archivos.some((a) => !a.accesoPublico && a.descargable === false);
 
 export const esReciente = (fecha, dias = 30) => {
-    if (!fecha) return false;
+    const dt = parseFechaLocal(fecha);
+    if (!dt) return false;
     const limite = new Date();
+    limite.setHours(0, 0, 0, 0);
     limite.setDate(limite.getDate() - dias);
-    return new Date(fecha) >= limite;
+    return dt >= limite;
 };
 
 /** Solo productos sin publicar pueden editarse */

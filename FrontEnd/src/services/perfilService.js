@@ -12,7 +12,7 @@ export const actualizarMiPerfil = async (payload) => {
     return data;
 };
 
-/** PATCH /api/usuarios/perfil/docente — tipo de contrato */
+/** PATCH /api/usuarios/perfil/docente — tipo de contrato y código docente (si aún no está asignado) */
 export const actualizarPerfilDocente = async (payload) => {
     const { data } = await axiosInstance.patch("/api/usuarios/perfil/docente", payload);
     return data;

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { BookOpen, Globe, FileCheck, Clock } from "lucide-react";
 import { getMisProductos } from "../services/productoServices";
 import { getMiPerfilDocente } from "../services/docenteService";
-import { agruparConteo, agruparPorAnio } from "../pages/admin/adminReportesHelpers";
+import { agruparConteo, agruparPorAnio, agruparPorTipoDetalle } from "../pages/admin/adminReportesHelpers";
 import {
     calcularResumenPersonal,
     filtrarMisProductosReporte,
@@ -17,6 +17,7 @@ export const useDocenteReportes = () => {
     const [filtroEstado, setFiltroEstado] = useState("TODOS");
     const [filtroCategoria, setFiltroCategoria] = useState("TODAS");
     const [filtroSubcategoria, setFiltroSubcategoria] = useState("TODAS");
+    const [filtroTipo, setFiltroTipo] = useState("TODOS");
     const [fechaDesde, setFechaDesde] = useState("");
     const [fechaHasta, setFechaHasta] = useState("");
     const [filtroCampoFecha, setFiltroCampoFecha] = useState("fechaRegistroSgpa");
@@ -45,11 +46,12 @@ export const useDocenteReportes = () => {
         filtroEstado,
         filtroCategoria,
         filtroSubcategoria,
+        filtroTipo,
         fechaDesde,
         fechaHasta,
         filtroCampoFecha,
         busqueda,
-    }), [filtroEstado, filtroCategoria, filtroSubcategoria, fechaDesde, fechaHasta, filtroCampoFecha, busqueda]);
+    }), [filtroEstado, filtroCategoria, filtroSubcategoria, filtroTipo, fechaDesde, fechaHasta, filtroCampoFecha, busqueda]);
 
     const productosFiltrados = useMemo(
         () => filtrarMisProductosReporte(productos, filtros),
@@ -84,7 +86,7 @@ export const useDocenteReportes = () => {
     );
 
     const porTipo = useMemo(
-        () => agruparConteo(productosFiltrados, (p) => p.tipo),
+        () => agruparPorTipoDetalle(productosFiltrados),
         [productosFiltrados],
     );
 
@@ -101,10 +103,31 @@ export const useDocenteReportes = () => {
         return ["TODAS", ...set];
     }, [productos, filtroCategoria]);
 
+    const tiposDisponibles = useMemo(() => {
+        const base = productos.filter((p) => {
+            const matchCat = filtroCategoria === "TODAS" || p.categoria === filtroCategoria;
+            const matchSub = filtroSubcategoria === "TODAS" || p.subcategoria === filtroSubcategoria;
+            return matchCat && matchSub;
+        });
+        const set = new Set(base.map((p) => p.tipo).filter(Boolean));
+        return ["TODOS", ...set];
+    }, [productos, filtroCategoria, filtroSubcategoria]);
+
     const handleFiltroCategoria = useCallback((v) => {
         setFiltroCategoria(v);
         setFiltroSubcategoria("TODAS");
+        setFiltroTipo("TODOS");
     }, []);
+
+    const handleFiltroSubcategoria = useCallback((v) => {
+        setFiltroSubcategoria(v);
+        setFiltroTipo("TODOS");
+    }, []);
+
+    useEffect(() => {
+        if (filtroTipo === "TODOS" || !tiposDisponibles.length) return;
+        if (!tiposDisponibles.includes(filtroTipo)) setFiltroTipo("TODOS");
+    }, [tiposDisponibles, filtroTipo]);
 
     return {
         docente,
@@ -117,7 +140,9 @@ export const useDocenteReportes = () => {
         filtroCategoria,
         setFiltroCategoria: handleFiltroCategoria,
         filtroSubcategoria,
-        setFiltroSubcategoria,
+        setFiltroSubcategoria: handleFiltroSubcategoria,
+        filtroTipo,
+        setFiltroTipo,
         fechaDesde,
         setFechaDesde,
         fechaHasta,
@@ -128,6 +153,7 @@ export const useDocenteReportes = () => {
         setBusqueda,
         categoriasDisponibles,
         subcategoriasDisponibles,
+        tiposDisponibles,
         resumen,
         kpis,
         porAnio,

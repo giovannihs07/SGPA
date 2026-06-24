@@ -10,14 +10,21 @@ export const SuperAdminProductosPage = () => {
     const {
         productos, productosFiltrados, resumen,
         loading, error, refetch,
-        busqueda, setBusqueda,
+        busquedaBorrador, setBusquedaBorrador, aplicarBusqueda,
         filtroCategoria, handleFiltroCategoria,
+        filtroSubcategoria, handleFiltroSubcategoria,
         filtroTipo, setFiltroTipo,
-        categoriasDisponibles, tiposDisponibles,
+        filtroFacultad, setFiltroFacultad,
+        filtroPrograma, setFiltroPrograma,
+        fechaDesde, setFechaDesde,
+        fechaHasta, setFechaHasta,
+        filtroCampoFecha, setFiltroCampoFecha,
+        categoriasDisponibles, subcategoriasDisponibles, tiposDisponibles,
+        facultades, programasFiltrados,
         pagina, totalPaginas, pageSize, irPagina,
-        abrirDetalle, eliminarProducto,
-        toggling, togglePublicacion, handleDescargar,
-        productoDetalle, cerrarDetalle, toggleFromDetalle, eliminarFromDetalle,
+        abrirDetalle,
+        productoDetalle, cerrarDetalle,
+        toggleFromDetalle, toggling, togglePublicacion, handleDescargar,
     } = useSuperAdminProductos();
 
     if (loading) return <MisProductosLoading />;
@@ -28,16 +35,40 @@ export const SuperAdminProductosPage = () => {
             <MisProductosHeader
                 onRefresh={refetch}
                 title="Productos publicados"
-                subtitle="Consulta la producción académica que los docentes han publicado en la plataforma"
+                subtitle="Consulta la producción académica publicada en la plataforma (solo lectura)"
             />
             <MisProductosKpiGrid resumen={resumen} soloPublicados />
             <MisProductosFiltros
-                busqueda={busqueda} setBusqueda={setBusqueda}
-                filtroCategoria={filtroCategoria} handleFiltroCategoria={handleFiltroCategoria}
-                filtroTipo={filtroTipo} setFiltroTipo={setFiltroTipo}
+                variant="accent"
+                busquedaManual
+                busquedaBorrador={busquedaBorrador}
+                setBusquedaBorrador={setBusquedaBorrador}
+                aplicarBusqueda={aplicarBusqueda}
+                filtroCategoria={filtroCategoria}
+                handleFiltroCategoria={handleFiltroCategoria}
+                filtroSubcategoria={filtroSubcategoria}
+                handleFiltroSubcategoria={handleFiltroSubcategoria}
+                filtroTipo={filtroTipo}
+                setFiltroTipo={setFiltroTipo}
+                filtroFacultad={filtroFacultad}
+                setFiltroFacultad={setFiltroFacultad}
+                filtroPrograma={filtroPrograma}
+                setFiltroPrograma={setFiltroPrograma}
+                facultades={facultades}
+                programasFiltrados={programasFiltrados}
                 categoriasDisponibles={categoriasDisponibles}
+                subcategoriasDisponibles={subcategoriasDisponibles}
                 tiposDisponibles={tiposDisponibles}
                 ocultarFiltroEstado
+                mostrarFiltroFecha
+                mostrarFiltroFacultad
+                fechaDesde={fechaDesde}
+                fechaHasta={fechaHasta}
+                setFechaDesde={setFechaDesde}
+                setFechaHasta={setFechaHasta}
+                filtroCampoFecha={filtroCampoFecha}
+                setFiltroCampoFecha={setFiltroCampoFecha}
+                placeholderBusqueda="Buscar por producto o docente"
             />
             <ProductosTabla
                 productos={productos}
@@ -46,14 +77,11 @@ export const SuperAdminProductosPage = () => {
                 totalPaginas={totalPaginas}
                 pageSize={pageSize}
                 irPagina={irPagina}
-                toggling={toggling}
                 onVer={abrirDetalle}
-                onEditar={() => {}}
                 onToggle={togglePublicacion}
-                onDescargar={handleDescargar}
-                onEliminar={eliminarProducto}
-                mostrarEditar={false}
+                toggling={toggling}
                 mostrarDocente
+                soloVerDetalle
             />
 
             <ProductoDetalleModal
@@ -61,9 +89,9 @@ export const SuperAdminProductosPage = () => {
                 toggling={toggling}
                 onClose={cerrarDetalle}
                 onToggle={toggleFromDetalle}
-                onEliminar={eliminarFromDetalle}
                 onDescargar={handleDescargar}
                 permitirEditar={false}
+                visorArchivos="publico"
             />
         </div>
     );

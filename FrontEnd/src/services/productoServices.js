@@ -190,6 +190,17 @@ const fetchArchivoBlob = async (url, config = {}) => {
     return blob;
 };
 
+const apiBaseUrl = () => import.meta.env.VITE_API_URL || "http://localhost:8080";
+
+/** URL directa para abrir un PDF público en el navegador (nueva pestaña). */
+export const urlArchivoPublicoInline = (productoId, archivoId) => {
+    const base = apiBaseUrl();
+    if (archivoId) {
+        return `${base}/api/productos/${productoId}/archivos/${archivoId}?disposition=inline`;
+    }
+    return `${base}/api/productos/${productoId}/archivo?disposition=inline`;
+};
+
 export const fetchArchivoInlinePublico = async (productoId, archivoId) =>
     fetchArchivoBlob(`/api/productos/${productoId}/archivos/${archivoId}`, {
         skipAuth: true,

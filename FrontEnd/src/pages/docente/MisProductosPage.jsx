@@ -21,8 +21,12 @@ export const MisProductosPage = () => {
         busqueda, setBusqueda,
         filtroEstado, setFiltroEstado,
         filtroCategoria, handleFiltroCategoria,
+        filtroSubcategoria, handleFiltroSubcategoria,
         filtroTipo, setFiltroTipo,
-        categoriasDisponibles, tiposDisponibles,
+        fechaDesde, setFechaDesde,
+        fechaHasta, setFechaHasta,
+        filtroCampoFecha, setFiltroCampoFecha,
+        categoriasDisponibles, subcategoriasDisponibles, tiposDisponibles,
         pagina, totalPaginas, pageSize, irPagina,
         abrirDetalle, eliminarProducto,
         toggling, togglePublicacion, handleDescargar,
@@ -37,12 +41,27 @@ export const MisProductosPage = () => {
             <MisProductosHeader onRefresh={refetch} />
             <MisProductosKpiGrid resumen={resumen} />
             <MisProductosFiltros
-                busqueda={busqueda} setBusqueda={setBusqueda}
-                filtroEstado={filtroEstado} setFiltroEstado={setFiltroEstado}
-                filtroCategoria={filtroCategoria} handleFiltroCategoria={handleFiltroCategoria}
-                filtroTipo={filtroTipo} setFiltroTipo={setFiltroTipo}
+                variant="accent"
+                busqueda={busqueda}
+                setBusqueda={setBusqueda}
+                filtroEstado={filtroEstado}
+                setFiltroEstado={setFiltroEstado}
+                filtroCategoria={filtroCategoria}
+                handleFiltroCategoria={handleFiltroCategoria}
+                filtroSubcategoria={filtroSubcategoria}
+                handleFiltroSubcategoria={handleFiltroSubcategoria}
+                filtroTipo={filtroTipo}
+                setFiltroTipo={setFiltroTipo}
                 categoriasDisponibles={categoriasDisponibles}
+                subcategoriasDisponibles={subcategoriasDisponibles}
                 tiposDisponibles={tiposDisponibles}
+                mostrarFiltroFecha
+                fechaDesde={fechaDesde}
+                fechaHasta={fechaHasta}
+                setFechaDesde={setFechaDesde}
+                setFechaHasta={setFechaHasta}
+                filtroCampoFecha={filtroCampoFecha}
+                setFiltroCampoFecha={setFiltroCampoFecha}
             />
             <ProductosTabla
                 productos={productos}

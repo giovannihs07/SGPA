@@ -18,6 +18,8 @@ export const CambiarRolesModal = ({ usuario, rolesDisponibles, onClose, onGuarda
         );
     };
 
+    const rolesValidos = seleccionados.filter((r) => rolesDisponibles.includes(r));
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <button type="button" className="absolute inset-0 bg-black/50" onClick={onClose} aria-label="Cerrar" />
@@ -68,8 +70,8 @@ export const CambiarRolesModal = ({ usuario, rolesDisponibles, onClose, onGuarda
                     {/* Botón para guardar los roles seleccionados */}
                     <button
                         type="button"
-                        disabled={saving || seleccionados.length === 0}
-                        onClick={() => onGuardar(seleccionados)}
+                        disabled={saving || rolesValidos.length === 0}
+                        onClick={() => onGuardar(rolesValidos)}
                         className="px-4 py-2 text-sm font-semibold text-white bg-[#EC7A21] hover:bg-[#d96a15] rounded-lg disabled:opacity-50"
                     >
                         {saving ? "Guardando…" : "Guardar"}

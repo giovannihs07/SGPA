@@ -47,6 +47,8 @@ public interface ProductoDocenteRepository extends JpaRepository<ProductoDocente
     List<ProductoDocente> findByNombreContainingIgnoreCase(String nombre);
 
     Page<ProductoDocente> findByDocenteId(Long docenteId, Pageable pageable);
+    // Buscar productos docentes por docente y publicado
+    Page<ProductoDocente> findByDocenteIdAndPublicado(Long docenteId, Boolean publicado, Pageable pageable);
 
     Page<ProductoDocente> findByPublicado(Boolean publicado, Pageable pageable);
 

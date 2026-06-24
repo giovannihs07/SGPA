@@ -2,16 +2,16 @@ import { AlertCircle, RefreshCw, BarChart2, Search, Filter } from "lucide-react"
 import { useDocenteReportes } from "../../hooks/useDocenteReportes";
 import { SuperAdminKpiGrid } from "../superAdmin/components/SuperAdminKpiGrid";
 import { ProduccionConteoTabla } from "../admin/components/ProduccionConteoTabla";
-import { ProduccionBarrasPanel } from "../admin/components/ProduccionBarrasPanel";
+import { ProduccionTipoTabla } from "../admin/components/ProduccionTipoTabla";
 import { ProduccionPorAnioChart } from "../admin/components/charts/ProduccionPorAnioChart";
 import { EstadoDistribucionChart } from "../admin/components/charts/EstadoDistribucionChart";
 import { CategoriaDistribucionChart } from "../admin/components/charts/CategoriaDistribucionChart";
 import { ReporteDocenteExportButtons } from "./components/reportes/ReporteDocenteExportButtons";
 import { DocenteMisProductosTabla } from "./components/reportes/DocenteMisProductosTabla";
 import { FiltroFechaRango } from "../../components/ui/FiltroFechaRango";
+import { FiltroTaxonomiaProducto } from "../../components/ui/FiltroTaxonomiaProducto";
 import { CATEGORIA_LABELS, SUBCATEGORIA_LABELS, TIPO_LABELS } from "./components/productoHelpers";
-import { SelectFilter } from "./components/misProductos/SelectFilter";
-import { filterBar, inputXs, inputIcon } from "../../components/ui/themeTokens";
+import { filterBarAccent, inputXs, inputIcon } from "../../components/ui/themeTokens";
 import { nombreDocentePerfil } from "./docenteReportesHelpers";
 
 export const ReportesDocentePage = () => {
@@ -22,12 +22,14 @@ export const ReportesDocentePage = () => {
         filtroEstado, setFiltroEstado,
         filtroCategoria, setFiltroCategoria,
         filtroSubcategoria, setFiltroSubcategoria,
+        filtroTipo, setFiltroTipo,
         fechaDesde, setFechaDesde,
         fechaHasta, setFechaHasta,
         filtroCampoFecha, setFiltroCampoFecha,
         busqueda, setBusqueda,
         categoriasDisponibles,
         subcategoriasDisponibles,
+        tiposDisponibles,
         resumen,
         kpis,
         porAnio,
@@ -87,8 +89,8 @@ export const ReportesDocentePage = () => {
                 </div>
             </div>
 
-            <div className={filterBar}>
-                <div className="relative flex-1 min-w-45">
+            <div className={`${filterBarAccent} flex-col items-stretch gap-3`}>
+                <div className="relative flex-1 min-w-0 w-full">
                     <Search size={13} className={inputIcon} aria-hidden="true" />
                     <input
                         type="search"
@@ -96,41 +98,35 @@ export const ReportesDocentePage = () => {
                         onChange={(e) => setBusqueda(e.target.value)}
                         placeholder="Buscar por nombre o descripción…"
                         aria-label="Buscar en mis reportes"
-                        className={`${inputXs} pl-8`}
+                        className={`${inputXs} pl-8 w-full`}
                     />
                 </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                    <Filter size={13} className="text-gray-500 dark:text-gray-400 shrink-0" aria-hidden="true" />
+                <div className="flex items-center gap-2 flex-wrap pt-1 border-t border-[#ffc20e]/25 dark:border-[#EC7A21]/25 w-full">
+                    <Filter size={13} className="text-[#EC7A21] dark:text-[#EFB357] shrink-0" aria-hidden="true" />
 
-                    <SelectFilter value={filtroEstado} onChange={setFiltroEstado} aria-label="Filtrar por estado">
-                        <option value="TODOS">Todos los estados</option>
-                        <option value="PUBLICADO">Solo publicados</option>
-                        <option value="SIN_PUBLICAR">Sin publicar</option>
-                    </SelectFilter>
+                    <div className="flex flex-wrap items-start gap-2">
+                        <FiltroFechaRango
+                            fechaDesde={fechaDesde}
+                            fechaHasta={fechaHasta}
+                            onDesdeChange={setFechaDesde}
+                            onHastaChange={setFechaHasta}
+                            filtroCampo={filtroCampoFecha}
+                            onCampoChange={setFiltroCampoFecha}
+                        />
+                    </div>
 
-                    <SelectFilter value={filtroCategoria} onChange={setFiltroCategoria} aria-label="Filtrar por categoría">
-                        {categoriasDisponibles.map((c) => (
-                            <option key={c} value={c}>
-                                {c === "TODAS" ? "Todas las categorías" : (CATEGORIA_LABELS[c] ?? c)}
-                            </option>
-                        ))}
-                    </SelectFilter>
-
-                    <SelectFilter value={filtroSubcategoria} onChange={setFiltroSubcategoria} aria-label="Filtrar por subcategoría">
-                        {subcategoriasDisponibles.map((s) => (
-                            <option key={s} value={s}>
-                                {s === "TODAS" ? "Todas las subcategorías" : (SUBCATEGORIA_LABELS[s] ?? s)}
-                            </option>
-                        ))}
-                    </SelectFilter>
-
-                    <FiltroFechaRango
-                        fechaDesde={fechaDesde}
-                        fechaHasta={fechaHasta}
-                        onDesdeChange={setFechaDesde}
-                        onHastaChange={setFechaHasta}
-                        filtroCampo={filtroCampoFecha}
-                        onCampoChange={setFiltroCampoFecha}
+                    <FiltroTaxonomiaProducto
+                        filtroEstado={filtroEstado}
+                        onEstadoChange={setFiltroEstado}
+                        filtroCategoria={filtroCategoria}
+                        onCategoriaChange={setFiltroCategoria}
+                        filtroSubcategoria={filtroSubcategoria}
+                        onSubcategoriaChange={setFiltroSubcategoria}
+                        filtroTipo={filtroTipo}
+                        onTipoChange={setFiltroTipo}
+                        categoriasDisponibles={categoriasDisponibles}
+                        subcategoriasDisponibles={subcategoriasDisponibles}
+                        tiposDisponibles={tiposDisponibles}
                     />
                 </div>
             </div>
@@ -181,23 +177,13 @@ export const ReportesDocentePage = () => {
                 />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <ProduccionBarrasPanel
-                    titulo="Por subcategoría"
-                    items={porSubcategoria}
-                    labelFn={(k) => SUBCATEGORIA_LABELS[k] ?? k}
-                    loading={loading}
-                    maxItems={10}
-                />
-                <ProduccionBarrasPanel
-                    titulo="Por tipo"
-                    items={porTipo}
-                    labelFn={(k) => TIPO_LABELS[k] ?? k}
-                    loading={loading}
-                    maxItems={porTipo.length || 1}
-                    emptyMessage="Sin productos registrados por tipo"
-                />
-            </div>
+            <ProduccionTipoTabla
+                items={porTipo}
+                labelFn={(k) => TIPO_LABELS[k] ?? k}
+                loading={loading}
+                totalGeneral={resumen.total}
+                vacio="Sin productos registrados por tipo con los filtros actuales."
+            />
 
             <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">

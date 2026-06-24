@@ -186,12 +186,6 @@ public class ProductoAccesoService {
             dto.setNombreArchivoOriginal(null);
             dto.setExtensionArchivo(null);
         }
-
-        if (!Boolean.TRUE.equals(entidad.getPublicado())) {
-            dto.setNombreArchivo(entidad.getNombreArchivo());
-            dto.setNombreArchivoOriginal(entidad.getNombreArchivoOriginal());
-            dto.setExtensionArchivo(extraerExtension(entidad.getNombreArchivoOriginal()));
-        }
     }
 
     private boolean esLegacyPrincipalPublico(ProductoArchivo archivo, List<ProductoArchivo> todos) {

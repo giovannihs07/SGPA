@@ -17,6 +17,37 @@ import { ProductosPaginacion } from "./ProductosPaginacion";
 const COLUMNAS_BASE = ["Nombre", "Tipo", "Categoría", "Estado", "Registro SGPA", "Archivo", "Acciones"];
 const COLUMNAS_PUBLICO = ["Nombre", "Docente", "Tipo", "Categoría", "Publicación", "Archivo", "Acciones"];
 
+const AccionesFilaSoloDetalle = ({ producto, onVer, onToggle, toggling }) => (
+    <div className="flex items-center gap-1 opacity-60 group-hover:opacity-100 transition">
+        <button
+            onClick={() => onVer(producto)}
+            title="Ver detalle"
+            className={`${btnIcon} w-7 h-7 text-gray-600 dark:text-gray-400 hover:bg-[#ffc20e]/15 hover:text-[#EC7A21]`}
+        >
+            <Eye size={14} />
+        </button>
+        {onToggle && (
+            <button
+                onClick={() => onToggle(producto)}
+                disabled={toggling === producto.id}
+                title={producto.publicado ? "Despublicar" : "Publicar"}
+                className={`${btnIcon} w-7 h-7 transition disabled:opacity-40 disabled:cursor-not-allowed
+                    ${producto.publicado
+                        ? "text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20"
+                        : "text-gray-400 hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-900/20"
+                    }`}
+            >
+                {toggling === producto.id
+                    ? <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    : producto.publicado
+                        ? <Globe size={14} />
+                        : <GlobeLock size={14} />
+                }
+            </button>
+        )}
+    </div>
+);
+
 const AccionesFilaPublica = ({ producto, onVer, onDescargar }) => (
     <div className="flex items-center gap-1 opacity-60 group-hover:opacity-100 transition">
         <button
@@ -120,6 +151,7 @@ export const ProductosTabla = ({
     mostrarEditar = true,
     mostrarDocente = false,
     modoPublico = false,
+    soloVerDetalle = false,
 }) => {
     const columnas = modoPublico
         ? COLUMNAS_PUBLICO
@@ -198,7 +230,14 @@ export const ProductosTabla = ({
                                         <ArchivoBadge producto={p} />
                                     </td>
                                     <td className="px-4 py-3">
-                                        {modoPublico ? (
+                                        {soloVerDetalle ? (
+                                            <AccionesFilaSoloDetalle
+                                                producto={p}
+                                                onVer={onVer}
+                                                onToggle={onToggle}
+                                                toggling={toggling}
+                                            />
+                                        ) : modoPublico ? (
                                             <AccionesFilaPublica
                                                 producto={p}
                                                 onVer={onVer}

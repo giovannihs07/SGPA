@@ -11,12 +11,12 @@ const Stat = ({ value, label }) => (
 
 export const PublicHero = ({
     resumenGlobal,
+    categoriasActivas = 0,
     busqueda,
     onBusquedaChange,
     onExplorar,
     onBuscar,
 }) => {
-    const categoriasActivas = resumenGlobal.porCategoria?.filter((c) => c.count > 0).length ?? 0;
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -57,8 +57,8 @@ export const PublicHero = ({
                     para la comunidad universitaria.
                 </p>
 
-                <form onSubmit={handleSubmit} className="mt-6 sm:mt-8 max-w-xl">
-                    <div className="relative">
+                <form onSubmit={handleSubmit} className="mt-6 sm:mt-8 max-w-xl flex gap-2">
+                    <div className="relative flex-1 min-w-0">
                         <Search
                             size={18}
                             className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
@@ -68,13 +68,20 @@ export const PublicHero = ({
                             type="search"
                             value={busqueda}
                             onChange={(e) => onBusquedaChange(e.target.value)}
-                            placeholder="Buscar por nombre, descripción o docente…"
+                            placeholder="Buscar y presionar Enter…"
                             aria-label="Buscar producción académica"
                             className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-white/95 text-gray-900
                                 placeholder-gray-400 text-sm shadow-lg
                                 focus:outline-none focus:ring-2 focus:ring-[#ffc20e]/60"
                         />
                     </div>
+                    <button
+                        type="submit"
+                        className={`shrink-0 px-5 py-3.5 rounded-xl text-sm font-semibold
+                            bg-[#EC7A21] text-white hover:bg-[#d96a15] transition ${focusRing}`}
+                    >
+                        Buscar
+                    </button>
                 </form>
 
                 <div className="flex flex-wrap items-center gap-4 mt-5">

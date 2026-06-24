@@ -152,8 +152,16 @@ public class TipoProductoServiceImpl implements TipoProductoService {
     @Override
     @Transactional
     public void eliminar(Long id) {
-        buscarEntidad(id);
+        TipoProducto tipo = buscarEntidad(id);
+        validarTaxonomiaInactivaParaEliminar(tipo.getActivo(), "tipos de producto");
         eliminacionHelper.eliminarTipo(id);
+    }
+
+    private void validarTaxonomiaInactivaParaEliminar(Boolean activo, String etiqueta) {
+        if (Boolean.TRUE.equals(activo)) {
+            throw new IllegalStateException(
+                    "Solo se pueden eliminar " + etiqueta + " desactivados. Desactívalo primero.");
+        }
     }
 
     private void guardarAtributos(TipoProducto tipo, List<TipoProductoAtributoRequest> dtos) {

@@ -29,7 +29,7 @@ const formatFechaChip = (fecha) => {
 
 export const PublicFiltrosChips = ({
     busqueda,
-    setBusqueda,
+    limpiarBusqueda,
     docenteFiltro,
     quitarFiltroDocente,
     filtroCategoria,
@@ -67,7 +67,7 @@ export const PublicFiltrosChips = ({
         chips.push({
             key: "q",
             label: `Búsqueda: "${busqueda.trim()}"`,
-            onRemove: () => setBusqueda(""),
+            onRemove: limpiarBusqueda,
         });
     }
 

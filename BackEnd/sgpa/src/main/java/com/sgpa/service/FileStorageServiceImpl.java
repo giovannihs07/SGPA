@@ -13,21 +13,29 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.unit.DataSize;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.sgpa.exception.ArchivoNotFoundException;
+import com.sgpa.exception.FileStorageException;
 
 @Service
 public class FileStorageServiceImpl implements FileStorageService {
 
     private final Path directorioBase;
+    private final long maxFileSizeBytes;
+    private final long maxFileSizeMb;
 
-    public FileStorageServiceImpl(@Value("${app.upload.dir:uploads/productos}") String uploadDir) {
+    public FileStorageServiceImpl(
+            @Value("${app.upload.dir:uploads/productos}") String uploadDir,
+            @Value("${spring.servlet.multipart.max-file-size}") DataSize maxFileSize) {
         this.directorioBase = resolveUploadDirectory(uploadDir);
+        this.maxFileSizeBytes = maxFileSize.toBytes();
+        this.maxFileSizeMb = maxFileSize.toMegabytes();
         try {
             Files.createDirectories(this.directorioBase);
         } catch (IOException e) {
-            throw new RuntimeException("No se pudo crear el directorio de uploads", e);
+            throw new FileStorageException("No se pudo crear el directorio de uploads", e);
         }
     }
 
@@ -84,7 +92,7 @@ public class FileStorageServiceImpl implements FileStorageService {
             Files.copy(archivo.getInputStream(), destino, StandardCopyOption.REPLACE_EXISTING);
             return new String[] { nombreInterno, nombreOriginal };
         } catch (IOException e) {
-            throw new RuntimeException("Error al guardar el archivo", e);
+            throw new FileStorageException("Error al guardar el archivo", e);
         }
     }
 
@@ -110,7 +118,7 @@ public class FileStorageServiceImpl implements FileStorageService {
             Path ruta = directorioBase.resolve(nombreArchivo).normalize();
             Files.deleteIfExists(ruta);
         } catch (IOException e) {
-            throw new RuntimeException("Error al eliminar el archivo", e);
+            throw new FileStorageException("Error al eliminar el archivo", e);
         }
     }
 
@@ -127,9 +135,9 @@ public class FileStorageServiceImpl implements FileStorageService {
         if (!extensionesPermitidas.contains(extension))
             throw new IllegalStateException("Tipo de archivo no permitido: " + extension);
 
-        // Máximo 10MB
-        if (archivo.getSize() > 10 * 1024 * 1024)
-            throw new IllegalStateException("El archivo supera el tamaño máximo de 10MB");
+        if (archivo.getSize() > maxFileSizeBytes)
+            throw new IllegalStateException(
+                    "El archivo supera el tamaño máximo de " + maxFileSizeMb + "MB");
     }
 
     private String obtenerExtension(String nombreArchivo) {

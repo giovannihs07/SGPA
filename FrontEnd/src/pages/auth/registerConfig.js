@@ -9,7 +9,6 @@ export const initialForm = {
     codigoDocente:   "",
     tipoContrato:   "",
     programas:       [{ facultadId: "", programaId: "", facultadNombre: "", programaNombre: "" }],
-    titulos:         [{ titulo: "", nivel: "", institucion: "", fechaObtencion: "", pais: "" }],
     cargo:           "",
     dependencia:     "",
     email:           "",

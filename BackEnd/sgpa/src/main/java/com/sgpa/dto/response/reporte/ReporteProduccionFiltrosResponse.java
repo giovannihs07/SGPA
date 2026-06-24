@@ -18,6 +18,7 @@ public class ReporteProduccionFiltrosResponse {
     private String estado;
     private String categoria;
     private String subcategoria;
+    private String tipo;
     private Long facultadId;
     private Long programaId;
     private LocalDate fechaDesde;

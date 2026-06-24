@@ -33,6 +33,7 @@ public interface ProductoDocenteService {
     List<ProductoDocenteResponse> buscarPublicados();
     ProductoPublicoPageResponse buscarPublicadosPortal(
             String q,
+            String docente,
             String categoria,
             String subcategoria,
             String tipo,

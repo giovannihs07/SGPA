@@ -8,6 +8,8 @@ import lombok.Setter;
 @Setter
 public class ActualizarPerfilDocenteRequest {
 
+    private String codigoDocente;
+
     @NotBlank(message = "El tipo de contrato es obligatorio")
     private String tipoContrato;
 }

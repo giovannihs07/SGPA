@@ -4,7 +4,14 @@ import { LogOut, User } from "lucide-react";
 import { AuthContext } from "../../context/AuthContext";
 
 const getInitials = (user) => {
-    if (!user?.email) return "U";
+    if (!user) return "U";
+    if (user.nombre || user.apellido) {
+        const n = user.nombre?.[0] ?? "";
+        const a = user.apellido?.[0] ?? "";
+        const initials = (n + a).toUpperCase();
+        if (initials) return initials;
+    }
+    if (!user.email) return "U";
     const name = user.email.split("@")[0];
     const parts = name.split(".");
     return parts.length >= 2

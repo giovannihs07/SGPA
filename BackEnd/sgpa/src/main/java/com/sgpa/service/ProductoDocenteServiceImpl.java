@@ -4,12 +4,14 @@ import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -172,7 +174,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
     @Override
     @PreAuthorize("hasAnyRole('DOCENTE', 'ADMIN', 'SUPER_ADMIN')")
     public List<ProductoDocenteResponse> buscarTodos() {
-        return repository.findAll().stream()
+        return productosVisiblesEnListado(repository.findAll()).stream()
                 .map(p -> toDtoConAcceso(p, accesoService.resolverVisor(p)))
                 .toList();
     }
@@ -181,13 +183,14 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
     @PreAuthorize("hasAnyRole('DOCENTE', 'ADMIN', 'SUPER_ADMIN')")
     public ProductoDocenteResponse buscarPorId(Long id) {
         ProductoDocente producto = buscarEntidad(id);
+        verificarAccesoLectura(producto);
         return toDtoConAcceso(producto, accesoService.resolverVisor(producto));
     }
 
     @Override
     @PreAuthorize("hasAnyRole('DOCENTE', 'ADMIN', 'SUPER_ADMIN')")
     public List<ProductoDocenteResponse> buscarPorTipo(Long tipoProductoId) {
-        return repository.findByTipoProductoId(tipoProductoId).stream()
+        return productosVisiblesEnListado(repository.findByTipoProductoId(tipoProductoId)).stream()
                 .map(p -> toDtoConAcceso(p, accesoService.resolverVisor(p)))
                 .toList();
     }
@@ -195,7 +198,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
     @Override
     @PreAuthorize("hasAnyRole('DOCENTE', 'ADMIN', 'SUPER_ADMIN')")
     public List<ProductoDocenteResponse> buscarPorDocente(Long docenteId) {
-        return repository.findByDocenteId(docenteId).stream()
+        return productosVisiblesEnListado(repository.findByDocenteId(docenteId)).stream()
                 .map(p -> toDtoConAcceso(p, accesoService.resolverVisor(p)))
                 .toList();
     }
@@ -228,6 +231,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
     @Transactional(readOnly = true)
     public ProductoPublicoPageResponse buscarPublicadosPortal(
             String q,
+            String docente,
             String categoria,
             String subcategoria,
             String tipo,
@@ -239,13 +243,14 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
             Pageable pageable) {
 
         String qNorm = normalizarTexto(q);
+        String docenteNorm = normalizarTexto(docente);
         String categoriaNorm = normalizarFiltroTaxonomia(categoria);
         String subcategoriaNorm = normalizarFiltroTaxonomia(subcategoria);
         String tipoNorm = normalizarFiltroTaxonomia(tipo);
         String campoFechaNorm = normalizarCampoFecha(campoFecha);
 
         Specification<ProductoDocente> spec = ProductoPublicoSpecifications.publicadosConFiltros(
-                qNorm, categoriaNorm, subcategoriaNorm, tipoNorm,
+                qNorm, docenteNorm, categoriaNorm, subcategoriaNorm, tipoNorm,
                 facultadId, programaId, desde, hasta, campoFechaNorm);
 
         Page<ProductoDocente> page = repository.findAll(spec, pageable);
@@ -272,7 +277,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
     public ProductoPublicoResumenResponse resumenPublicosPortal() {
         String campoFecha = "fechaPublicacionSgpa";
         Specification<ProductoDocente> publicados = ProductoPublicoSpecifications.publicadosConFiltros(
-                null, null, null, null, null, null, null, null, campoFecha);
+                null, null, null, null, null, null, null, null, null, campoFecha);
 
         long total = repository.count(publicados);
         long ultimos30Dias = repository.count(
@@ -355,8 +360,8 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
     @Override
     @PreAuthorize("hasAnyRole('DOCENTE', 'ADMIN', 'SUPER_ADMIN')")
     public Page<ProductoDocenteResponse> buscarPorDocentePaginado(Long docenteId, Pageable pageable) {
-        return repository.findByDocenteId(docenteId, pageable)
-                .map(p -> toDtoConAcceso(p, accesoService.resolverVisor(p)));
+        Page<ProductoDocente> page = paginaProductosPorDocente(docenteId, pageable);
+        return page.map(p -> toDtoConAcceso(p, accesoService.resolverVisor(p)));
     }
 
     @Override
@@ -441,6 +446,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
     @Transactional(readOnly = true)
     public ProductoArchivoResponse buscarArchivoPorId(Long productoId, Long archivoId) {
         ProductoDocente producto = buscarEntidad(productoId);
+        verificarAccesoLectura(producto);
         ProductoArchivo archivo = buscarArchivoEnProducto(producto, archivoId);
         return archivoMapper.toDTO(archivo);
     }
@@ -582,6 +588,75 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
                     "No tienes permiso para acceder a este producto");
         }
         return producto;
+    }
+
+    private void verificarAccesoLectura(ProductoDocente producto) {
+        if (esAdminAutenticado()) {
+            return;
+        }
+        if (Boolean.TRUE.equals(producto.getPublicado())) {
+            return;
+        }
+        if (esPropietario(producto)) {
+            return;
+        }
+        throw new ProductoDocenteNotFoundException(producto.getId());
+    }
+
+    private List<ProductoDocente> productosVisiblesEnListado(List<ProductoDocente> productos) {
+        if (esAdminAutenticado()) {
+            return productos;
+        }
+        return productos.stream()
+                .filter(this::puedeVerEnListado)
+                .toList();
+    }
+
+    private boolean puedeVerEnListado(ProductoDocente producto) {
+        if (Boolean.TRUE.equals(producto.getPublicado())) {
+            return true;
+        }
+        return esPropietario(producto);
+    }
+
+    private Page<ProductoDocente> paginaProductosPorDocente(Long docenteId, Pageable pageable) {
+        if (esAdminAutenticado()) {
+            return repository.findByDocenteId(docenteId, pageable);
+        }
+
+        Optional<Docente> docente = docenteAutenticadoOpt();
+        if (docente.isPresent() && docente.get().getId().equals(docenteId)) {
+            return repository.findByDocenteId(docenteId, pageable);
+        }
+
+        return repository.findByDocenteIdAndPublicado(docenteId, true, pageable);
+    }
+
+    private boolean esAdminAutenticado() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return false;
+        }
+        return auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority())
+                        || "ROLE_SUPER_ADMIN".equals(a.getAuthority()));
+    }
+
+    private boolean esPropietario(ProductoDocente producto) {
+        if (producto.getDocente() == null) {
+            return false;
+        }
+        return docenteAutenticadoOpt()
+                .map(docente -> docente.getId().equals(producto.getDocente().getId()))
+                .orElse(false);
+    }
+
+    private Optional<Docente> docenteAutenticadoOpt() {
+        try {
+            return Optional.of(obtenerDocenteAutenticado());
+        } catch (IllegalStateException ex) {
+            return Optional.empty();
+        }
     }
 
     private void verificarProductoEditable(ProductoDocente producto) {

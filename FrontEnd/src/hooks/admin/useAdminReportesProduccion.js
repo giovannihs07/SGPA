@@ -7,6 +7,7 @@ const buildReporteParams = ({
     filtroEstado,
     filtroCategoria,
     filtroSubcategoria,
+    filtroTipo,
     filtroFacultad,
     filtroPrograma,
     fechaDesde,
@@ -17,6 +18,7 @@ const buildReporteParams = ({
     estado: filtroEstado,
     categoria: filtroCategoria,
     subcategoria: filtroSubcategoria,
+    tipo: filtroTipo,
     facultadId: filtroFacultad === "TODAS" ? undefined : Number(filtroFacultad),
     programaId: filtroPrograma === "TODOS" ? undefined : Number(filtroPrograma),
     fechaDesde: fechaDesde || undefined,
@@ -39,30 +41,31 @@ export const useAdminReportesProduccion = () => {
     const [filtroEstado, setFiltroEstado] = useState("TODOS");
     const [filtroCategoria, setFiltroCategoria] = useState("TODAS");
     const [filtroSubcategoria, setFiltroSubcategoria] = useState("TODAS");
+    const [filtroTipo, setFiltroTipo] = useState("TODOS");
     const [filtroFacultad, setFiltroFacultad] = useState("TODAS");
     const [filtroPrograma, setFiltroPrograma] = useState("TODOS");
     const [fechaDesde, setFechaDesde] = useState("");
     const [fechaHasta, setFechaHasta] = useState("");
     const [filtroCampoFecha, setFiltroCampoFecha] = useState("fechaRegistroSgpa");
     const [busqueda, setBusqueda] = useState("");
-    const [busquedaDebounced, setBusquedaDebounced] = useState("");
+    const [busquedaBorrador, setBusquedaBorrador] = useState("");
 
     useEffect(() => {
-        const timer = setTimeout(() => setBusquedaDebounced(busqueda), 400);
-        return () => clearTimeout(timer);
+        setBusquedaBorrador(busqueda);
     }, [busqueda]);
 
     const filtros = useMemo(() => ({
         filtroEstado,
         filtroCategoria,
         filtroSubcategoria,
+        filtroTipo,
         filtroFacultad,
         filtroPrograma,
         fechaDesde,
         fechaHasta,
         filtroCampoFecha,
         busqueda,
-    }), [filtroEstado, filtroCategoria, filtroSubcategoria, filtroFacultad, filtroPrograma, fechaDesde, fechaHasta, filtroCampoFecha, busqueda]);
+    }), [filtroEstado, filtroCategoria, filtroSubcategoria, filtroTipo, filtroFacultad, filtroPrograma, fechaDesde, fechaHasta, filtroCampoFecha, busqueda]);
 
     const fetchCatalogos = useCallback(async () => {
         setLoadingCatalogos(true);
@@ -86,7 +89,7 @@ export const useAdminReportesProduccion = () => {
         try {
             const data = await getReporteProduccionEjecutivo(buildReporteParams({
                 ...filtros,
-                busqueda: busquedaDebounced,
+                busqueda,
             }));
             setReporte(data);
         } catch (e) {
@@ -94,7 +97,7 @@ export const useAdminReportesProduccion = () => {
         } finally {
             setLoadingReporte(false);
         }
-    }, [filtros, busquedaDebounced]);
+    }, [filtros, busqueda]);
 
     useEffect(() => { fetchCatalogos(); }, [fetchCatalogos]);
 
@@ -119,8 +122,8 @@ export const useAdminReportesProduccion = () => {
     const porPrograma = reporte?.porPrograma ?? [];
 
     const reporteParams = useMemo(
-        () => buildReporteParams({ ...filtros, busqueda: busquedaDebounced }),
-        [filtros, busquedaDebounced],
+        () => buildReporteParams({ ...filtros, busqueda }),
+        [filtros, busqueda],
     );
 
     const programasFiltrados = useMemo(() => {
@@ -158,15 +161,31 @@ export const useAdminReportesProduccion = () => {
         return ["TODAS", ...items];
     }, [reporte]);
 
+    const tiposDisponibles = useMemo(() => {
+        const items = reporte?.opciones?.tiposDisponibles ?? [];
+        return ["TODOS", ...items];
+    }, [reporte]);
+
     const handleFiltroCategoria = useCallback((v) => {
         setFiltroCategoria(v);
         setFiltroSubcategoria("TODAS");
+        setFiltroTipo("TODOS");
+    }, []);
+
+    const handleFiltroSubcategoria = useCallback((v) => {
+        setFiltroSubcategoria(v);
+        setFiltroTipo("TODOS");
     }, []);
 
     const handleFiltroFacultad = useCallback((v) => {
         setFiltroFacultad(v);
         setFiltroPrograma("TODOS");
     }, []);
+
+    useEffect(() => {
+        if (filtroTipo === "TODOS" || !tiposDisponibles.length) return;
+        if (!tiposDisponibles.includes(filtroTipo)) setFiltroTipo("TODOS");
+    }, [tiposDisponibles, filtroTipo]);
 
     const aplicarPresetPeriodo = useCallback(({ fechaDesde: desde, fechaHasta: hasta }) => {
         setFechaDesde(desde);
@@ -176,6 +195,17 @@ export const useAdminReportesProduccion = () => {
     const limpiarPeriodo = useCallback(() => {
         setFechaDesde("");
         setFechaHasta("");
+    }, []);
+
+    const aplicarBusqueda = useCallback((termino) => {
+        const value = (termino ?? busquedaBorrador).trim();
+        setBusquedaBorrador(value);
+        setBusqueda(value);
+    }, [busquedaBorrador]);
+
+    const limpiarBusqueda = useCallback(() => {
+        setBusquedaBorrador("");
+        setBusqueda("");
     }, []);
 
     return {
@@ -190,7 +220,9 @@ export const useAdminReportesProduccion = () => {
         filtroCategoria,
         setFiltroCategoria: handleFiltroCategoria,
         filtroSubcategoria,
-        setFiltroSubcategoria,
+        setFiltroSubcategoria: handleFiltroSubcategoria,
+        filtroTipo,
+        setFiltroTipo,
         filtroFacultad,
         setFiltroFacultad: handleFiltroFacultad,
         filtroPrograma,
@@ -202,9 +234,13 @@ export const useAdminReportesProduccion = () => {
         filtroCampoFecha,
         setFiltroCampoFecha,
         busqueda,
-        setBusqueda,
+        busquedaBorrador,
+        setBusquedaBorrador,
+        aplicarBusqueda,
+        limpiarBusqueda,
         categoriasDisponibles,
         subcategoriasDisponibles,
+        tiposDisponibles,
         facultades,
         programasFiltrados,
         resumen,

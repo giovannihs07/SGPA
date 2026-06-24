@@ -9,7 +9,7 @@ import {
 } from "../services/productoServices";
 import { obtenerArchivosProducto } from "../pages/docente/components/productoHelpers";
 import { notifySuccess, notifyError } from "../utils/notify";
-import { esReciente } from "../pages/docente/components/productoHelpers";
+import { esReciente, matchRangoFecha } from "../pages/docente/components/productoHelpers";
 import {
     intentarEliminarProducto,
     confirmPublicarProducto,
@@ -51,7 +51,11 @@ export const useMisProductos = () => {
     const [busqueda, setBusqueda]               = useState("");
     const [filtroEstado, setFiltroEstado]         = useState("TODOS");
     const [filtroCategoria, setFiltroCategoria]   = useState("TODAS");
+    const [filtroSubcategoria, setFiltroSubcategoria] = useState("TODAS");
     const [filtroTipo, setFiltroTipo]             = useState("TODOS");
+    const [fechaDesde, setFechaDesde]               = useState("");
+    const [fechaHasta, setFechaHasta]               = useState("");
+    const [filtroCampoFecha, setFiltroCampoFecha]   = useState("fechaRegistroSgpa");
     const [pagina, setPagina]                     = useState(0);
 
     const categoriasDisponibles = useMemo(() => {
@@ -59,34 +63,59 @@ export const useMisProductos = () => {
         return ["TODAS", ...set];
     }, [productos]);
 
-    const tiposDisponibles = useMemo(() => {
+    const subcategoriasDisponibles = useMemo(() => {
         const base = productos.filter(
-            (p) => filtroCategoria === "TODAS" || p.categoria === filtroCategoria
+            (p) => filtroCategoria === "TODAS" || p.categoria === filtroCategoria,
         );
+        const set = new Set(base.map((p) => p.subcategoria).filter(Boolean));
+        return ["TODAS", ...set];
+    }, [productos, filtroCategoria]);
+
+    const tiposDisponibles = useMemo(() => {
+        const base = productos.filter((p) => {
+            const matchCat = filtroCategoria === "TODAS" || p.categoria === filtroCategoria;
+            const matchSub = filtroSubcategoria === "TODAS" || p.subcategoria === filtroSubcategoria;
+            return matchCat && matchSub;
+        });
         const set = new Set(base.map((p) => p.tipo).filter(Boolean));
         return ["TODOS", ...set];
-    }, [productos, filtroCategoria]);
+    }, [productos, filtroCategoria, filtroSubcategoria]);
 
     const handleFiltroCategoria = useCallback((v) => {
         setFiltroCategoria(v);
+        setFiltroSubcategoria("TODAS");
         setFiltroTipo("TODOS");
         setPagina(0);
     }, []);
 
+    const handleFiltroSubcategoria = useCallback((v) => {
+        setFiltroSubcategoria(v);
+        setFiltroTipo("TODOS");
+        setPagina(0);
+    }, []);
+
+    useEffect(() => {
+        if (filtroTipo === "TODOS" || !tiposDisponibles.length) return;
+        if (!tiposDisponibles.includes(filtroTipo)) setFiltroTipo("TODOS");
+    }, [tiposDisponibles, filtroTipo]);
+
     const productosFiltrados = useMemo(() =>
         productos.filter((p) => {
-            const matchBusqueda = !busqueda ||
-                p.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
-                p.descripcion?.toLowerCase().includes(busqueda.toLowerCase());
+            const q = busqueda.trim().toLowerCase();
+            const matchBusqueda = !q ||
+                p.nombre?.toLowerCase().includes(q) ||
+                p.descripcion?.toLowerCase().includes(q);
             const matchEstado =
                 filtroEstado === "TODOS" ||
                 (filtroEstado === "PUBLICADO"     &&  p.publicado) ||
                 (filtroEstado === "SIN_PUBLICAR"  && !p.publicado);
             const matchCategoria = filtroCategoria === "TODAS" || p.categoria === filtroCategoria;
-            const matchTipo      = filtroTipo === "TODOS" || p.tipo === filtroTipo;
-            return matchBusqueda && matchEstado && matchCategoria && matchTipo;
+            const matchSubcategoria = filtroSubcategoria === "TODAS" || p.subcategoria === filtroSubcategoria;
+            const matchTipo = filtroTipo === "TODOS" || p.tipo === filtroTipo;
+            const matchFecha = matchRangoFecha(p, { fechaDesde, fechaHasta, campo: filtroCampoFecha });
+            return matchBusqueda && matchEstado && matchCategoria && matchSubcategoria && matchTipo && matchFecha;
         }),
-    [productos, busqueda, filtroEstado, filtroCategoria, filtroTipo]);
+    [productos, busqueda, filtroEstado, filtroCategoria, filtroSubcategoria, filtroTipo, fechaDesde, fechaHasta, filtroCampoFecha]);
 
     const totalPaginas = Math.max(1, Math.ceil(productosFiltrados.length / PAGE_SIZE));
 
@@ -109,6 +138,9 @@ export const useMisProductos = () => {
     const handleBusqueda = useCallback((v) => { setBusqueda(v); resetPagina(); }, [resetPagina]);
     const handleFiltroEstado = useCallback((v) => { setFiltroEstado(v); resetPagina(); }, [resetPagina]);
     const handleFiltroTipo = useCallback((v) => { setFiltroTipo(v); resetPagina(); }, [resetPagina]);
+    const handleFechaDesde = useCallback((v) => { setFechaDesde(v); resetPagina(); }, [resetPagina]);
+    const handleFechaHasta = useCallback((v) => { setFechaHasta(v); resetPagina(); }, [resetPagina]);
+    const handleFiltroCampoFecha = useCallback((v) => { setFiltroCampoFecha(v); resetPagina(); }, [resetPagina]);
 
     const handleDescargar = useCallback(async (producto, archivo = null) => {
         const lista = obtenerArchivosProducto(producto);
@@ -212,8 +244,13 @@ export const useMisProductos = () => {
         busqueda, setBusqueda: handleBusqueda,
         filtroEstado, setFiltroEstado: handleFiltroEstado,
         filtroCategoria, handleFiltroCategoria,
+        filtroSubcategoria, handleFiltroSubcategoria,
         filtroTipo, setFiltroTipo: handleFiltroTipo,
+        fechaDesde, setFechaDesde: handleFechaDesde,
+        fechaHasta, setFechaHasta: handleFechaHasta,
+        filtroCampoFecha, setFiltroCampoFecha: handleFiltroCampoFecha,
         categoriasDisponibles,
+        subcategoriasDisponibles,
         tiposDisponibles,
         pagina, totalPaginas, pageSize: PAGE_SIZE, irPagina,
         abrirDetalle,

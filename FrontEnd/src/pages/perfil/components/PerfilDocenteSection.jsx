@@ -49,18 +49,39 @@ export const PerfilDocenteSection = ({
     onEliminarTitulo,
 }) => {
     const titulos = perfil?.titulos ?? [];
+    const codigoPendiente = !perfil?.codigoDocente?.trim();
 
     return (
         <section className={`${card} p-5 space-y-6`}>
             <div>
                 <h3 className={`text-sm font-bold ${text.primary}`}>Perfil docente</h3>
                 <p className={`text-xs ${text.muted} mt-1`}>
-                    Actualiza tu tipo de contrato, programas asignados y títulos académicos.
+                    {codigoPendiente
+                        ? "Completa tu código docente, tipo de contrato, programas y títulos académicos."
+                        : "Actualiza tu tipo de contrato, programas asignados y títulos académicos."}
                 </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl">
-                <CampoLectura label="Código docente" value={perfil?.codigoDocente} />
+                {codigoPendiente ? (
+                    <div>
+                        <label htmlFor="codigoDocente" className={labelBold}>Código docente</label>
+                        <input
+                            id="codigoDocente"
+                            name="codigoDocente"
+                            type="text"
+                            value={docente.codigoDocente}
+                            onChange={onDocenteChange}
+                            placeholder="Ej. DOC-2024-001"
+                            autoComplete="off"
+                            aria-invalid={!!fieldErrorsDocente.codigoDocente || undefined}
+                            className={`${inputMd} ${fieldErrorsDocente.codigoDocente ? inputError : ""}`}
+                        />
+                        <FieldError message={fieldErrorsDocente.codigoDocente} />
+                    </div>
+                ) : (
+                    <CampoLectura label="Código docente" value={perfil?.codigoDocente} />
+                )}
                 <div>
                     <label htmlFor="tipoContrato" className={labelBold}>Tipo de contrato</label>
                     <SelectWithArrow
@@ -79,7 +100,7 @@ export const PerfilDocenteSection = ({
 
             <form onSubmit={onGuardarDocente}>
                 <LoadingButton loading={savingDocente} className={btnPrimary}>
-                    Guardar tipo de contrato
+                    {codigoPendiente ? "Guardar perfil docente" : "Guardar tipo de contrato"}
                 </LoadingButton>
             </form>
 
