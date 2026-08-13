@@ -134,7 +134,7 @@ export const PublicFiltros = ({
                             onSubmit={handleSubmitDocente}
                             className="flex gap-2 w-full basis-full"
                         >
-                            <div className="relative flex-1 min-w-[12rem]">
+                            <div className="relative flex-1 min-w-48">
                                 <UserRound size={13} className={inputIcon} aria-hidden="true" />
                                 <input
                                     type="search"

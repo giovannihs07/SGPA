@@ -45,8 +45,8 @@ export const InstitutionalPanel = ({ side = "right" }) => {
                     <div className="flex gap-6 xl:gap-10">
                         {[
                             { label: 'Docentes', value: '120+' },
-                            { label: 'Productos', value: '1.400+' },
-                            { label: 'Facultades', value: '7' },
+                            { label: 'Productos', value: '1.000+' },
+                            { label: 'Facultades', value: '9' },
                         ].map((s) => (
                             <div key={s.label}>
                                 <p className="text-[#ffc20e] text-lg xl:text-xl font-bold">{s.value}</p>

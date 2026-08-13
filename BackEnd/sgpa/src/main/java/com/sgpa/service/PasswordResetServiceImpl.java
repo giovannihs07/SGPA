@@ -213,8 +213,4 @@ public class PasswordResetServiceImpl implements PasswordResetService {
                 Código: {}
                 """, motivo, email, codigo);
     }
-
-    private void logResetCode(String email, String codigo, String motivo) {
-        logResetCode(email, codigo, motivo, false);
-    }
 }

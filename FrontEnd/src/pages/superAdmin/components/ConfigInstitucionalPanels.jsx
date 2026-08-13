@@ -207,7 +207,7 @@ export const ProgramasPanel = ({
                                 onChange={(e) => setFormProg({ ...formProg, nombre: e.target.value })} />
                         </div>
                         <div>
-                            <label className={label}>Código *</label>
+                            <label className={label}>Código SNIES *</label>
                             <input required className={inputSm} value={formProg.codigo ?? ""}
                                 onChange={(e) => setFormProg({ ...formProg, codigo: e.target.value })} />
                         </div>
@@ -237,7 +237,7 @@ export const ProgramasPanel = ({
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className={tableHeadRow}>
-                                    {["Nombre", "Código", "Nivel", "Acciones"].map((h) => (
+                                    {["Nombre", "Código SNIES", "Nivel", "Acciones"].map((h) => (
                                         <th key={h} className={tableHeadCell}>{h}</th>
                                     ))}
                                 </tr>

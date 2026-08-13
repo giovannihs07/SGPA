@@ -1,6 +1,5 @@
 package com.sgpa.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -18,23 +17,21 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 import com.sgpa.security.auth.filters.JwtValidationFilter;
 
+import lombok.RequiredArgsConstructor;
+
 // Configuración de seguridad para la aplicación
 @Configuration
 // Habilitar la seguridad de métodos en la aplicación @PreAuthorize, @PostAuthorize, etc.
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     // Configuración de autenticación
-    @Autowired
-    private AuthenticationConfiguration authenticationConfiguration;
-
+    private final AuthenticationConfiguration authenticationConfiguration;
     // Servicio de detalles de usuario
-    @Autowired
-    private UserDetailsService userDetailsService;
-
+    private final UserDetailsService userDetailsService;
     // Configuración de CORS
-    @Autowired
-    private CorsConfigurationSource corsConfigurationSource;
+    private final CorsConfigurationSource corsConfigurationSource;
 
     // Codificador de contraseñas
     @Bean
