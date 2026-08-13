@@ -68,7 +68,7 @@ export const PublicHero = ({
                             type="search"
                             value={busqueda}
                             onChange={(e) => onBusquedaChange(e.target.value)}
-                            placeholder="Buscar y presionar Enter…"
+                            placeholder="Buscar por nombre o descripción del producto…"
                             aria-label="Buscar producción académica"
                             className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-white/95 text-gray-900
                                 placeholder-gray-400 text-sm shadow-lg

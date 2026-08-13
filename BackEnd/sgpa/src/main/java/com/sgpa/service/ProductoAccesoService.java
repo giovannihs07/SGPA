@@ -23,12 +23,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ProductoAccesoService {
 
+    // Enums para representar los diferentes visores de producto según el rol del usuario
     public enum VisorProducto {
         PROPIETARIO, ADMIN, PUBLICO
     }
 
     private final DocenteRepository docenteRepository;
 
+    // Resolver el visor de producto según el rol del usuario autenticado y la relación con el producto
     public VisorProducto resolverVisor(ProductoDocente producto) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()
@@ -36,10 +38,12 @@ public class ProductoAccesoService {
             return VisorProducto.PUBLICO;
         }
 
+        // Verificar si el usuario autenticado es un administrador
         if (esAdmin(auth)) {
             return VisorProducto.ADMIN;
         }
 
+        // Verificar si el usuario autenticado es el propietario del producto
         Optional<Docente> docente = docenteRepository.findByUserEmail(auth.getName());
         if (docente.isPresent()
                 && producto.getDocente() != null
@@ -50,6 +54,7 @@ public class ProductoAccesoService {
         return VisorProducto.PUBLICO;
     }
 
+    // Aplicar el filtro de acceso a un producto según el visor determinado
     public ProductoDocenteResponse aplicarFiltroAcceso(
             ProductoDocenteResponse dto,
             ProductoDocente entidad,
@@ -59,6 +64,7 @@ public class ProductoAccesoService {
             return dto;
         }
 
+        // Obtener la lista de archivos del producto, manejando el caso de que sea nula
         List<ProductoArchivo> archivosEntidad = entidad.getArchivos() != null
                 ? entidad.getArchivos()
                 : List.of();
@@ -70,6 +76,7 @@ public class ProductoAccesoService {
         };
     }
 
+    // Determinar si un archivo es visible públicamente según su acceso público y la lógica de legado
     public boolean esVisiblePublicamente(ProductoArchivo archivo, List<ProductoArchivo> todos) {
         if (Boolean.TRUE.equals(archivo.getAccesoPublico())) {
             return true;
@@ -77,6 +84,7 @@ public class ProductoAccesoService {
         return esLegacyPrincipalPublico(archivo, todos);
     }
 
+    // Determinar si un archivo puede ser descargado públicamente según su visibilidad y el estado de publicación del producto
     public boolean puedeDescargarPublicamente(ProductoArchivo archivo, ProductoDocente producto) {
         if (!Boolean.TRUE.equals(producto.getPublicado())) {
             return false;
@@ -87,6 +95,7 @@ public class ProductoAccesoService {
         return esVisiblePublicamente(archivo, archivos);
     }
 
+    // Métodos privados auxiliares para aplicar las vistas según el rol del usuario
     private ProductoDocenteResponse aplicarVistaPropietario(
             ProductoDocenteResponse dto,
             List<ProductoArchivo> archivosEntidad) {
@@ -99,6 +108,7 @@ public class ProductoAccesoService {
         return dto;
     }
 
+    // Aplicar la vista de administrador, mostrando todos los archivos y sincronizando el archivo principal según la lógica de legado
     private ProductoDocenteResponse aplicarVistaAdmin(
             ProductoDocenteResponse dto,
             List<ProductoArchivo> archivosEntidad,
@@ -118,6 +128,7 @@ public class ProductoAccesoService {
         return dto;
     }
 
+    // Aplicar la vista pública, mostrando solo los archivos visibles públicamente y sincronizando el archivo principal según la lógica de legado
     private ProductoDocenteResponse aplicarVistaPublico(
             ProductoDocenteResponse dto,
             List<ProductoArchivo> archivosEntidad,
@@ -135,20 +146,7 @@ public class ProductoAccesoService {
         return dto;
     }
 
-    private List<ProductoArchivoResponse> mapearArchivos(
-            List<ProductoArchivo> archivosEntidad,
-            boolean incluirAccesoPublico,
-            boolean descargable) {
-
-        return archivosEntidad.stream()
-                .sorted(ordenarPorOrden())
-                .map(a -> toArchivoResponse(
-                        a,
-                        incluirAccesoPublico ? a.getAccesoPublico() : null,
-                        descargable))
-                .toList();
-    }
-
+    // Convertir una entidad ProductoArchivo a un DTO ProductoArchivoResponse, incluyendo información sobre acceso público y descargabilidad
     private ProductoArchivoResponse toArchivoResponse(
             ProductoArchivo archivo,
             Boolean accesoPublico,
@@ -166,6 +164,7 @@ public class ProductoAccesoService {
                 .build();
     }
 
+    // Sincronizar la información del archivo principal en el DTO según la lógica de legado, considerando la visibilidad pública de los archivos
     private void sincronizarLegacyPrincipal(
             ProductoDocenteResponse dto,
             List<ProductoArchivo> archivosEntidad,
@@ -188,6 +187,7 @@ public class ProductoAccesoService {
         }
     }
 
+    // Determinar si un archivo principal es considerado "legacy" y público según la lógica de negocio, verificando que no haya otros archivos públicos
     private boolean esLegacyPrincipalPublico(ProductoArchivo archivo, List<ProductoArchivo> todos) {
         if (archivo.getRol() != RolArchivoProducto.PRINCIPAL) {
             return false;
@@ -195,22 +195,26 @@ public class ProductoAccesoService {
         return todos.stream().noneMatch(a -> Boolean.TRUE.equals(a.getAccesoPublico()));
     }
 
+    // Contar la cantidad de archivos restringidos (no públicos) en la lista de archivos
     private long contarRestringidos(List<ProductoArchivo> archivos) {
         return archivos.stream()
                 .filter(a -> !Boolean.TRUE.equals(a.getAccesoPublico()))
                 .count();
     }
 
+    // Ordenar los archivos por el campo "orden", considerando que puede ser nulo y asignando un valor predeterminado de 0
     private Comparator<ProductoArchivo> ordenarPorOrden() {
         return Comparator.comparing(a -> a.getOrden() != null ? a.getOrden() : 0);
     }
 
+    // Verificar si el usuario autenticado tiene un rol de administrador (ROLE_ADMIN o ROLE_SUPER_ADMIN)
     private boolean esAdmin(Authentication auth) {
         return auth.getAuthorities().stream()
                 .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority())
                         || "ROLE_SUPER_ADMIN".equals(a.getAuthority()));
     }
 
+    // Extraer la extensión del nombre de archivo original, devolviendo null si no hay extensión
     private String extraerExtension(String nombreOriginal) {
         if (nombreOriginal == null || !nombreOriginal.contains(".")) {
             return null;
