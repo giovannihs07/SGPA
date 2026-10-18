@@ -51,16 +51,19 @@ export const formatFecha = (fecha) => {
 export const truncar = (str, max = 60) =>
     str && str.length > max ? str.slice(0, max) + "…" : (str ?? "—");
 
-/** Etiqueta legible para un atributo (taxonomía → legacy → clave formateada). */
+/** Etiqueta legible para un atributo (taxonomía -> legacy -> clave formateada). */
 export const etiquetaAtributo = (clave, etiquetasTaxonomia = null) => {
     if (!clave) return "—";
     if (etiquetasTaxonomia?.[clave]) return etiquetasTaxonomia[clave];
     if (ATRIBUTO_LABELS[clave]) return ATRIBUTO_LABELS[clave];
     return clave
+        // Formateo de camelCase, PascalCase, snake_case a palabras separadas
         .replace(/_/g, " ")
+        // Formateo de camelCase y PascalCase a palabras separadas
         .replace(/([a-záéíóúñ0-9])([A-ZÁÉÍÓÚÑ])/g, "$1 $2")
+        // Formateo de acrónimos seguidos de palabra a palabras separadas
         .replace(/([A-ZÁÉÍÓÚÑ]+)([A-ZÁÉÍÓÚÑ][a-záéíóúñ])/g, "$1 $2")
-        .trim();
+        .trim(); // Elimina espacios al inicio y final
 };
 
 export const getExtensionArchivo = (producto) => {

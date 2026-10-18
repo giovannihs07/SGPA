@@ -4,7 +4,7 @@ import { getApiErrorMessageAsync } from "../utils/apiError";
 
 /**
  * GET /api/productos/schema
- * Categorías → subcategorías → tipos → atributos (solo activos).
+ * Categorías -> subcategorías -> tipos -> atributos (solo activos).
  */
 export const getProductoSchema = async () => {
     const { data } = await axiosInstance.get("/api/productos/schema");
@@ -20,8 +20,8 @@ const appendArchivos = (formData, archivos = []) => {
 
 /**
  * POST /api/productos  (multipart/form-data)
- *   - parte "datos"    → Blob JSON
- *   - parte "archivos" → File[] (metadatos en datos.archivosMeta)
+ *   - parte "datos"    -> Blob JSON
+ *   - parte "archivos" -> File[] (metadatos en datos.archivosMeta)
  */
 export const crearProducto = async (datos, archivos = []) => {
     const formData = new FormData();
@@ -36,7 +36,7 @@ export const crearProducto = async (datos, archivos = []) => {
 };
 
 /**
- * GET /api/productos  (listado global — admin/superadmin)
+ * GET /api/productos  (listado global - admin/superadmin)
  */
 export const getAllProductos = async (params = {}) => {
     const { data } = await axiosInstance.get("/api/productos", { params });
@@ -44,7 +44,7 @@ export const getAllProductos = async (params = {}) => {
 };
 
 /**
- * GET /api/productos/publicos  (catálogo publicado — admin/superadmin autenticados)
+ * GET /api/productos/publicos  (catálogo publicado - admin/superadmin autenticados)
  */
 export const getProductosPublicados = async () => {
     const { data } = await axiosInstance.get("/api/productos/publicos", {
@@ -73,7 +73,7 @@ export const getResumenProductosPublicos = async () => {
 };
 
 /**
- * GET /api/productos/publicos/:id  (detalle publicado — portal anónimo)
+ * GET /api/productos/publicos/:id  (detalle publicado - portal anónimo)
  */
 export const getProductoPublicoPorId = async (id) => {
     const { data } = await axiosInstance.get(`/api/productos/publicos/${id}`, { skipAuth: true });
@@ -140,7 +140,7 @@ export const actualizarMiProducto = async (id, datos, archivos = []) => {
 };
 
 /**
- * PUT /api/productos/:id  (body JSON) — uso administrativo
+ * PUT /api/productos/:id  (body JSON) - uso administrativo
  */
 export const actualizarProducto = async (id, datos) => {
     const { data } = await axiosInstance.put(`/api/productos/${id}`, datos);
