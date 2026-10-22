@@ -8,10 +8,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.sgpa.dto.request.InstitucionRequest;
 import com.sgpa.dto.response.InstitucionResponse;
+import com.sgpa.exception.EntidadEnUsoException;
+import com.sgpa.exception.InstitucionNotFoundException;
 import com.sgpa.mapper.InstitucionMapper;
 import com.sgpa.model.audit.ModuloAuditoria;
 import com.sgpa.model.audit.ResultadoAuditoria;
 import com.sgpa.model.institucion.Institucion;
+import com.sgpa.repository.FacultadRepository;
 import com.sgpa.repository.InstitucionRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -22,17 +25,20 @@ import lombok.RequiredArgsConstructor;
 public class InstitucionServiceImpl implements InstitucionService {
 
     private final InstitucionRepository repository;
+    private final FacultadRepository facultadRepository;
     private final InstitucionMapper mapper;
     private final AuditService auditService;
 
     @Override
     @Transactional
     public InstitucionResponse crear(InstitucionRequest dto) {
-        if (repository.existsByNit(dto.getNit()))
+        normalizar(dto);
+
+        if (repository.existsByNitIgnoreCase(dto.getNit()))
             throw new IllegalStateException(
                 "Ya existe una institución con NIT: " + dto.getNit());
 
-        if (repository.existsByNombre(dto.getNombre()))
+        if (repository.existsByNombreIgnoreCase(dto.getNombre()))
             throw new IllegalStateException(
                 "Ya existe una institución con nombre: " + dto.getNombre());
 
@@ -58,12 +64,16 @@ public class InstitucionServiceImpl implements InstitucionService {
     @Transactional
     public InstitucionResponse actualizar(Long id, InstitucionRequest dto) {
         Institucion institucion = buscarEntidad(id);
+        normalizar(dto);
 
-        // Verifica que el nuevo NIT no pertenezca a otra institución
-        if (!institucion.getNit().equals(dto.getNit())
-                && repository.existsByNit(dto.getNit()))
+        // Verifica que el NIT y el nombre no pertenezcan a otra institución
+        if (repository.existsByNitIgnoreCaseAndIdNot(dto.getNit(), id))
             throw new IllegalStateException(
                 "Ya existe una institución con NIT: " + dto.getNit());
+
+        if (repository.existsByNombreIgnoreCaseAndIdNot(dto.getNombre(), id))
+            throw new IllegalStateException(
+                "Ya existe una institución con nombre: " + dto.getNombre());
 
         institucion.setNombre(dto.getNombre());
         institucion.setNit(dto.getNit());
@@ -82,6 +92,13 @@ public class InstitucionServiceImpl implements InstitucionService {
     @Transactional
     public void eliminar(Long id) {
         Institucion institucion = buscarEntidad(id);
+
+        long facultades = facultadRepository.countByInstitucionId(id);
+        if (facultades > 0)
+            throw new EntidadEnUsoException(
+                "No se puede eliminar: la institución tiene " + facultades
+                + " facultad(es) registrada(s).");
+
         String nombre = institucion.getNombre();
         repository.deleteById(id);
         auditService.registrar(ModuloAuditoria.CONFIGURACION, "ELIMINAR_INSTITUCION",
@@ -92,7 +109,13 @@ public class InstitucionServiceImpl implements InstitucionService {
 
     private Institucion buscarEntidad(Long id) {
         return repository.findById(id)
-            .orElseThrow(() -> new RuntimeException(
-                "Institución no encontrada con id: " + id));
+            .orElseThrow(() -> new InstitucionNotFoundException(id));
+    }
+
+    private void normalizar(InstitucionRequest dto) {
+        dto.setNombre(dto.getNombre().trim());
+        dto.setNit(dto.getNit().trim());
+        dto.setCiudad(dto.getCiudad().trim());
+        dto.setPais(dto.getPais().trim());
     }
 }

@@ -8,7 +8,7 @@ Estructura del proyecto
 
 sgpa/
 │
-├── backend/                            # 🛠️ Spring Boot (Java)
+├── backend/                            # Spring Boot (Java)
 │   └── src/
 │       └── main/
 │           ├── java/com/sgpa/
@@ -26,7 +26,7 @@ sgpa/
 │               ├── application.properties     # Config. de Spring Boot
 │               └── static/             # Recursos estáticos (si los hay)
 │
-├── frontend/                           # 💻 React + Tailwind
+├── frontend/                           # React + Tailwind
 │   ├── public/                         # HTML base, favicon, etc.
 │   └── src/
 │       ├── assets/                     # Logos, imágenes, íconos
@@ -53,12 +53,12 @@ sgpa/
 ├── uploads/productos                   # archivos de productos docentes
 |
 |
-├── docs/                               # 📄 Documentación técnica, diagramas
+├── docs/                               # Documentación técnica, diagramas
 │
-├── scripts/                            # 🔧 Scripts de utilidad (deploy, etc.)
+├── scripts/                            # Scripts de utilidad (deploy, etc.)
 │
 ├── .gitignore
 ├── README.md
 ├── package.json                        # Frontend
 ├── pom.xml                             # Backend (Maven)
-└── docker-compose.yml (opcional)      # Configuración Docker
+└── docker-compose.yml (opcional)       # Configuración Docker

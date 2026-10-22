@@ -17,4 +17,9 @@ public interface ProgramaRepository extends JpaRepository<Programa, Long> {
     boolean existsByCodigo(String codigo);
     boolean existsByNombreAndFacultadId(String nombre, Long facultadId);
     Optional<Programa> findByCodigo(String codigo);
+    boolean existsByNombreIgnoreCaseAndFacultadId(String nombre, Long facultadId);
+    boolean existsByNombreIgnoreCaseAndFacultadIdAndIdNot(String nombre, Long facultadId, Long id);
+    boolean existsByCodigoIgnoreCase(String codigo);
+    boolean existsByCodigoIgnoreCaseAndIdNot(String codigo, Long id);
+    long countByFacultadId(Long facultadId);
 }

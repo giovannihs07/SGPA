@@ -15,4 +15,9 @@ public interface FacultadRepository extends JpaRepository<Facultad, Long> {
     boolean existsByNombreAndInstitucionId(String nombre, Long institucionId);
     boolean existsByCodigo(String codigo);
     Optional<Facultad> findByCodigo(String codigo);
+    boolean existsByNombreIgnoreCaseAndInstitucionId(String nombre, Long institucionId);
+    boolean existsByNombreIgnoreCaseAndInstitucionIdAndIdNot(String nombre, Long institucionId, Long id);
+    boolean existsByCodigoIgnoreCase(String codigo);
+    boolean existsByCodigoIgnoreCaseAndIdNot(String codigo, Long id);
+    long countByInstitucionId(Long institucionId);
 }

@@ -8,6 +8,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.sgpa.dto.request.FacultadRequest;
 import com.sgpa.dto.response.FacultadResponse;
+import com.sgpa.exception.EntidadEnUsoException;
+import com.sgpa.exception.FacultadNotFoundException;
+import com.sgpa.exception.InstitucionNotFoundException;
 import com.sgpa.mapper.FacultadMapper;
 import com.sgpa.model.audit.ModuloAuditoria;
 import com.sgpa.model.audit.ResultadoAuditoria;
@@ -15,6 +18,7 @@ import com.sgpa.model.institucion.Facultad;
 import com.sgpa.model.institucion.Institucion;
 import com.sgpa.repository.FacultadRepository;
 import com.sgpa.repository.InstitucionRepository;
+import com.sgpa.repository.ProgramaRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,6 +28,7 @@ public class FacultadServiceImpl implements FacultadService {
 
     private final FacultadRepository facultadRepository;
     private final InstitucionRepository institucionRepository;
+    private final ProgramaRepository programaRepository;
     private final FacultadMapper mapper;
     private final AuditService auditService;
 
@@ -31,19 +36,17 @@ public class FacultadServiceImpl implements FacultadService {
     @Transactional
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     public FacultadResponse crear(FacultadRequest dto) {
-        Institucion institucion = institucionRepository
-            .findById(dto.getInstitucionId())
-            .orElseThrow(() -> new RuntimeException(
-                "Institución no encontrada con id: " + dto.getInstitucionId()));
+        normalizar(dto);
+        Institucion institucion = buscarInstitucion(dto.getInstitucionId());
 
         // Evita duplicados de nombre dentro de la misma institución
-        if (facultadRepository.existsByNombreAndInstitucionId(
+        if (facultadRepository.existsByNombreIgnoreCaseAndInstitucionId(
                 dto.getNombre(), dto.getInstitucionId()))
             throw new IllegalStateException(
                 "Ya existe una facultad con ese nombre en esta institución");
 
         // Evita duplicados de código globalmente
-        if (facultadRepository.existsByCodigo(dto.getCodigo()))
+        if (facultadRepository.existsByCodigoIgnoreCase(dto.getCodigo()))
             throw new IllegalStateException(
                 "Ya existe una facultad con código: " + dto.getCodigo());
 
@@ -81,25 +84,20 @@ public class FacultadServiceImpl implements FacultadService {
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     public FacultadResponse actualizar(Long id, FacultadRequest dto) {
         Facultad facultad = buscarEntidad(id);
+        normalizar(dto);
 
-        // Verifica duplicado de nombre en la misma institución
-        // excluyendo la facultad actual
-        if (!facultad.getNombre().equals(dto.getNombre())
-                && facultadRepository.existsByNombreAndInstitucionId(
-                    dto.getNombre(), dto.getInstitucionId()))
+        // Verifica duplicado de nombre en la institución destino, excluyendo la facultad actual
+        if (facultadRepository.existsByNombreIgnoreCaseAndInstitucionIdAndIdNot(
+                dto.getNombre(), dto.getInstitucionId(), id))
             throw new IllegalStateException(
                 "Ya existe una facultad con ese nombre en esta institución");
 
         // Verifica duplicado de código excluyendo la facultad actual
-        if (!dto.getCodigo().equals(facultad.getCodigo())
-                && facultadRepository.existsByCodigo(dto.getCodigo()))
+        if (facultadRepository.existsByCodigoIgnoreCaseAndIdNot(dto.getCodigo(), id))
             throw new IllegalStateException(
                 "Ya existe una facultad con código: " + dto.getCodigo());
 
-        Institucion institucion = institucionRepository
-            .findById(dto.getInstitucionId())
-            .orElseThrow(() -> new RuntimeException(
-                "Institución no encontrada con id: " + dto.getInstitucionId()));
+        Institucion institucion = buscarInstitucion(dto.getInstitucionId());
 
         facultad.setNombre(dto.getNombre());
         facultad.setCodigo(dto.getCodigo());
@@ -118,6 +116,13 @@ public class FacultadServiceImpl implements FacultadService {
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     public void eliminar(Long id) {
         Facultad facultad = buscarEntidad(id);
+
+        long programas = programaRepository.countByFacultadId(id);
+        if (programas > 0)
+            throw new EntidadEnUsoException(
+                "No se puede eliminar: la facultad tiene " + programas
+                + " programa(s) registrado(s).");
+
         String nombre = facultad.getNombre();
         facultadRepository.deleteById(id);
         auditService.registrar(ModuloAuditoria.CONFIGURACION, "ELIMINAR_FACULTAD",
@@ -128,7 +133,16 @@ public class FacultadServiceImpl implements FacultadService {
 
     private Facultad buscarEntidad(Long id) {
         return facultadRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException(
-                "Facultad no encontrada con id: " + id));
+            .orElseThrow(() -> new FacultadNotFoundException(id));
+    }
+
+    private Institucion buscarInstitucion(Long institucionId) {
+        return institucionRepository.findById(institucionId)
+            .orElseThrow(() -> new InstitucionNotFoundException(institucionId));
+    }
+
+    private void normalizar(FacultadRequest dto) {
+        dto.setNombre(dto.getNombre().trim());
+        dto.setCodigo(dto.getCodigo().trim());
     }
 }

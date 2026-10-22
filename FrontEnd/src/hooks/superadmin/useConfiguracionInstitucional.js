@@ -10,6 +10,16 @@ const EMPTY_INSTITUCION = { nombre: "", nit: "", ciudad: "", pais: "Colombia" };
 const EMPTY_FACULTAD    = { nombre: "", codigo: "", institucionId: "" };
 const EMPTY_PROGRAMA    = { nombre: "", codigo: "", nivel: "", facultadId: "" };
 
+const AVISO_IRREVERSIBLE = "Esta acción no se puede deshacer.";
+
+/** Extrae el mensaje de error del backend: `error` (negocio) o `errores` (validación @Valid). */
+const extraerError = (err, fallback) => {
+    const data = err?.response?.data;
+    if (data?.error) return data.error;
+    if (Array.isArray(data?.errores) && data.errores.length) return data.errores.join("\n");
+    return fallback;
+};
+
 export const useConfiguracionInstitucional = () => {
     const [instituciones, setInstituciones] = useState([]);
     const [facultades, setFacultades]       = useState([]);
@@ -42,7 +52,7 @@ export const useConfiguracionInstitucional = () => {
                 setInstitucionSel((prev) => prev || String(insts[0].id));
             }
         } catch (e) {
-            setError(e.response?.data?.error ?? e.message ?? "Error al cargar configuración");
+            setError(extraerError(e, e.message ?? "Error al cargar configuración"));
         } finally {
             setLoading(false);
         }
@@ -50,22 +60,43 @@ export const useConfiguracionInstitucional = () => {
 
     useEffect(() => { fetchAll(); }, [fetchAll]);
 
+    // `activo` descarta respuestas obsoletas si el selector cambia antes de que lleguen
     useEffect(() => {
         if (!institucionSel) { setFacultades([]); setFacultadSel(""); return; }
+        let activo = true;
         getFacultades(Number(institucionSel))
             .then((data) => {
+                if (!activo) return;
                 setFacultades(data);
                 setFacultadSel(data[0] ? String(data[0].id) : "");
             })
-            .catch((e) => notifyError("Error", e.response?.data?.error ?? "No se pudieron cargar las facultades"));
+            .catch((e) => activo && notifyError("Error", extraerError(e, "No se pudieron cargar las facultades")));
+        return () => { activo = false; };
     }, [institucionSel]);
 
     useEffect(() => {
         if (!facultadSel) { setProgramas([]); return; }
+        let activo = true;
         getProgramas({ facultadId: Number(facultadSel) })
-            .then(setProgramas)
-            .catch((e) => notifyError("Error", e.response?.data?.error ?? "No se pudieron cargar los programas"));
+            .then((data) => { if (activo) setProgramas(data); })
+            .catch((e) => activo && notifyError("Error", extraerError(e, "No se pudieron cargar los programas")));
+        return () => { activo = false; };
     }, [facultadSel]);
+
+    // Cambiar de institución/facultad cancela la edición en curso para no mover el registro sin querer
+    const cambiarInstitucionSel = (id) => {
+        setEditFacId(null);
+        setFormFac(EMPTY_FACULTAD);
+        setEditProgId(null);
+        setFormProg(EMPTY_PROGRAMA);
+        setInstitucionSel(id);
+    };
+
+    const cambiarFacultadSel = (id) => {
+        setEditProgId(null);
+        setFormProg(EMPTY_PROGRAMA);
+        setFacultadSel(id);
+    };
 
     // ── Institución ───────────────────────────────────────────────
 
@@ -95,22 +126,26 @@ export const useConfiguracionInstitucional = () => {
             }
             cancelarInst();
         } catch (err) {
-            notifyError("Error", err.response?.data?.error ?? "No se pudo guardar la institución");
+            notifyError("Error", extraerError(err, "No se pudo guardar la institución"));
         } finally {
             setSaving(false);
         }
     };
 
     const eliminarInst = async (inst) => {
-        const ok = await notifyConfirm("Eliminar institución", `¿Eliminar "${inst.nombre}"?`);
+        const ok = await notifyConfirm("Eliminar institución", `¿Eliminar "${inst.nombre}"? ${AVISO_IRREVERSIBLE}`);
         if (!ok) return;
         try {
             await eliminarInstitucion(inst.id);
-            setInstituciones((prev) => prev.filter((i) => i.id !== inst.id));
+            const restantes = instituciones.filter((i) => i.id !== inst.id);
+            setInstituciones(restantes);
             notifySuccess("Institución eliminada", `"${inst.nombre}" fue eliminada.`);
-            if (String(inst.id) === institucionSel) setInstitucionSel("");
+            if (String(inst.id) === institucionSel) {
+                cambiarInstitucionSel(restantes[0] ? String(restantes[0].id) : "");
+            }
+            if (inst.id === editInstId) cancelarInst();
         } catch (err) {
-            notifyError("Error", err.response?.data?.error ?? "No se pudo eliminar la institución");
+            notifyError("Error", extraerError(err, "No se pudo eliminar la institución"));
         }
     };
 
@@ -144,22 +179,26 @@ export const useConfiguracionInstitucional = () => {
             }
             cancelarFac();
         } catch (err) {
-            notifyError("Error", err.response?.data?.error ?? "No se pudo guardar la facultad");
+            notifyError("Error", extraerError(err, "No se pudo guardar la facultad"));
         } finally {
             setSaving(false);
         }
     };
 
     const eliminarFac = async (fac) => {
-        const ok = await notifyConfirm("Eliminar facultad", `¿Eliminar "${fac.nombre}"?`);
+        const ok = await notifyConfirm("Eliminar facultad", `¿Eliminar "${fac.nombre}"? ${AVISO_IRREVERSIBLE}`);
         if (!ok) return;
         try {
             await eliminarFacultad(fac.id);
-            setFacultades((prev) => prev.filter((f) => f.id !== fac.id));
+            const restantes = facultades.filter((f) => f.id !== fac.id);
+            setFacultades(restantes);
             notifySuccess("Facultad eliminada", `"${fac.nombre}" fue eliminada.`);
-            if (String(fac.id) === facultadSel) setFacultadSel("");
+            if (String(fac.id) === facultadSel) {
+                cambiarFacultadSel(restantes[0] ? String(restantes[0].id) : "");
+            }
+            if (fac.id === editFacId) cancelarFac();
         } catch (err) {
-            notifyError("Error", err.response?.data?.error ?? "No se pudo eliminar la facultad");
+            notifyError("Error", extraerError(err, "No se pudo eliminar la facultad"));
         }
     };
 
@@ -197,29 +236,30 @@ export const useConfiguracionInstitucional = () => {
             }
             cancelarProg();
         } catch (err) {
-            notifyError("Error", err.response?.data?.error ?? "No se pudo guardar el programa");
+            notifyError("Error", extraerError(err, "No se pudo guardar el programa"));
         } finally {
             setSaving(false);
         }
     };
 
     const eliminarProg = async (prog) => {
-        const ok = await notifyConfirm("Eliminar programa", `¿Eliminar "${prog.nombre}"?`);
+        const ok = await notifyConfirm("Eliminar programa", `¿Eliminar "${prog.nombre}"? ${AVISO_IRREVERSIBLE}`);
         if (!ok) return;
         try {
             await eliminarPrograma(prog.id);
             setProgramas((prev) => prev.filter((p) => p.id !== prog.id));
             notifySuccess("Programa eliminado", `"${prog.nombre}" fue eliminado.`);
+            if (prog.id === editProgId) cancelarProg();
         } catch (err) {
-            notifyError("Error", err.response?.data?.error ?? "No se pudo eliminar el programa");
+            notifyError("Error", extraerError(err, "No se pudo eliminar el programa"));
         }
     };
 
     return {
         loading, error, saving, refetch: fetchAll,
         instituciones, facultades, programas, niveles,
-        institucionSel, setInstitucionSel,
-        facultadSel, setFacultadSel,
+        institucionSel, setInstitucionSel: cambiarInstitucionSel,
+        facultadSel, setFacultadSel: cambiarFacultadSel,
         formInst, setFormInst, editInstId,
         formFac, setFormFac, editFacId,
         formProg, setFormProg, editProgId,

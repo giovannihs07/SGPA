@@ -5,6 +5,21 @@ import {
     inputSm, selectSm, btnPrimary, btnGhost, label, text,
 } from "../../../components/ui/themeTokens";
 
+const AccionesFila = ({ onEdit, onDelete, nombre }) => (
+    <>
+        <button type="button" onClick={onEdit} title="Editar" aria-label={`Editar ${nombre}`}
+            className="w-7 h-7 flex items-center justify-center rounded-lg
+                text-gray-400 hover:text-[#EC7A21] hover:bg-orange-50 dark:hover:bg-orange-900/20">
+            <Pencil size={14} />
+        </button>
+        <button type="button" onClick={onDelete} title="Eliminar" aria-label={`Eliminar ${nombre}`}
+            className="w-7 h-7 flex items-center justify-center rounded-lg
+                text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
+            <Trash2 size={14} />
+        </button>
+    </>
+);
+
 export const InstitucionPanel = ({
     instituciones, formInst, setFormInst, editInstId, saving,
     onSubmit, onEdit, onCancel, onDelete,
@@ -48,8 +63,10 @@ export const InstitucionPanel = ({
             </div>
         </form>
 
-        {instituciones.length > 0 && (
-            <div className={tableWrapper}>
+        <div className={tableWrapper}>
+            {instituciones.length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-10">Sin instituciones registradas</p>
+            ) : (
                 <table className="w-full text-sm">
                     <thead>
                         <tr className={tableHeadRow}>
@@ -67,24 +84,19 @@ export const InstitucionPanel = ({
                                 <td className={`px-4 py-3 ${tableCellMuted}`}>{inst.pais}</td>
                                 <td className="px-4 py-3">
                                     <div className="flex gap-1">
-                                        <button onClick={() => onEdit(inst)} title="Editar"
-                                            className="w-7 h-7 flex items-center justify-center rounded-lg
-                                                text-gray-400 hover:text-[#EC7A21] hover:bg-orange-50">
-                                            <Pencil size={14} />
-                                        </button>
-                                        <button onClick={() => onDelete(inst)} title="Eliminar"
-                                            className="w-7 h-7 flex items-center justify-center rounded-lg
-                                                text-gray-400 hover:text-red-600 hover:bg-red-50">
-                                            <Trash2 size={14} />
-                                        </button>
+                                        <AccionesFila
+                                            onEdit={() => onEdit(inst)}
+                                            onDelete={() => onDelete(inst)}
+                                            nombre={inst.nombre}
+                                        />
                                     </div>
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
-            </div>
-        )}
+            )}
+        </div>
     </div>
 );
 
@@ -152,16 +164,11 @@ export const FacultadesPanel = ({
                                         <td className={`px-4 py-3 ${tableCellMuted}`}>{f.codigo ?? "—"}</td>
                                         <td className="px-4 py-3">
                                             <div className="flex gap-1">
-                                                <button onClick={() => onEdit(f)}
-                                                    className="w-7 h-7 flex items-center justify-center rounded-lg
-                                                        text-gray-400 hover:text-[#EC7A21]">
-                                                    <Pencil size={14} />
-                                                </button>
-                                                <button onClick={() => onDelete(f)}
-                                                    className="w-7 h-7 flex items-center justify-center rounded-lg
-                                                        text-gray-400 hover:text-red-600">
-                                                    <Trash2 size={14} />
-                                                </button>
+                                                <AccionesFila
+                                                    onEdit={() => onEdit(f)}
+                                                    onDelete={() => onDelete(f)}
+                                                    nombre={f.nombre}
+                                                />
                                             </div>
                                         </td>
                                     </tr>
@@ -176,12 +183,15 @@ export const FacultadesPanel = ({
 );
 
 export const ProgramasPanel = ({
-    facultades, facultadSel, setFacultadSel, niveles,
+    institucionNombre, facultades, facultadSel, setFacultadSel, niveles,
     programas, formProg, setFormProg, editProgId, saving,
     onSubmit, onEdit, onCancel, onDelete, NIVEL_LABELS,
 }) => (
     <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-3">
+            <span className={`text-xs font-semibold ${text.muted}`}>
+                Institución: <span className="text-gray-800 dark:text-gray-100">{institucionNombre ?? "—"}</span>
+            </span>
             <label className={`text-xs font-semibold ${text.muted}`}>Facultad:</label>
             <select value={facultadSel} onChange={(e) => setFacultadSel(e.target.value)}
                 className={`${selectSm} max-w-xs`}>
@@ -252,16 +262,11 @@ export const ProgramasPanel = ({
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="flex gap-1">
-                                                <button onClick={() => onEdit(p)}
-                                                    className="w-7 h-7 flex items-center justify-center rounded-lg
-                                                        text-gray-400 hover:text-[#EC7A21]">
-                                                    <Pencil size={14} />
-                                                </button>
-                                                <button onClick={() => onDelete(p)}
-                                                    className="w-7 h-7 flex items-center justify-center rounded-lg
-                                                        text-gray-400 hover:text-red-600">
-                                                    <Trash2 size={14} />
-                                                </button>
+                                                <AccionesFila
+                                                    onEdit={() => onEdit(p)}
+                                                    onDelete={() => onDelete(p)}
+                                                    nombre={p.nombre}
+                                                />
                                             </div>
                                         </td>
                                     </tr>
