@@ -23,7 +23,7 @@ export const useSuperAdminDashboard = () => {
                 totalUsuarios:       usuarios.length,
                 usuariosActivos:     usuarios.filter((u) => u.estado === "ACTIVO").length,
                 productosPublicados: productos.length,
-                productosRecientes:  productos.filter((p) => esReciente(p.fechaRegistroSgpa)).length,
+                productosRecientes:  productos.filter((p) => esReciente(p.fechaPublicacionSgpa)).length,
                 taxonomiaPendiente:  !taxonomia.existe,
             });
         } catch (e) {

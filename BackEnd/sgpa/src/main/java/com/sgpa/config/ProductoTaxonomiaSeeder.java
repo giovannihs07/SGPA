@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.sgpa.dto.response.TaxonomiaSeedResponse;
+import com.sgpa.model.audit.ModuloAuditoria;
+import com.sgpa.model.audit.ResultadoAuditoria;
 import com.sgpa.model.products.CategoriaProducto;
 import com.sgpa.model.products.SubcategoriaProducto;
 import com.sgpa.model.products.TipoDato;
@@ -17,6 +19,7 @@ import com.sgpa.model.products.TipoProductoAtributo;
 import com.sgpa.repository.CategoriaProductoRepository;
 import com.sgpa.repository.SubcategoriaProductoRepository;
 import com.sgpa.repository.TipoProductoRepository;
+import com.sgpa.service.AuditService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -29,6 +32,7 @@ public class ProductoTaxonomiaSeeder {
     private final CategoriaProductoRepository categoriaRepository;
     private final SubcategoriaProductoRepository subcategoriaRepository;
     private final TipoProductoRepository tipoProductoRepository;
+    private final AuditService auditService;
 
     public boolean exists() {
         return categoriaRepository.count() > 0;
@@ -55,6 +59,14 @@ public class ProductoTaxonomiaSeeder {
             subcategorias.size(),
             tiposCreados
         );
+
+        auditService.registrar(ModuloAuditoria.CONFIGURACION, "CARGAR_TAXONOMIA_PREDETERMINADA",
+                "Cargó la taxonomía predeterminada de productos",
+                "Taxonomia", null, "Taxonomía predeterminada",
+                Map.of("categorias", categorias.size(),
+                        "subcategorias", subcategorias.size(),
+                        "tipos", tiposCreados),
+                ResultadoAuditoria.EXITOSO);
 
         return TaxonomiaSeedResponse.builder()
             .categorias(categorias.size())

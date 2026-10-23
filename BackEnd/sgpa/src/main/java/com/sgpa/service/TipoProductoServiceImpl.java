@@ -11,6 +11,8 @@ import com.sgpa.dto.request.TipoProductoRequest;
 import com.sgpa.dto.response.TipoProductoAtributoResponse;
 import com.sgpa.dto.response.TipoProductoResponse;
 import com.sgpa.mapper.TipoProductoMapper;
+import com.sgpa.model.audit.ModuloAuditoria;
+import com.sgpa.model.audit.ResultadoAuditoria;
 import com.sgpa.model.products.SubcategoriaProducto;
 import com.sgpa.model.products.TipoProducto;
 import com.sgpa.model.products.TipoProductoAtributo;
@@ -31,6 +33,7 @@ public class TipoProductoServiceImpl implements TipoProductoService {
     private final TipoProductoMapper mapper;
     private final TaxonomiaMetadataEnricher metadataEnricher;
     private final TaxonomiaEliminacionHelper eliminacionHelper;
+    private final AuditService auditService;
 
     @Override
     @Transactional(readOnly = true)
@@ -95,6 +98,8 @@ public class TipoProductoServiceImpl implements TipoProductoService {
 
         // Guarda los atributos asociados
         guardarAtributos(tipo, dto.getAtributos());
+        auditar("CREAR_TIPO_PRODUCTO", "Creó el tipo de producto \"" + tipo.getNombre() + "\"",
+                tipo, ResultadoAuditoria.EXITOSO);
 
         return metadataEnricher.enrich(mapper.toDTO(
             tipoProductoRepository.findByIdWithAtributos(tipo.getId())
@@ -128,6 +133,8 @@ public class TipoProductoServiceImpl implements TipoProductoService {
         // Reemplaza todos los atributos
         atributoRepository.deleteByTipoProductoId(id);
         guardarAtributos(tipo, dto.getAtributos());
+        auditar("EDITAR_TIPO_PRODUCTO", "Editó el tipo de producto \"" + tipo.getNombre() + "\"",
+                tipo, ResultadoAuditoria.EXITOSO);
 
         return metadataEnricher.enrich(
             mapper.toDTO(tipoProductoRepository.findByIdWithAtributos(id).orElseThrow()));
@@ -139,6 +146,8 @@ public class TipoProductoServiceImpl implements TipoProductoService {
         TipoProducto tipo = buscarEntidad(id);
         tipo.setActivo(true);
         tipoProductoRepository.save(tipo);
+        auditar("ACTIVAR_TIPO_PRODUCTO", "Activó el tipo de producto \"" + tipo.getNombre() + "\"",
+                tipo, ResultadoAuditoria.EXITOSO);
     }
 
     @Override
@@ -147,6 +156,8 @@ public class TipoProductoServiceImpl implements TipoProductoService {
         TipoProducto tipo = buscarEntidad(id);
         tipo.setActivo(false);
         tipoProductoRepository.save(tipo);
+        auditar("DESACTIVAR_TIPO_PRODUCTO", "Desactivó el tipo de producto \"" + tipo.getNombre() + "\"",
+                tipo, ResultadoAuditoria.CRITICO);
     }
 
     @Override
@@ -155,6 +166,14 @@ public class TipoProductoServiceImpl implements TipoProductoService {
         TipoProducto tipo = buscarEntidad(id);
         validarTaxonomiaInactivaParaEliminar(tipo.getActivo(), "tipos de producto");
         eliminacionHelper.eliminarTipo(id);
+        auditar("ELIMINAR_TIPO_PRODUCTO", "Eliminó el tipo de producto \"" + tipo.getNombre() + "\"",
+                tipo, ResultadoAuditoria.CRITICO);
+    }
+
+    private void auditar(String accion, String descripcion,
+            TipoProducto tipo, ResultadoAuditoria resultado) {
+        auditService.registrar(ModuloAuditoria.CONFIGURACION, accion, descripcion,
+                "TipoProducto", tipo.getId(), tipo.getNombre(), null, resultado);
     }
 
     private void validarTaxonomiaInactivaParaEliminar(Boolean activo, String etiqueta) {

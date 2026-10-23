@@ -9,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.sgpa.dto.request.SubcategoriaRequest;
 import com.sgpa.dto.response.SubcategoriaResponse;
 import com.sgpa.mapper.SubcategoriaMapper;
+import com.sgpa.model.audit.ModuloAuditoria;
+import com.sgpa.model.audit.ResultadoAuditoria;
 import com.sgpa.model.products.CategoriaProducto;
 import com.sgpa.model.products.SubcategoriaProducto;
 import com.sgpa.repository.CategoriaProductoRepository;
@@ -26,6 +28,7 @@ public class SubcategoriaServiceImpl implements SubcategoriaService {
     private final SubcategoriaMapper mapper;
     private final TaxonomiaMetadataEnricher metadataEnricher;
     private final TaxonomiaEliminacionHelper eliminacionHelper;
+    private final AuditService auditService;
 
     @Override
     @Transactional(readOnly = true)
@@ -71,7 +74,10 @@ public class SubcategoriaServiceImpl implements SubcategoriaService {
         subcategoria.setNombre(dto.getNombre());
         subcategoria.setCategoria(categoria);
         subcategoria.setActivo(true);
-        return metadataEnricher.enrich(mapper.toDTO(repository.save(subcategoria)));
+        SubcategoriaProducto guardada = repository.save(subcategoria);
+        auditar("CREAR_SUBCATEGORIA", "Creó la subcategoría \"" + guardada.getNombre() + "\"",
+                guardada, ResultadoAuditoria.EXITOSO);
+        return metadataEnricher.enrich(mapper.toDTO(guardada));
     }
 
     @Override
@@ -96,7 +102,10 @@ public class SubcategoriaServiceImpl implements SubcategoriaService {
 
         subcategoria.setNombre(dto.getNombre());
         subcategoria.setCategoria(categoria);
-        return metadataEnricher.enrich(mapper.toDTO(repository.save(subcategoria)));
+        SubcategoriaProducto guardada = repository.save(subcategoria);
+        auditar("EDITAR_SUBCATEGORIA", "Editó la subcategoría \"" + guardada.getNombre() + "\"",
+                guardada, ResultadoAuditoria.EXITOSO);
+        return metadataEnricher.enrich(mapper.toDTO(guardada));
     }
 
     @Override
@@ -105,6 +114,8 @@ public class SubcategoriaServiceImpl implements SubcategoriaService {
         SubcategoriaProducto sub = buscarEntidad(id);
         sub.setActivo(true);
         repository.save(sub);
+        auditar("ACTIVAR_SUBCATEGORIA", "Activó la subcategoría \"" + sub.getNombre() + "\"",
+                sub, ResultadoAuditoria.EXITOSO);
     }
 
     @Override
@@ -113,6 +124,8 @@ public class SubcategoriaServiceImpl implements SubcategoriaService {
         SubcategoriaProducto sub = buscarEntidad(id);
         sub.setActivo(false);
         repository.save(sub);
+        auditar("DESACTIVAR_SUBCATEGORIA", "Desactivó la subcategoría \"" + sub.getNombre() + "\"",
+                sub, ResultadoAuditoria.CRITICO);
     }
 
     @Override
@@ -121,6 +134,14 @@ public class SubcategoriaServiceImpl implements SubcategoriaService {
         SubcategoriaProducto sub = buscarEntidad(id);
         validarTaxonomiaInactivaParaEliminar(sub.getActivo(), "subcategorías");
         eliminacionHelper.eliminarSubcategoria(id);
+        auditar("ELIMINAR_SUBCATEGORIA", "Eliminó la subcategoría \"" + sub.getNombre() + "\"",
+                sub, ResultadoAuditoria.CRITICO);
+    }
+
+    private void auditar(String accion, String descripcion,
+            SubcategoriaProducto sub, ResultadoAuditoria resultado) {
+        auditService.registrar(ModuloAuditoria.CONFIGURACION, accion, descripcion,
+                "SubcategoriaProducto", sub.getId(), sub.getNombre(), null, resultado);
     }
 
     private void validarTaxonomiaInactivaParaEliminar(Boolean activo, String etiqueta) {

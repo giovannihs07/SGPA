@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { getAuditLogs, getAuditResumen } from "../../services/auditoriaService";
 
 const PAGE_SIZE = 15;
+const ESPERA_BUSQUEDA_MS = 400;
 
 export const useSuperAdminAuditoria = () => {
     const [logs, setLogs]               = useState([]);
@@ -13,13 +14,28 @@ export const useSuperAdminAuditoria = () => {
     const [totalElements, setTotalElements] = useState(0);
     const [logDetalle, setLogDetalle]   = useState(null);
 
+    // busquedaInput es lo que se escribe; busqueda es el término aplicado tras una pausa al teclear
+    const [busquedaInput, setBusquedaInput] = useState("");
     const [busqueda, setBusqueda]       = useState("");
     const [filtroModulo, setFiltroModulo]     = useState("TODOS");
     const [filtroResultado, setFiltroResultado] = useState("TODOS");
     const [fechaDesde, setFechaDesde]   = useState("");
     const [fechaHasta, setFechaHasta]   = useState("");
+    const ultimaPeticion = useRef(0);
+
+    useEffect(() => {
+        const termino = busquedaInput.trim();
+        if (termino === busqueda) return;
+        const t = setTimeout(() => {
+            setBusqueda(termino);
+            setPagina(0);
+        }, ESPERA_BUSQUEDA_MS);
+        return () => clearTimeout(t);
+    }, [busquedaInput, busqueda]);
 
     const fetchLogs = useCallback(async () => {
+        // Solo la petición más reciente actualiza el estado; una respuesta lenta no pisa a la nueva
+        const peticion = ++ultimaPeticion.current;
         setLoading(true);
         setError(null);
         try {
@@ -34,13 +50,15 @@ export const useSuperAdminAuditoria = () => {
             if (fechaHasta) params.hasta = fechaHasta;
 
             const data = await getAuditLogs(params);
+            if (peticion !== ultimaPeticion.current) return;
             setLogs(data.content ?? []);
             setTotalPaginas(data.totalPages ?? 1);
             setTotalElements(data.totalElements ?? 0);
         } catch (e) {
+            if (peticion !== ultimaPeticion.current) return;
             setError(e.response?.data?.error ?? e.message ?? "Error al cargar logs");
         } finally {
-            setLoading(false);
+            if (peticion === ultimaPeticion.current) setLoading(false);
         }
     }, [pagina, busqueda, filtroModulo, filtroResultado, fechaDesde, fechaHasta]);
 
@@ -62,7 +80,6 @@ export const useSuperAdminAuditoria = () => {
 
     const resetPagina = useCallback(() => setPagina(0), []);
 
-    const handleBusqueda = useCallback((v) => { setBusqueda(v); resetPagina(); }, [resetPagina]);
     const handleFiltroModulo = useCallback((v) => { setFiltroModulo(v); resetPagina(); }, [resetPagina]);
     const handleFiltroResultado = useCallback((v) => { setFiltroResultado(v); resetPagina(); }, [resetPagina]);
     const handleFechaDesde = useCallback((v) => { setFechaDesde(v); resetPagina(); }, [resetPagina]);
@@ -83,7 +100,7 @@ export const useSuperAdminAuditoria = () => {
     return {
         logs, resumen, kpis,
         loading, error, refetch,
-        busqueda, setBusqueda: handleBusqueda,
+        busqueda: busquedaInput, setBusqueda: setBusquedaInput,
         filtroModulo, setFiltroModulo: handleFiltroModulo,
         filtroResultado, setFiltroResultado: handleFiltroResultado,
         fechaDesde, setFechaDesde: handleFechaDesde,

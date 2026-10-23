@@ -89,9 +89,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
                 .orElseThrow(() -> new RuntimeException(
                         "Tipo de producto no encontrado: " + dto.getTipoProductoId()));
 
-        if (!tipo.getActivo())
-            throw new IllegalStateException(
-                    "El tipo de producto no está activo");
+        verificarTaxonomiaActiva(tipo);
 
         // Builder construye y valida atributos requeridos
         ProductoDocente producto = ProductoDocenteBuilder.nuevo()
@@ -129,9 +127,7 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
                 .orElseThrow(() -> new RuntimeException(
                         "Tipo de producto no encontrado"));
 
-        if (!tipo.getActivo())
-            throw new IllegalStateException(
-                    "El tipo de producto no está activo");
+        verificarTaxonomiaActiva(tipo);
 
         producto.setNombre(dto.getNombre());
         producto.setDescripcion(dto.getDescripcion());
@@ -609,6 +605,23 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
             return;
         }
         throw new ProductoDocenteNotFoundException(producto.getId());
+    }
+
+    // Desactivar una categoría o subcategoría también impide registrar productos en sus tipos,
+    // aunque el tipo en sí siga activo
+    private void verificarTaxonomiaActiva(TipoProducto tipo) {
+        if (!Boolean.TRUE.equals(tipo.getActivo()))
+            throw new IllegalStateException("El tipo de producto no está activo");
+
+        SubcategoriaProducto subcategoria = tipo.getSubcategoria();
+        if (subcategoria != null && !Boolean.TRUE.equals(subcategoria.getActivo()))
+            throw new IllegalStateException(
+                    "La subcategoría \"" + subcategoria.getNombre() + "\" no está activa");
+
+        CategoriaProducto categoria = subcategoria != null ? subcategoria.getCategoria() : null;
+        if (categoria != null && !Boolean.TRUE.equals(categoria.getActivo()))
+            throw new IllegalStateException(
+                    "La categoría \"" + categoria.getNombre() + "\" no está activa");
     }
 
     private List<ProductoDocente> productosVisiblesEnListado(List<ProductoDocente> productos) {

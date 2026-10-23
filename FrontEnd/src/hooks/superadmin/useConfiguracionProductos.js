@@ -84,6 +84,38 @@ const confirmarDesactivacionTaxonomia = (nivel, item) => {
 
     return notifyConfirm(cfg.title, null, {
         html: htmlListaAdvertencia(lineas),
+        confirmButtonText: "Sí, desactivar",
+    });
+};
+
+/** Confirmación antes de activar categoría, subcategoría o tipo. */
+const confirmarActivacionTaxonomia = (nivel, item) => {
+    const nombre = item.nombre ?? "—";
+
+    const configs = {
+        categoria: {
+            title: `¿Activar la categoría "${nombre}"?`,
+            registro: "Los docentes podrán volver a registrar nuevos productos de esta categoría.",
+            revertir: "Puedes desactivarla de nuevo más adelante.",
+        },
+        subcategoria: {
+            title: `¿Activar la subcategoría "${nombre}"?`,
+            registro: "Los docentes podrán volver a registrar nuevos productos de esta subcategoría.",
+            revertir: "Puedes desactivarla de nuevo más adelante.",
+        },
+        tipo: {
+            title: `¿Activar el tipo de producto "${nombre}"?`,
+            registro: "Los docentes podrán volver a registrar nuevos productos de este tipo.",
+            revertir: "Puedes desactivarlo de nuevo más adelante.",
+        },
+    };
+
+    const cfg = configs[nivel];
+
+    return notifyConfirm(cfg.title, null, {
+        html: htmlListaAdvertencia([cfg.registro, cfg.revertir]),
+        icon: "question",
+        confirmButtonText: "Sí, activar",
     });
 };
 
@@ -254,10 +286,10 @@ export const useConfiguracionProductos = () => {
     };
 
     const toggleCategoria = async (cat) => {
-        if (cat.activo) {
-            const ok = await confirmarDesactivacionTaxonomia("categoria", cat);
-            if (!ok) return;
-        }
+        const ok = cat.activo
+            ? await confirmarDesactivacionTaxonomia("categoria", cat)
+            : await confirmarActivacionTaxonomia("categoria", cat);
+        if (!ok) return;
         try {
             if (cat.activo) await desactivarCategoria(cat.id);
             else await activarCategoria(cat.id);
@@ -314,10 +346,10 @@ export const useConfiguracionProductos = () => {
     };
 
     const toggleSubcategoria = async (sub) => {
-        if (sub.activo) {
-            const ok = await confirmarDesactivacionTaxonomia("subcategoria", sub);
-            if (!ok) return;
-        }
+        const ok = sub.activo
+            ? await confirmarDesactivacionTaxonomia("subcategoria", sub)
+            : await confirmarActivacionTaxonomia("subcategoria", sub);
+        if (!ok) return;
         try {
             if (sub.activo) await desactivarSubcategoria(sub.id);
             else await activarSubcategoria(sub.id);
@@ -460,10 +492,10 @@ export const useConfiguracionProductos = () => {
     };
 
     const toggleTipo = async (tipo) => {
-        if (tipo.activo) {
-            const ok = await confirmarDesactivacionTaxonomia("tipo", tipo);
-            if (!ok) return;
-        }
+        const ok = tipo.activo
+            ? await confirmarDesactivacionTaxonomia("tipo", tipo)
+            : await confirmarActivacionTaxonomia("tipo", tipo);
+        if (!ok) return;
         try {
             if (tipo.activo) await desactivarTipoProducto(tipo.id);
             else await activarTipoProducto(tipo.id);

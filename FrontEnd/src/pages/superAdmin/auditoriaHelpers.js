@@ -28,6 +28,22 @@ export const ACCION_LABELS = {
     CREAR_PROGRAMA:       "Creó programa",
     EDITAR_PROGRAMA:      "Editó programa",
     ELIMINAR_PROGRAMA:    "Eliminó programa",
+    CREAR_CATEGORIA:          "Creó categoría",
+    EDITAR_CATEGORIA:         "Editó categoría",
+    ACTIVAR_CATEGORIA:        "Activó categoría",
+    DESACTIVAR_CATEGORIA:     "Desactivó categoría",
+    ELIMINAR_CATEGORIA:       "Eliminó categoría",
+    CREAR_SUBCATEGORIA:       "Creó subcategoría",
+    EDITAR_SUBCATEGORIA:      "Editó subcategoría",
+    ACTIVAR_SUBCATEGORIA:     "Activó subcategoría",
+    DESACTIVAR_SUBCATEGORIA:  "Desactivó subcategoría",
+    ELIMINAR_SUBCATEGORIA:    "Eliminó subcategoría",
+    CREAR_TIPO_PRODUCTO:      "Creó tipo de producto",
+    EDITAR_TIPO_PRODUCTO:     "Editó tipo de producto",
+    ACTIVAR_TIPO_PRODUCTO:    "Activó tipo de producto",
+    DESACTIVAR_TIPO_PRODUCTO: "Desactivó tipo de producto",
+    ELIMINAR_TIPO_PRODUCTO:   "Eliminó tipo de producto",
+    CARGAR_TAXONOMIA_PREDETERMINADA: "Cargó taxonomía predeterminada",
 };
 
 export const RESULTADO_LABELS = {

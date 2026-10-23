@@ -7,6 +7,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -183,6 +185,7 @@ public class UserServiceImpl implements UserService {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public void activar(Long userId) {
         User user = buscarEntidad(userId);
+        verificarNoEsSuperAdmin(user, "No se puede cambiar el estado de una cuenta Super Admin");
         EstadoUsuario anterior = user.getEstado();
         user.setEstado(EstadoUsuario.ACTIVO);
         userRepository.save(user);
@@ -198,6 +201,13 @@ public class UserServiceImpl implements UserService {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public void desactivar(Long userId) {
         User user = buscarEntidad(userId);
+        verificarNoEsSuperAdmin(user, "No se puede cambiar el estado de una cuenta Super Admin");
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && user.getEmail().equalsIgnoreCase(auth.getName())) {
+            throw new IllegalArgumentException("No puedes desactivar tu propia cuenta");
+        }
+
         user.setEstado(EstadoUsuario.INACTIVO);
         userRepository.save(user);
         auditService.registrar(ModuloAuditoria.USUARIOS, "DESACTIVAR_USUARIO",
@@ -211,11 +221,7 @@ public class UserServiceImpl implements UserService {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public void cambiarRoles(Long userId, Set<String> nuevosRoles) {
         User user = buscarEntidad(userId);
-
-        if (user.getRoles().stream().anyMatch(r -> r.getName() == RoleName.ROLE_SUPER_ADMIN)) {
-            throw new IllegalArgumentException(
-                    "No se pueden modificar los roles de una cuenta Super Admin");
-        }
+        verificarNoEsSuperAdmin(user, "No se pueden modificar los roles de una cuenta Super Admin");
 
         validarRolesAsignables(nuevosRoles);
 
@@ -230,6 +236,13 @@ public class UserServiceImpl implements UserService {
                 "User", userId, user.getEmail(),
                 Map.of("rolesAnteriores", rolesAnteriores, "rolesNuevos", nuevosRoles),
                 ResultadoAuditoria.CRITICO);
+    }
+
+    // Las cuentas Super Admin solo se protegían en la interfaz; aquí se blindan también en la API
+    private void verificarNoEsSuperAdmin(User user, String mensaje) {
+        if (user.getRoles().stream().anyMatch(r -> r.getName() == RoleName.ROLE_SUPER_ADMIN)) {
+            throw new IllegalArgumentException(mensaje);
+        }
     }
 
     private void validarRolesAsignables(Set<String> nuevosRoles) {

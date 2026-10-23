@@ -67,7 +67,8 @@ export const notifyError = (title, text) => {
  *
  * @param {string} title
  * @param {string} [text] — texto plano (omitir si usas `options.html`)
- * @param {{ html?: string, confirmButtonText?: string }} [options]
+ * @param {{ html?: string, confirmButtonText?: string, icon?: import("sweetalert2").SweetAlertIcon }} [options]
+ *        `icon` por defecto es "warning".
  *
  * @example
  * const ok = await notifyConfirm("¿Eliminar producto?", "Esta acción no se puede deshacer.");
@@ -76,7 +77,7 @@ export const notifyError = (title, text) => {
 export const notifyConfirm = (title, text, options = {}) =>
     Swal.fire({
         ...BASE,
-        icon:              "warning",
+        icon:              options.icon ?? "warning",
         title,
         ...(options.html ? { html: options.html } : { text: text ?? "" }),
         showCancelButton:  true,
