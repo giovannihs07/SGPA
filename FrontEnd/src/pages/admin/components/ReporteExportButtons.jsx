@@ -70,7 +70,7 @@ export const ReporteExportButtons = ({ disabled, reporte, reporteParams }) => {
                 return;
             }
             const { exportarReporteEjecutivoPdf } = await import("../../../utils/reporteProduccionExport");
-            exportarReporteEjecutivoPdf(reporte);
+            await exportarReporteEjecutivoPdf(reporte);
         } catch (e) {
             notifyError("Error", e.message ?? "No se pudo generar el PDF");
         }
@@ -93,7 +93,7 @@ export const ReporteExportButtons = ({ disabled, reporte, reporteParams }) => {
             }
             const mod = await import("../../../utils/reporteProduccionExport");
             if (formato === "pdf") {
-                mod.exportarReporteProductosPdf(data);
+                await mod.exportarReporteProductosPdf(data);
             } else {
                 mod.exportarReporteProductosExcel(data);
             }
@@ -121,7 +121,7 @@ export const ReporteExportButtons = ({ disabled, reporte, reporteParams }) => {
             }
             const mod = await import("../../../utils/reporteProduccionExport");
             if (formato === "pdf") {
-                mod.exportarReporteDocentesPdf(data);
+                await mod.exportarReporteDocentesPdf(data);
             } else {
                 mod.exportarReporteDocentesExcel(data);
             }

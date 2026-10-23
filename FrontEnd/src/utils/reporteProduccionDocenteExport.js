@@ -1,5 +1,3 @@
-import * as XLSX from "xlsx";
-import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import {
     CATEGORIA_LABELS,
@@ -13,8 +11,22 @@ import {
     nombreDocentePerfil,
 } from "../pages/docente/docenteReportesHelpers";
 import { filasConteoExcel, bodyConteoPdf } from "./reporteConteoExport";
+import {
+    agregarHoja,
+    escribirLibro,
+    estiloTabla,
+    fechaArchivo,
+    finalizarPdf,
+    hojaClaveValor,
+    hojaTabla,
+    iniciarPdf,
+    nuevoLibro,
+    siguienteY,
+} from "./reportePlantilla";
 
-const fechaArchivo = () => new Date().toISOString().slice(0, 10);
+const LABELS = { categoria: CATEGORIA_LABELS, subcategoria: SUBCATEGORIA_LABELS, tipo: TIPO_LABELS };
+const labelCategoria = (k) => CATEGORIA_LABELS[k] ?? k;
+const labelSubcategoria = (k) => SUBCATEGORIA_LABELS[k] ?? k;
 
 const estadoLabel = (publicado) => (publicado ? "Publicado" : "Sin publicar");
 
@@ -30,6 +42,16 @@ const filasProductos = (productos) =>
         "Publicado en SGPA": formatFecha(p.fechaPublicacionSgpa),
     }));
 
+const filasMetricas = (resumen) => [
+    ["Total productos", resumen.total],
+    ["Publicados", resumen.publicados],
+    ["Sin publicar", resumen.sinPublicar],
+    ["Nuevos (30 días)", resumen.recientes],
+];
+
+const subtituloDocente = (docente) =>
+    `Docente: ${nombreDocentePerfil(docente)} · Código: ${docente?.codigoDocente ?? "—"}`;
+
 export const exportarMiReporteExcel = ({
     productos,
     resumen,
@@ -38,50 +60,39 @@ export const exportarMiReporteExcel = ({
     porCategoria = [],
     porSubcategoria = [],
 }) => {
-    const wb = XLSX.utils.book_new();
-    const labels = { categoria: CATEGORIA_LABELS, subcategoria: SUBCATEGORIA_LABELS, tipo: TIPO_LABELS };
-    const filtrosLabel = etiquetasFiltrosDocente(filtros, labels);
-    const nombre = nombreDocentePerfil(docente);
-    const labelCategoria = (k) => CATEGORIA_LABELS[k] ?? k;
-    const labelSubcategoria = (k) => SUBCATEGORIA_LABELS[k] ?? k;
+    const wb = nuevoLibro();
+    const filtrosLabel = etiquetasFiltrosDocente(filtros, LABELS);
 
-    const hojaResumen = XLSX.utils.json_to_sheet([
-        { Métrica: "Docente", Valor: nombre },
-        { Métrica: "Código docente", Valor: docente?.codigoDocente ?? "—" },
-        { Métrica: "Total productos", Valor: resumen.total },
-        { Métrica: "Publicados", Valor: resumen.publicados },
-        { Métrica: "Sin publicar", Valor: resumen.sinPublicar },
-        { Métrica: "Nuevos (30 días)", Valor: resumen.recientes },
-        { Métrica: "Estado filtro", Valor: filtrosLabel.estado },
-        { Métrica: "Categoría filtro", Valor: filtrosLabel.categoria },
-        { Métrica: "Subcategoría filtro", Valor: filtrosLabel.subcategoria },
-        { Métrica: "Rango de fechas", Valor: filtrosLabel.fecha },
-        { Métrica: "Búsqueda", Valor: filtrosLabel.busqueda },
-    ]);
-    XLSX.utils.book_append_sheet(wb, hojaResumen, "Resumen");
+    agregarHoja(wb, hojaClaveValor([
+        ["Docente", nombreDocentePerfil(docente)],
+        ["Código docente", docente?.codigoDocente ?? "—"],
+        ...filasMetricas(resumen),
+    ], { titulo: "Mi producción académica" }), "Resumen");
+
+    agregarHoja(wb, hojaClaveValor(filasFiltrosReporteDocente(filtrosLabel), {
+        titulo: "Filtros aplicados",
+        encabezados: ["Filtro", "Valor"],
+    }), "Filtros");
 
     if (porCategoria.length > 0) {
-        const hojaCategoria = XLSX.utils.json_to_sheet(
-            filasConteoExcel(porCategoria, labelCategoria, resumen.total),
-        );
-        XLSX.utils.book_append_sheet(wb, hojaCategoria, "Por categoría");
+        agregarHoja(wb, hojaTabla(filasConteoExcel(porCategoria, labelCategoria, resumen.total), {
+            titulo: "Producción por categoría",
+        }), "Por categoría");
     }
 
     if (porSubcategoria.length > 0) {
-        const hojaSubcategoria = XLSX.utils.json_to_sheet(
-            filasConteoExcel(porSubcategoria, labelSubcategoria, resumen.total),
-        );
-        XLSX.utils.book_append_sheet(wb, hojaSubcategoria, "Por subcategoría");
+        agregarHoja(wb, hojaTabla(filasConteoExcel(porSubcategoria, labelSubcategoria, resumen.total), {
+            titulo: "Producción por subcategoría",
+        }), "Por subcategoría");
     }
 
-    const hojaProductos = XLSX.utils.json_to_sheet(filasProductos(productos));
-    XLSX.utils.book_append_sheet(wb, hojaProductos, "Mis productos");
+    agregarHoja(wb, hojaTabla(filasProductos(productos), { titulo: "Mis productos" }), "Mis productos");
 
     const slug = docente?.codigoDocente ?? "docente";
-    XLSX.writeFile(wb, `mi-produccion-${slug}-${fechaArchivo()}.xlsx`);
+    escribirLibro(wb, `mi-produccion-${slug}-${fechaArchivo()}.xlsx`);
 };
 
-export const exportarMiReportePdf = ({
+export const exportarMiReportePdf = async ({
     productos,
     resumen,
     docente,
@@ -89,67 +100,48 @@ export const exportarMiReportePdf = ({
     porCategoria = [],
     porSubcategoria = [],
 }) => {
-    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-    const labels = { categoria: CATEGORIA_LABELS, subcategoria: SUBCATEGORIA_LABELS, tipo: TIPO_LABELS };
-    const filtrosLabel = etiquetasFiltrosDocente(filtros, labels);
-    const nombre = nombreDocentePerfil(docente);
-    const labelCategoria = (k) => CATEGORIA_LABELS[k] ?? k;
-    const labelSubcategoria = (k) => SUBCATEGORIA_LABELS[k] ?? k;
+    const filtrosLabel = etiquetasFiltrosDocente(filtros, LABELS);
 
-    doc.setFontSize(14);
-    doc.text("Mi producción académica — SGPA", 14, 16);
-    doc.setFontSize(9);
-    doc.setTextColor(100);
-    doc.text(`Docente: ${nombre} · Código: ${docente?.codigoDocente ?? "—"}`, 14, 22);
-    doc.text(`Generado: ${new Date().toLocaleString("es-CO")}`, 14, 27);
-
-    autoTable(doc, {
-        startY: 32,
-        head: [["Filtro", "Valor"]],
-        body: filasFiltrosReporteDocente(filtrosLabel),
-        theme: "grid",
-        headStyles: { fillColor: [100, 100, 100] },
-        styles: { fontSize: 8 },
+    const { doc, startY } = await iniciarPdf({
+        titulo: "Mi producción académica — SGPA",
+        subtitulo: subtituloDocente(docente),
     });
 
     autoTable(doc, {
-        startY: doc.lastAutoTable.finalY + 6,
+        ...estiloTabla("filtros"),
+        startY,
+        head: [["Filtro", "Valor"]],
+        body: filasFiltrosReporteDocente(filtrosLabel),
+    });
+
+    autoTable(doc, {
+        ...estiloTabla(),
+        startY: siguienteY(doc, 6),
         head: [["Métrica", "Valor"]],
-        body: [
-            ["Total productos", resumen.total],
-            ["Publicados", resumen.publicados],
-            ["Sin publicar", resumen.sinPublicar],
-            ["Nuevos (30 días)", resumen.recientes],
-        ],
-        theme: "grid",
-        headStyles: { fillColor: [236, 122, 33] },
-        styles: { fontSize: 8 },
+        body: filasMetricas(resumen),
     });
 
     if (porCategoria.length > 0) {
         autoTable(doc, {
-            startY: doc.lastAutoTable.finalY + 8,
+            ...estiloTabla(),
+            startY: siguienteY(doc),
             head: [["Categoría", "Total productos", "% del total"]],
             body: bodyConteoPdf(porCategoria, labelCategoria, resumen.total),
-            theme: "grid",
-            headStyles: { fillColor: [236, 122, 33] },
-            styles: { fontSize: 7 },
         });
     }
 
     if (porSubcategoria.length > 0) {
         autoTable(doc, {
-            startY: doc.lastAutoTable.finalY + 8,
+            ...estiloTabla(),
+            startY: siguienteY(doc),
             head: [["Subcategoría", "Total productos", "% del total"]],
             body: bodyConteoPdf(porSubcategoria, labelSubcategoria, resumen.total),
-            theme: "grid",
-            headStyles: { fillColor: [236, 122, 33] },
-            styles: { fontSize: 7 },
         });
     }
 
     autoTable(doc, {
-        startY: doc.lastAutoTable.finalY + 8,
+        ...estiloTabla("detalle"),
+        startY: siguienteY(doc),
         head: [["Producto", "Categoría", "Subcategoría", "Tipo", "Estado", "Registro SGPA", "Publicado en SGPA"]],
         body: productos.map((p) => [
             p.nombre ?? "—",
@@ -160,11 +152,9 @@ export const exportarMiReportePdf = ({
             formatFecha(p.fechaRegistroSgpa),
             formatFecha(p.fechaPublicacionSgpa),
         ]),
-        theme: "striped",
-        headStyles: { fillColor: [236, 122, 33] },
-        styles: { fontSize: 7, cellWidth: "wrap" },
+        columnStyles: { 0: { cellWidth: 80 } },
     });
 
     const slug = docente?.codigoDocente ?? "docente";
-    doc.save(`mi-produccion-${slug}-${fechaArchivo()}.pdf`);
+    finalizarPdf(doc, { nombreArchivo: `mi-produccion-${slug}-${fechaArchivo()}.pdf` });
 };

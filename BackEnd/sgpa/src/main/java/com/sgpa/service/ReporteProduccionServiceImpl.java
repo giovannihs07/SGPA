@@ -44,6 +44,7 @@ import com.sgpa.model.products.ProductoDocente;
 import com.sgpa.model.products.SubcategoriaProducto;
 import com.sgpa.model.products.TipoProducto;
 import com.sgpa.model.users.Docente;
+import com.sgpa.model.users.EstadoUsuario;
 import com.sgpa.model.users.Persona;
 import com.sgpa.repository.DocenteRepository;
 import com.sgpa.repository.FacultadRepository;
@@ -180,7 +181,7 @@ public class ReporteProduccionServiceImpl implements ReporteProduccionService {
              fechaDesde, fechaHasta, campoFecha, busqueda);
 
         return ReporteProduccionDocentesResponse.builder()
-             .meta(crearMeta(TIPO_DOCENTES, TITULO_DOCENTES, ctx.rankingDocentes().size()))
+             .meta(crearMeta(TIPO_DOCENTES, TITULO_DOCENTES, ctx.productosFiltrados().size()))
              .filtrosAplicados(ctx.filtrosAplicados())
              .filtrosEtiquetas(ctx.filtrosEtiquetas())
              .rankingDocentes(ctx.rankingDocentes())
@@ -262,24 +263,36 @@ public class ReporteProduccionServiceImpl implements ReporteProduccionService {
         List<FacultadResponse> facultades = facultadMapper.toDTOList(facultadRepository.findAll());
         List<ProgramaResponse> programas = programaMapper.toDTOList(programaRepository.findAll());
 
-        List<FacultadResponse> facultadesAlcance = facultadId == null
-                ? facultades
-                : facultades.stream().filter(f -> Objects.equals(f.getId(), facultadId)).toList();
-
-        List<ProgramaResponse> programasAlcance = facultadId == null
-                ? programas
+        // Si se filtra por programa sin facultad, el alcance se limita a ese programa y su facultad
+        Long facultadAlcanceId = facultadId != null
+                ? facultadId
                 : programas.stream()
-                    .filter(p -> Objects.equals(p.getFacultadId(), facultadId))
-                    .toList();
+                    .filter(p -> Objects.equals(p.getId(), programaId))
+                    .map(ProgramaResponse::getFacultadId)
+                    .findFirst()
+                    .orElse(null);
 
-        List<DocenteResponse> docentesAlcance = docentesEnAlcance(docentes, facultadId, programaId);
+        List<FacultadResponse> facultadesAlcance = facultadAlcanceId == null
+                ? facultades
+                : facultades.stream().filter(f -> Objects.equals(f.getId(), facultadAlcanceId)).toList();
+
+        List<ProgramaResponse> programasAlcance = programas.stream()
+                .filter(p -> facultadId == null || Objects.equals(p.getFacultadId(), facultadId))
+                .filter(p -> programaId == null || Objects.equals(p.getId(), programaId))
+                .toList();
+
+        // La cobertura solo considera docentes con usuario activo; la atribución de productos usa todos
+        List<DocenteResponse> docentesActivos = docentes.stream()
+                .filter(d -> EstadoUsuario.ACTIVO.name().equals(d.getEstado()))
+                .toList();
+        List<DocenteResponse> docentesAlcance = docentesEnAlcance(docentesActivos, facultadId, programaId);
 
         ReporteProduccionResumenResponse resumen = calcularResumen(productosFiltrados);
         ReporteCoberturaDocenteResponse cobertura = calcularCobertura(docentesAlcance, productosFiltrados);
         List<ReporteProduccionFacultadResponse> porFacultad =
-                agruparPorFacultad(productosFiltrados, facultadesAlcance, docentes);
+                agruparPorFacultad(productosFiltrados, facultadesAlcance, docentesActivos);
         List<ReporteProduccionProgramaResponse> porPrograma =
-                agruparPorPrograma(productosFiltrados, programasAlcance, docentes);
+                agruparPorPrograma(productosFiltrados, programasAlcance, docentesActivos);
         List<ReporteRankingDocenteResponse> rankingDocentes = agruparPorDocente(productosFiltrados);
 
         ReporteProduccionFiltrosEtiquetasResponse filtrosEtiquetas = construirEtiquetasFiltros(
@@ -528,6 +541,9 @@ public class ReporteProduccionServiceImpl implements ReporteProduccionService {
         List<DocenteResponse> docentes, 
         Long facultadId, 
         Long programaId) {
+
+        // Sin filtro institucional, todos los docentes están en alcance (incluso sin programa asignado)
+        if (facultadId == null && programaId == null) return docentes;
 
         return docentes.stream()
                 .filter(d -> {

@@ -8,28 +8,27 @@ import {
     Shield,
 } from "lucide-react";
 import { getUsuarios } from "../../services/usuarioService";
-import { getDocentes } from "../../services/docenteService";
-import { getAllProductos } from "../../services/productoServices";
+import { getReporteProduccionEjecutivo } from "../../services/reporteService";
 import { getTaxonomiaEstado } from "../../services/taxonomiaService";
 import { getAuditResumen } from "../../services/auditoriaService";
-import {
-    agruparConteo,
-    agruparPorAnio,
-    calcularCoberturaDocente,
-    calcularResumenProduccion,
-    construirMapaDocentes,
-    enriquecerProductosConDocente,
-} from "../../pages/admin/adminReportesHelpers";
+import { mapConteoAnio } from "../../pages/admin/adminReportesHelpers";
 import {
     agruparUsuariosPorEstado,
     agruparUsuariosPorRol,
     calcularResumenUsuarios,
 } from "../../pages/superAdmin/superAdminReportesHelpers";
 
+const RESUMEN_VACIO = {
+    total: 0, publicados: 0, sinPublicar: 0, recientes: 0, docentesActivos: 0,
+};
+
+const COBERTURA_VACIA = {
+    totalDocentes: 0, docentesConProduccion: 0, docentesSinProduccion: 0, porcentajeCobertura: 0,
+};
+
 export const useSuperAdminReportes = () => {
     const [usuarios, setUsuarios] = useState([]);
-    const [docentes, setDocentes] = useState([]);
-    const [productosRaw, setProductosRaw] = useState([]);
+    const [reporte, setReporte] = useState(null);
     const [taxonomia, setTaxonomia] = useState({ existe: true });
     const [auditoria, setAuditoria] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -41,20 +40,17 @@ export const useSuperAdminReportes = () => {
         try {
             const [
                 usuariosData,
-                docentesData,
-                productosData,
+                reporteData,
                 taxonomiaData,
                 auditoriaData,
             ] = await Promise.all([
                 getUsuarios(),
-                getDocentes(),
-                getAllProductos(),
+                getReporteProduccionEjecutivo(),
                 getTaxonomiaEstado().catch(() => ({ existe: true })),
                 getAuditResumen().catch(() => null),
             ]);
             setUsuarios(usuariosData);
-            setDocentes(docentesData);
-            setProductosRaw(productosData);
+            setReporte(reporteData);
             setTaxonomia(taxonomiaData);
             setAuditoria(auditoriaData);
         } catch (e) {
@@ -66,40 +62,20 @@ export const useSuperAdminReportes = () => {
 
     useEffect(() => { fetchData(); }, [fetchData]);
 
-    const mapaDocentes = useMemo(
-        () => construirMapaDocentes(docentes),
-        [docentes],
-    );
-
-    const productos = useMemo(
-        () => enriquecerProductosConDocente(productosRaw, mapaDocentes),
-        [productosRaw, mapaDocentes],
-    );
-
     const resumenUsuarios = useMemo(
         () => calcularResumenUsuarios(usuarios),
         [usuarios],
     );
 
-    const resumenProduccion = useMemo(
-        () => calcularResumenProduccion(productos),
-        [productos],
-    );
-
-    const cobertura = useMemo(
-        () => calcularCoberturaDocente(docentes, productos),
-        [docentes, productos],
-    );
+    const resumenProduccion = reporte?.resumen ?? RESUMEN_VACIO;
+    const cobertura = reporte?.cobertura ?? COBERTURA_VACIA;
 
     const porAnio = useMemo(
-        () => agruparPorAnio(productos),
-        [productos],
+        () => mapConteoAnio(reporte?.graficos?.porAnio),
+        [reporte],
     );
 
-    const porCategoria = useMemo(
-        () => agruparConteo(productos, (p) => p.categoria),
-        [productos],
-    );
+    const porCategoria = reporte?.graficos?.porCategoria ?? [];
 
     const usuariosPorRol = useMemo(
         () => agruparUsuariosPorRol(usuarios),

@@ -39,6 +39,14 @@ export const parseFechaLocal = (fecha) => {
     return Number.isNaN(dt.getTime()) ? null : dt;
 };
 
+/** Fecha local en formato YYYY-MM-DD (toISOString usa UTC y puede adelantar un día) */
+export const fechaLocalISO = (date = new Date()) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+};
+
 export const formatFecha = (fecha) => {
     const dt = parseFechaLocal(fecha);
     if (!dt) return "—";
