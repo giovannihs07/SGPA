@@ -11,6 +11,11 @@ export const setSuppressNotifications = (value) => {
     Ajuste de colores.
  */
 const BASE = {
+    // Getter: al hacer `...BASE` se evalúa en cada alerta y sigue el modo claro/oscuro de la app
+    // (el tema "auto" de SweetAlert usa la preferencia del sistema, no la clase .dark).
+    get theme() {
+        return document.documentElement.classList.contains("dark") ? "dark" : "light";
+    },
     confirmButtonColor: "#EC7A21",
     cancelButtonColor:  "#6b7280",
     customClass: {

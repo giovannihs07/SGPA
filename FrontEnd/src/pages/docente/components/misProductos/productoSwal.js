@@ -98,14 +98,14 @@ export const confirmPublicarProducto = async (producto) => {
 export const confirmEliminarProducto = (producto) => {
     const nArchivos = obtenerArchivosProducto(producto).length;
     const avisoArchivo = nArchivos > 0
-        ? `<p class="text-xs text-amber-600 mt-2">También se eliminarán ${nArchivos === 1 ? "el archivo adjunto" : `los ${nArchivos} archivos adjuntos`}.</p>`
+        ? `<p class="text-xs text-amber-600 dark:text-amber-400 mt-2">También se eliminarán ${nArchivos === 1 ? "el archivo adjunto" : `los ${nArchivos} archivos adjuntos`}.</p>`
         : "";
 
     return Swal.fire({
         ...SWAL_BASE,
         icon: "warning",
         title: "¿Eliminar producto?",
-        html: `<p class="text-sm text-gray-600">
+        html: `<p class="text-sm text-gray-600 dark:text-gray-300">
             ¿Estás seguro de eliminar <strong>"${producto.nombre}"</strong>?
             Esta acción no se puede deshacer.
         </p>${avisoArchivo}`,
