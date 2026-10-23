@@ -39,7 +39,7 @@ export const ReporteDocenteExportButtons = ({
                 return;
             }
             const { exportarMiReportePdf } = await import("../../../../utils/reporteProduccionDocenteExport");
-            exportarMiReportePdf(payload);
+            await exportarMiReportePdf(payload);
         } catch (e) {
             notifyError("Error", e.message ?? "No se pudo generar el PDF");
         }

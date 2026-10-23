@@ -1,6 +1,8 @@
 import {
     esReciente,
     matchRangoFecha,
+    parseFechaLocal,
+    fechaLocalISO,
     CAMPO_FECHA_REGISTRO_SGPA,
     CAMPO_FECHA_PUBLICACION_SGPA,
 } from "../docente/components/productoHelpers";
@@ -183,10 +185,9 @@ export const agruparPorPrograma = (productos, programas, docentes) =>
 export const agruparPorAnio = (productos, campoFecha = CAMPO_FECHA_REGISTRO_SGPA) => {
     const map = new Map();
     for (const p of productos) {
-        const raw = p[campoFecha];
-        if (!raw) continue;
-        const anio = new Date(raw).getFullYear();
-        if (Number.isNaN(anio)) continue;
+        const fecha = parseFechaLocal(p[campoFecha]);
+        if (!fecha) continue;
+        const anio = fecha.getFullYear();
         map.set(anio, (map.get(anio) ?? 0) + 1);
     }
     return [...map.entries()]
@@ -194,13 +195,17 @@ export const agruparPorAnio = (productos, campoFecha = CAMPO_FECHA_REGISTRO_SGPA
         .sort((a, b) => Number(a.anio) - Number(b.anio));
 };
 
+/** Adapta el conteo por año del backend ({ key, count }) al formato de los gráficos. */
+export const mapConteoAnio = (items = []) =>
+    items.map((item) => ({ anio: item.key, total: item.count }));
+
 export const presetPeriodoAutoevaluacion = (anios) => {
     const hasta = new Date();
     const desde = new Date();
     desde.setFullYear(hasta.getFullYear() - anios);
     return {
-        fechaDesde: desde.toISOString().slice(0, 10),
-        fechaHasta: hasta.toISOString().slice(0, 10),
+        fechaDesde: fechaLocalISO(desde),
+        fechaHasta: fechaLocalISO(hasta),
     };
 };
 

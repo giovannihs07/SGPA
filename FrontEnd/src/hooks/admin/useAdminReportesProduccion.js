@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { BookOpen, Globe, FileCheck, Clock, Users, UserCheck, UserX } from "lucide-react";
 import { getReporteProduccionEjecutivo } from "../../services/reporteService";
 import { getFacultades, getProgramas } from "../../services/institucionService";
+import { mapConteoAnio } from "../../pages/admin/adminReportesHelpers";
 
 const buildReporteParams = ({
     filtroEstado,
@@ -26,9 +27,6 @@ const buildReporteParams = ({
     campoFecha: filtroCampoFecha,
     busqueda: busqueda?.trim() || undefined,
 });
-
-const mapConteoAnio = (items = []) =>
-    items.map((item) => ({ anio: item.key, total: item.count }));
 
 export const useAdminReportesProduccion = () => {
     const [reporte, setReporte] = useState(null);

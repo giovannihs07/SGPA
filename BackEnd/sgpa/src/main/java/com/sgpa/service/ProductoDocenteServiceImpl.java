@@ -320,6 +320,14 @@ public class ProductoDocenteServiceImpl implements ProductoDocenteService {
         }
 
         aplicarVisibilidadArchivos(producto, request);
+
+        boolean tieneArchivoPublico = producto.getArchivos().stream()
+                .anyMatch(a -> Boolean.TRUE.equals(a.getAccesoPublico()));
+        if (!tieneArchivoPublico) {
+            throw new IllegalStateException(
+                    "Debe marcar al menos un archivo como público para publicar el producto.");
+        }
+
         producto.setPublicado(true);
         producto.setFechaPublicacionSgpa(LocalDate.now());
         ProductoDocente guardado = repository.save(producto);

@@ -1,9 +1,16 @@
-import * as XLSX from "xlsx";
-import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { filasResumenSistema } from "../pages/superAdmin/superAdminReportesHelpers";
-
-const fechaArchivo = () => new Date().toISOString().slice(0, 10);
+import {
+    agregarHoja,
+    escribirLibro,
+    estiloTabla,
+    fechaArchivo,
+    finalizarPdf,
+    hojaTabla,
+    iniciarPdf,
+    nuevoLibro,
+    siguienteY,
+} from "./reportePlantilla";
 
 export const exportarReporteSistemaExcel = ({
     resumenUsuarios,
@@ -13,42 +20,38 @@ export const exportarReporteSistemaExcel = ({
     usuariosPorRol,
     usuariosPorEstado,
 }) => {
-    const wb = XLSX.utils.book_new();
+    const wb = nuevoLibro();
 
-    const hojaResumen = XLSX.utils.json_to_sheet(filasResumenSistema({
+    agregarHoja(wb, hojaTabla(filasResumenSistema({
         resumenUsuarios,
         resumenProduccion,
         cobertura,
         auditoria,
-    }));
-    XLSX.utils.book_append_sheet(wb, hojaResumen, "Resumen");
+    }), { titulo: "Reporte del sistema", autofiltro: false }), "Resumen");
 
-    const hojaUsuarios = XLSX.utils.json_to_sheet([
+    agregarHoja(wb, hojaTabla([
         ...usuariosPorRol.map((r) => ({ Tipo: "Rol", Etiqueta: r.label, Cantidad: r.count })),
         ...usuariosPorEstado.map((e) => ({ Tipo: "Estado", Etiqueta: e.label, Cantidad: e.count })),
-    ]);
-    XLSX.utils.book_append_sheet(wb, hojaUsuarios, "Usuarios");
+    ], { titulo: "Usuarios por rol y estado" }), "Usuarios");
 
-    XLSX.writeFile(wb, `reporte-sistema-sgpa-${fechaArchivo()}.xlsx`);
+    escribirLibro(wb, `reporte-sistema-sgpa-${fechaArchivo()}.xlsx`);
 };
 
-export const exportarReporteSistemaPdf = ({
+export const exportarReporteSistemaPdf = async ({
     resumenUsuarios,
     resumenProduccion,
     cobertura,
     auditoria,
     usuariosPorRol,
 }) => {
-    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-
-    doc.setFontSize(14);
-    doc.text("Reporte del sistema — SGPA", 14, 16);
-    doc.setFontSize(9);
-    doc.setTextColor(100);
-    doc.text(`Generado: ${new Date().toLocaleString("es-CO")}`, 14, 22);
+    const { doc, startY } = await iniciarPdf({
+        titulo: "Reporte del sistema — SGPA",
+        orientation: "portrait",
+    });
 
     autoTable(doc, {
-        startY: 28,
+        ...estiloTabla(),
+        startY,
         head: [["Métrica", "Valor"]],
         body: filasResumenSistema({
             resumenUsuarios,
@@ -56,21 +59,16 @@ export const exportarReporteSistemaPdf = ({
             cobertura,
             auditoria,
         }).map((f) => [f.Métrica, f.Valor]),
-        theme: "grid",
-        headStyles: { fillColor: [236, 122, 33] },
-        styles: { fontSize: 8 },
     });
 
     if (usuariosPorRol.length > 0) {
         autoTable(doc, {
-            startY: doc.lastAutoTable.finalY + 8,
+            ...estiloTabla(),
+            startY: siguienteY(doc),
             head: [["Rol", "Usuarios"]],
             body: usuariosPorRol.map((r) => [r.label, r.count]),
-            theme: "grid",
-            headStyles: { fillColor: [100, 100, 100] },
-            styles: { fontSize: 8 },
         });
     }
 
-    doc.save(`reporte-sistema-sgpa-${fechaArchivo()}.pdf`);
+    finalizarPdf(doc, { nombreArchivo: `reporte-sistema-sgpa-${fechaArchivo()}.pdf` });
 };

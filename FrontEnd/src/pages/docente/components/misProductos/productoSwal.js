@@ -71,16 +71,24 @@ export const confirmPublicarProducto = async (producto) => {
                 <strong>"${producto.nombre}"</strong> será publicado en SGPA.
                 Elige qué archivos serán <strong>públicos</strong> (descargables por cualquiera)
                 y cuáles <strong>restringidos</strong> (solo tú podrás descargarlos).
+                Debe haber al menos un archivo público.
             </p>
             <div class="text-left max-h-56 overflow-y-auto px-1">${filas}</div>
         `,
         showCancelButton: true,
         confirmButtonText: "Sí, publicar",
         cancelButtonText: "Cancelar",
-        preConfirm: () => archivos.map((a) => ({
-            archivoId: a.id,
-            accesoPublico: document.getElementById(`vis-archivo-${a.id}`)?.value === "true",
-        })),
+        preConfirm: () => {
+            const visibilidad = archivos.map((a) => ({
+                archivoId: a.id,
+                accesoPublico: document.getElementById(`vis-archivo-${a.id}`)?.value === "true",
+            }));
+            if (!visibilidad.some((v) => v.accesoPublico)) {
+                Swal.showValidationMessage("Debes marcar al menos un archivo como Público.");
+                return false;
+            }
+            return visibilidad;
+        },
     });
 
     return result.isConfirmed ? result.value : null;

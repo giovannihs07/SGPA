@@ -26,6 +26,9 @@ public interface DocenteRepository extends JpaRepository<Docente, Long> {
     @Query("SELECT d FROM Docente d JOIN d.programas p WHERE p.id = :programaId")
     List<Docente> findByProgramaId(@Param("programaId") Long programaId);
 
+    @Query("SELECT COUNT(d) FROM Docente d JOIN d.programas p WHERE p.id = :programaId")
+    long countByProgramaId(@Param("programaId") Long programaId);
+
     @EntityGraph(attributePaths = {
             "persona",
             "programas",

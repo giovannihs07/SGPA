@@ -37,6 +37,6 @@ public class Programa {
     private NivelFormacion nivel; 
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "facultad_id")
+    @JoinColumn(name = "facultad_id", nullable = false)
     private Facultad facultad;
 }

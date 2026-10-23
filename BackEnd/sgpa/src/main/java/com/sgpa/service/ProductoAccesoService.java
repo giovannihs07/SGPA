@@ -38,17 +38,18 @@ public class ProductoAccesoService {
             return VisorProducto.PUBLICO;
         }
 
-        // Verificar si el usuario autenticado es un administrador
-        if (esAdmin(auth)) {
-            return VisorProducto.ADMIN;
-        }
-
-        // Verificar si el usuario autenticado es el propietario del producto
+        // Verificar primero si el usuario autenticado es el propietario del producto
+        // (un docente o docente administrativo dueño debe poder ver sus archivos restringidos)
         Optional<Docente> docente = docenteRepository.findByUserEmail(auth.getName());
         if (docente.isPresent()
                 && producto.getDocente() != null
                 && docente.get().getId().equals(producto.getDocente().getId())) {
             return VisorProducto.PROPIETARIO;
+        }
+
+        // Verificar si el usuario autenticado es un administrador
+        if (esAdmin(auth)) {
+            return VisorProducto.ADMIN;
         }
 
         return VisorProducto.PUBLICO;
@@ -76,12 +77,9 @@ public class ProductoAccesoService {
         };
     }
 
-    // Determinar si un archivo es visible públicamente según su acceso público y la lógica de legado
-    public boolean esVisiblePublicamente(ProductoArchivo archivo, List<ProductoArchivo> todos) {
-        if (Boolean.TRUE.equals(archivo.getAccesoPublico())) {
-            return true;
-        }
-        return esLegacyPrincipalPublico(archivo, todos);
+    // Determinar si un archivo es visible públicamente: solo si fue marcado como de acceso público
+    public boolean esVisiblePublicamente(ProductoArchivo archivo) {
+        return Boolean.TRUE.equals(archivo.getAccesoPublico());
     }
 
     // Determinar si un archivo puede ser descargado públicamente según su visibilidad y el estado de publicación del producto
@@ -89,10 +87,7 @@ public class ProductoAccesoService {
         if (!Boolean.TRUE.equals(producto.getPublicado())) {
             return false;
         }
-        List<ProductoArchivo> archivos = producto.getArchivos() != null
-                ? producto.getArchivos()
-                : List.of();
-        return esVisiblePublicamente(archivo, archivos);
+        return esVisiblePublicamente(archivo);
     }
 
     // Métodos privados auxiliares para aplicar las vistas según el rol del usuario
@@ -135,7 +130,7 @@ public class ProductoAccesoService {
             ProductoDocente entidad) {
 
         List<ProductoArchivoResponse> publicos = archivosEntidad.stream()
-                .filter(a -> esVisiblePublicamente(a, archivosEntidad))
+                .filter(this::esVisiblePublicamente)
                 .sorted(ordenarPorOrden())
                 .map(a -> toArchivoResponse(a, true, true))
                 .toList();
@@ -172,7 +167,7 @@ public class ProductoAccesoService {
 
         ProductoArchivo principalVisible = archivosEntidad.stream()
                 .filter(a -> a.getRol() == RolArchivoProducto.PRINCIPAL)
-                .filter(a -> esVisiblePublicamente(a, archivosEntidad))
+                .filter(this::esVisiblePublicamente)
                 .findFirst()
                 .orElse(null);
 
@@ -185,14 +180,6 @@ public class ProductoAccesoService {
             dto.setNombreArchivoOriginal(null);
             dto.setExtensionArchivo(null);
         }
-    }
-
-    // Determinar si un archivo principal es considerado "legacy" y público según la lógica de negocio, verificando que no haya otros archivos públicos
-    private boolean esLegacyPrincipalPublico(ProductoArchivo archivo, List<ProductoArchivo> todos) {
-        if (archivo.getRol() != RolArchivoProducto.PRINCIPAL) {
-            return false;
-        }
-        return todos.stream().noneMatch(a -> Boolean.TRUE.equals(a.getAccesoPublico()));
     }
 
     // Contar la cantidad de archivos restringidos (no públicos) en la lista de archivos

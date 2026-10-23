@@ -143,6 +143,9 @@ export const SuperAdminConfiguracionPage = () => {
 
             {tab === "programas" && (
                 <ProgramasPanel
+                    institucionNombre={
+                        hook.instituciones.find((i) => String(i.id) === hook.institucionSel)?.nombre
+                    }
                     facultades={hook.facultades}
                     facultadSel={hook.facultadSel}
                     setFacultadSel={hook.setFacultadSel}

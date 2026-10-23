@@ -14,7 +14,7 @@ export const SuperAdminReporteExportButtons = ({ disabled, payload }) => {
     const handlePdf = async () => {
         try {
             const { exportarReporteSistemaPdf } = await import("../../../../utils/reporteSistemaExport");
-            exportarReporteSistemaPdf(payload);
+            await exportarReporteSistemaPdf(payload);
         } catch (e) {
             notifyError("Error", e.message ?? "No se pudo generar el PDF");
         }

@@ -9,12 +9,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.sgpa.dto.request.ProgramaRequest;
 import com.sgpa.dto.response.ProgramaResponse;
+import com.sgpa.exception.EntidadEnUsoException;
+import com.sgpa.exception.FacultadNotFoundException;
+import com.sgpa.exception.ProgramaNotFoundException;
 import com.sgpa.mapper.ProgramaMapper;
 import com.sgpa.model.audit.ModuloAuditoria;
 import com.sgpa.model.audit.ResultadoAuditoria;
 import com.sgpa.model.institucion.Facultad;
 import com.sgpa.model.institucion.NivelFormacion;
 import com.sgpa.model.institucion.Programa;
+import com.sgpa.repository.DocenteRepository;
 import com.sgpa.repository.FacultadRepository;
 import com.sgpa.repository.ProgramaRepository;
 
@@ -26,6 +30,7 @@ public class ProgramaServiceImpl implements ProgramaService {
 
     private final ProgramaRepository programaRepository;
     private final FacultadRepository facultadRepository;
+    private final DocenteRepository docenteRepository;
     private final ProgramaMapper mapper;
     private final AuditService auditService;
 
@@ -33,16 +38,15 @@ public class ProgramaServiceImpl implements ProgramaService {
     @Transactional
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ProgramaResponse crear(ProgramaRequest dto) {
-        Facultad facultad = facultadRepository.findById(dto.getFacultadId())
-            .orElseThrow(() -> new RuntimeException(
-                "Facultad no encontrada con id: " + dto.getFacultadId()));
+        normalizar(dto);
+        Facultad facultad = buscarFacultad(dto.getFacultadId());
 
-        if (programaRepository.existsByNombreAndFacultadId(
+        if (programaRepository.existsByNombreIgnoreCaseAndFacultadId(
                 dto.getNombre(), dto.getFacultadId()))
             throw new IllegalStateException(
                 "Ya existe un programa con ese nombre en esta facultad");
 
-        if (programaRepository.existsByCodigo(dto.getCodigo()))
+        if (programaRepository.existsByCodigoIgnoreCase(dto.getCodigo()))
             throw new IllegalStateException(
                 "Ya existe un programa con código: " + dto.getCodigo());
 
@@ -93,21 +97,19 @@ public class ProgramaServiceImpl implements ProgramaService {
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ProgramaResponse actualizar(Long id, ProgramaRequest dto) {
         Programa programa = buscarEntidad(id);
+        normalizar(dto);
 
-        if (!programa.getNombre().equals(dto.getNombre())
-                && programaRepository.existsByNombreAndFacultadId(
-                    dto.getNombre(), dto.getFacultadId()))
+        // Verifica duplicado de nombre en la facultad destino, excluyendo el programa actual
+        if (programaRepository.existsByNombreIgnoreCaseAndFacultadIdAndIdNot(
+                dto.getNombre(), dto.getFacultadId(), id))
             throw new IllegalStateException(
                 "Ya existe un programa con ese nombre en esta facultad");
 
-        if (!dto.getCodigo().equals(programa.getCodigo())
-                && programaRepository.existsByCodigo(dto.getCodigo()))
+        if (programaRepository.existsByCodigoIgnoreCaseAndIdNot(dto.getCodigo(), id))
             throw new IllegalStateException(
                 "Ya existe un programa con código: " + dto.getCodigo());
 
-        Facultad facultad = facultadRepository.findById(dto.getFacultadId())
-            .orElseThrow(() -> new RuntimeException(
-                "Facultad no encontrada con id: " + dto.getFacultadId()));
+        Facultad facultad = buscarFacultad(dto.getFacultadId());
 
         programa.setNombre(dto.getNombre());
         programa.setCodigo(dto.getCodigo());
@@ -127,6 +129,13 @@ public class ProgramaServiceImpl implements ProgramaService {
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     public void eliminar(Long id) {
         Programa programa = buscarEntidad(id);
+
+        long docentes = docenteRepository.countByProgramaId(id);
+        if (docentes > 0)
+            throw new EntidadEnUsoException(
+                "No se puede eliminar: el programa tiene " + docentes
+                + " docente(s) asignado(s).");
+
         String nombre = programa.getNombre();
         programaRepository.deleteById(id);
         auditService.registrar(ModuloAuditoria.CONFIGURACION, "ELIMINAR_PROGRAMA",
@@ -137,8 +146,17 @@ public class ProgramaServiceImpl implements ProgramaService {
 
     private Programa buscarEntidad(Long id) {
         return programaRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException(
-                "Programa no encontrado con id: " + id));
+            .orElseThrow(() -> new ProgramaNotFoundException(id));
+    }
+
+    private Facultad buscarFacultad(Long facultadId) {
+        return facultadRepository.findById(facultadId)
+            .orElseThrow(() -> new FacultadNotFoundException(facultadId));
+    }
+
+    private void normalizar(ProgramaRequest dto) {
+        dto.setNombre(dto.getNombre().trim());
+        dto.setCodigo(dto.getCodigo().trim());
     }
 
     private NivelFormacion parsearNivel(String nivel) {
